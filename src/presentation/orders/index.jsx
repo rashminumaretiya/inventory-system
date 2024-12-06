@@ -1,0 +1,257 @@
+import {
+  Collapse,
+  Divider,
+  IconButton,
+  InputAdornment,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow,
+} from "@mui/material";
+import React, { useEffect, useState } from "react";
+import IMSTypography from "../../shared/IMSTypography";
+import { MUIStyled } from "../../shared/MUIStyled";
+import { ApiContainer } from "../../api";
+import toast from "react-hot-toast";
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import IMSTextField from "../../shared/IMSTextField";
+import { Search } from "../../shared/icon";
+import IMSDatePicker from "../../shared/IMSDatePicker";
+import dayjs from "dayjs";
+import IMSStack from "../../shared/IMSStack";
+import IMSGrid from "../../shared/IMSGrid";
+
+export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
+  maxHeight: "calc(100vh - 164px)",
+  "& .MuiTableHead-root": {
+    "& .MuiTableCell-root": {
+      padding: 5,
+      position: "sticky",
+      top: 0,
+      backgroundColor: theme.palette.white.main,
+      zIndex: 9,
+    },
+  },
+  "& .MuiTableBody-root": {
+    "& .MuiTableCell-root": {
+      padding: 5,
+      '& .MuiCollapse-wrapper': {
+        backgroundColor: '#f7f7f7',
+        "& .MuiTableHead-root": {
+          "& .MuiTableCell-root": {
+            backgroundColor: 'transparent',
+          }
+        }
+      }
+    },
+  },
+}));
+
+const Orders = () => {
+  const { apiResponse } = ApiContainer();
+  const [orderList, setOrderList] = useState([]);
+  const [filterOrderList, setFilterOrderList] = useState([]);
+  const [open, setOpen] = React.useState({});
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(20);
+  const [searchText, setSearchText] = useState('');
+  const [billDate, setBillDate] = useState(null); 
+
+  const getOrders = async () => {
+    try {
+      const response = await apiResponse("/orders", "GET");
+      if (response) {
+        setOrderList(response.data);
+        setFilterOrderList(response.data)
+      }
+    } catch {
+      toast.error("Something went wrong");
+    }
+  };
+
+  useEffect(() => {
+    getOrders();
+  }, []);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(+event.target.value);
+    setPage(0);
+  };
+  const applyFilters = () => {
+    let searchList = [...orderList]
+    if (searchText) {
+      searchList = searchList.filter((el) =>
+        el?.customerInfo?.vendorName.toLowerCase().includes(searchText.toLowerCase())
+      );
+    }
+  
+    if (billDate) {
+      searchList = searchList.filter(
+        (el) =>
+          dayjs(el?.billingDate)?.$d.toLocaleDateString() ===
+          billDate.toLocaleDateString()
+      );
+    }
+    setFilterOrderList(searchList)
+  }
+  const handleChange = (e) => {
+    if (e?.target) {
+      setSearchText( e.target.value)
+    } else {
+      setBillDate(e?.$d)
+    }
+  }
+
+  useEffect(() => {
+    applyFilters();
+  }, [searchText, billDate, orderList]);
+
+  console.log('filterOrderList', filterOrderList)
+  return (
+    <>
+      <IMSGrid container justifyContent="space-between" spacing={3}>
+        <IMSGrid item md={4}>
+          <IMSTextField
+            variant="outlined"
+            placeholder="Search..."
+            gutterNone
+            name="search"
+            onChange={handleChange}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </IMSGrid>
+        <IMSGrid item md={4}>
+          <IMSDatePicker
+            onChange={handleChange}
+            slotProps={{
+              field: { clearable: true },
+            }}
+            sx={{'& .MuiButtonBase-root': {position: 'absolute'}}}
+          />
+        </IMSGrid>
+      </IMSGrid>
+      <Divider sx={{mb:3}}/>
+      <TableContainerStyle>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell />
+              <TableCell>Invoice No</TableCell>
+              <TableCell>Invoice Date</TableCell>
+              <TableCell>User Name</TableCell>
+              <TableCell>User Phone</TableCell>
+              <TableCell>Payment</TableCell>
+              <TableCell>GST Number</TableCell>
+              <TableCell>Total</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filterOrderList.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9}>
+                  <IMSTypography
+                    textAlign="center"
+                    lineHeight="80px"
+                    color="natural.main"
+                  >
+                    No Data Added
+                  </IMSTypography>
+                </TableCell>
+              </TableRow>
+            ) : (
+              filterOrderList.sort((a, b) => b.invoiceNo.localeCompare(a.invoiceNo))
+                ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((data, i) =>
+                  <>
+                    <TableRow key={i} onClick={() => setOpen(open === i ? null : i)} sx={{cursor: 'pointer'}}>
+                      <TableCell>
+                        <IconButton
+                          aria-label="expand row"
+                          size="small"
+                          onClick={() => setOpen(open === i ? null : i)}
+                        >
+                          {open === i ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                        </IconButton>
+                      </TableCell>
+                      <TableCell>{data?.invoiceNo}</TableCell>
+                      <TableCell>
+                        {new Date(data?.billingDate).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>{data?.customerInfo.vendorName}</TableCell>
+                      <TableCell>{data?.customerInfo.vendorPhone}</TableCell>
+                      <TableCell>{data?.payment}</TableCell>
+                      <TableCell>{data?.GSTNumber ? data?.GSTNumber : 'N/A'}</TableCell>
+                      <TableCell>{data?.total}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell colSpan={8}>
+                        <Collapse in={open === i} timeout="auto" unmountOnExit>
+                        <Table size="small" aria-label="purchases">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>Item Name</TableCell>
+                              <TableCell>Item Qty</TableCell>
+                              <TableCell>Price</TableCell>
+                              <TableCell>Sub Total</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {data?.order?.map((item, index) => (
+                              <TableRow key={item.date}>
+                                <TableCell>{item?.itemName}</TableCell>
+                                <TableCell>
+                                  {item?.itemQuantity}{" "}
+                                  <IMSTypography
+                                    color="natural.main"
+                                    variant="body2"
+                                    component="span"
+                                  >
+                                    {item?.quantityCategory}
+                                  </IMSTypography>
+                                </TableCell>
+                                <TableCell>{item?.price}</TableCell>
+                                <TableCell>
+                                  {item?.subtotal}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                        </Collapse>
+                      </TableCell>
+                    </TableRow>
+                  </>
+                  
+                )
+            )}
+          </TableBody>
+        </Table>
+      </TableContainerStyle>
+      <TablePagination
+        rowsPerPageOptions={[20, 50, 100]}
+        component="div"
+        count={orderList.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
+    </>
+  );
+};
+
+export default Orders;

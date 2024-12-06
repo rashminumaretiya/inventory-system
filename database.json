@@ -1,0 +1,267 @@
+{
+  "inventory": {
+    "product": [
+      {
+        "id": 123345534,
+        "itemName": "Apple",
+        "price": 200,
+        "stock": 20
+      },
+      {
+        "id": 546756723,
+        "itemName": "balaji wafers",
+        "price": 10,
+        "stock": 20
+      },
+      {
+        "id": 658734434,
+        "itemName": "Blueberry",
+        "price": 150,
+        "stock": 30
+      },
+      {
+        "id": 435343465,
+        "itemName": "Coconut oil",
+        "price": 299,
+        "stock": 300
+      },
+      {
+        "id": 324234234,
+        "itemName": "Tomato",
+        "price": 230,
+        "stock": 100
+      },
+      {
+        "id": 334234324,
+        "itemName": "Cucumber",
+        "price": 230,
+        "stock": 10
+      },
+      {
+        "id": 4564565455,
+        "itemName": "Grapes",
+        "price": 100,
+        "stock": 52
+      },
+      {
+        "id": 6456456455,
+        "itemName": "Cow's Ghee",
+        "price": 56,
+        "stock": 22
+      },
+      {
+        "id": 3434534222,
+        "itemName": "Orange",
+        "price": 200,
+        "stock": 80
+      },
+      {
+        "id": 67345345345,
+        "itemName": "Pomegranate",
+        "price": 125,
+        "stock": 8
+      },
+      {
+        "id": 44546456565,
+        "itemName": "Papaya",
+        "price": 225,
+        "stock": 23
+      },
+      {
+        "id": 55464645654,
+        "itemName": "Alphonso Mango",
+        "price": 115,
+        "stock": 21
+      },
+      {
+        "id": 534345345345,
+        "itemName": "Watermelon",
+        "price": 180,
+        "stock": 28
+      }
+    ]
+  },
+  "venders": [
+    {
+      "name": "Abhi",
+      "phone": "7896541230",
+      "address": "Abc circle, Surat",
+      "id": 1728043515071
+    },
+    {
+      "name": "Raj Gevriya",
+      "phone": "1234567890",
+      "address": "Xyz circle, Surat",
+      "id": 1728043543022
+    },
+    {
+      "name": "Milan C",
+      "phone": "1231231232",
+      "address": "mahadev circle",
+      "id": 1728043592926
+    },
+    {
+      "name": "Harshil Gajera",
+      "phone": "1287633254564",
+      "address": "Xyz circle, Surat",
+      "id": 1728043954587
+    },
+    {
+      "name": "Shardul shurma",
+      "phone": "123123123123",
+      "address": "123, Surat",
+      "id": 1731662318731
+    },
+    {
+      "name": "Chirag",
+      "phone": "8965456321",
+      "address": "Hirabagh, surat",
+      "id": 1733289556932
+    }
+  ],
+  "orders": [
+    {
+      "invoiceNo": "DT_1",
+      "billingDate": "2024-12-04T05:29:41.408Z",
+      "subtotal": 420,
+      "customerInfo": {
+        "vendorName": "Shardul shurma",
+        "vendorPhone": "123123123123",
+        "address": "123, Surat"
+      },
+      "total": 420,
+      "order": [
+        {
+          "id": 123345534,
+          "itemName": "Apple",
+          "price": 200,
+          "quantityCategory": "Kg",
+          "itemQuantity": "2",
+          "subtotal": 400
+        },
+        {
+          "id": 546756723,
+          "itemName": "balaji wafers",
+          "price": 10,
+          "quantityCategory": "Pcs.",
+          "itemQuantity": "2",
+          "subtotal": 20
+        }
+      ],
+      "payment": "Cash",
+      "id": 1733290207379
+    },
+    {
+      "invoiceNo": "DT_2",
+      "billingDate": "2024-12-04T06:05:13.798Z",
+      "subtotal": 399,
+      "customerInfo": {
+        "vendorName": "Chirag",
+        "vendorPhone": "8965456321",
+        "address": "Hirabagh, surat"
+      },
+      "total": 470.82,
+      "order": [
+        {
+          "id": 435343465,
+          "itemName": "Coconut oil",
+          "price": 299,
+          "quantityCategory": "Kg",
+          "itemQuantity": "1",
+          "subtotal": 299
+        },
+        {
+          "id": 546756723,
+          "itemName": "balaji wafers",
+          "price": 10,
+          "quantityCategory": "Pcs.",
+          "itemQuantity": "10",
+          "subtotal": 100
+        }
+      ],
+      "payment": "Cash",
+      "GST": "yes",
+      "GSTNumber": "1212121212",
+      "amountPay": "470.82",
+      "id": 1733292366329
+    },
+    {
+      "invoiceNo": "DT_3",
+      "billingDate": "2024-12-02T07:14:06.085Z",
+      "subtotal": 782,
+      "customerInfo": {
+        "vendorName": "Harshil Gajera",
+        "vendorPhone": "1287633254564",
+        "address": "Xyz circle, Surat"
+      },
+      "total": 782,
+      "order": [
+        {
+          "id": 435343465,
+          "itemName": "Coconut oil",
+          "price": 299,
+          "quantityCategory": "Kg",
+          "itemQuantity": "1",
+          "subtotal": 299
+        },
+        {
+          "id": 324234234,
+          "itemName": "Tomato",
+          "price": 230,
+          "quantityCategory": "Kg",
+          "itemQuantity": "2",
+          "subtotal": 460
+        },
+        {
+          "id": 334234324,
+          "itemName": "Cucumber",
+          "price": 230,
+          "quantityCategory": "Grams",
+          "itemQuantity": "100",
+          "subtotal": 23
+        }
+      ],
+      "payment": "Cash",
+      "id": 1733296464788
+    },
+    {
+      "invoiceNo": "DT_4",
+      "billingDate": "2024-12-03T07:15:09.227Z",
+      "subtotal": 7307,
+      "customerInfo": {
+        "vendorName": "Shardul shurma",
+        "vendorPhone": "123123123123",
+        "address": "123, Surat"
+      },
+      "total": 7307,
+      "order": [
+        {
+          "id": 123345534,
+          "itemName": "Apple",
+          "price": 200,
+          "quantityCategory": "Kg",
+          "itemQuantity": "1",
+          "subtotal": 200
+        },
+        {
+          "id": 324234234,
+          "itemName": "Tomato",
+          "price": 230,
+          "quantityCategory": "Kg",
+          "itemQuantity": "1",
+          "subtotal": 230
+        },
+        {
+          "id": 435343465,
+          "itemName": "Coconut oil",
+          "price": 299,
+          "quantityCategory": "Kg",
+          "itemQuantity": "23",
+          "subtotal": 6877
+        }
+      ],
+      "payment": "Cash",
+      "id": 1733296580056
+    }
+  ]
+}
