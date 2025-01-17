@@ -24,6 +24,9 @@ import IMSDatePicker from "../../shared/IMSDatePicker";
 import dayjs from "dayjs";
 import IMSStack from "../../shared/IMSStack";
 import IMSGrid from "../../shared/IMSGrid";
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import { Edit } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 
 export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
   maxHeight: "calc(100vh - 164px)",
@@ -60,6 +63,7 @@ const Orders = () => {
   const [rowsPerPage, setRowsPerPage] = React.useState(20);
   const [searchText, setSearchText] = useState('');
   const [billDate, setBillDate] = useState(null); 
+  const navigate = useNavigate()
 
   const getOrders = async () => {
     try {
@@ -110,11 +114,29 @@ const Orders = () => {
     }
   }
 
+  const handleDeleteOrder = async (e, id) => {
+    e.stopPropagation()
+    const filteredData = orderList.filter((item)=> item.id === id)
+    try {
+      const response = await apiResponse(`/orders/${id}`, "DELETE", filteredData);
+      if (response) {
+        toast.success("Order deleted successfully")
+        setOrderList(orderList.filter((item)=> item.id !== id))
+      }
+    } catch {
+      toast.error("Something went wrong");
+    }
+  }
+  const handleEditOrder = async (e, id) => {
+    e.stopPropagation()
+    navigate(`/?order/${id}`)
+    localStorage.clear()
+  }
+
   useEffect(() => {
     applyFilters();
   }, [searchText, billDate, orderList]);
 
-  console.log('filterOrderList', filterOrderList)
   return (
     <>
       <IMSGrid container justifyContent="space-between" spacing={3}>
@@ -157,6 +179,7 @@ const Orders = () => {
               <TableCell>Payment</TableCell>
               <TableCell>GST Number</TableCell>
               <TableCell>Total</TableCell>
+              <TableCell>Action</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -196,9 +219,13 @@ const Orders = () => {
                       <TableCell>{data?.payment}</TableCell>
                       <TableCell>{data?.GSTNumber ? data?.GSTNumber : 'N/A'}</TableCell>
                       <TableCell>{data?.total}</TableCell>
+                      <TableCell>
+                        <IconButton onClick={(e)=> handleEditOrder(e, data?.id)} color="primary"><Edit/></IconButton>
+                        <IconButton onClick={(e)=> handleDeleteOrder(e, data?.id)} color="error"><DeleteOutlineIcon/></IconButton>
+                      </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell colSpan={8}>
+                      <TableCell colSpan={9}>
                         <Collapse in={open === i} timeout="auto" unmountOnExit>
                         <Table size="small" aria-label="purchases">
                           <TableHead>

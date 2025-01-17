@@ -14,6 +14,7 @@ import AddCustomer from "./addCustomer";
 import PrintOrder from "./printOrder";
 import ProductTable from "./productTable";
 import AddProduct from "./addProduct";
+import IMSTypography from "../../shared/IMSTypography";
 
 const Dashboard = () => {
   const {
@@ -31,11 +32,12 @@ const Dashboard = () => {
     handleAddNew,
     addNewCustomer,
     closeNewCustomer,
-    handleAddCustomer,
+    isEditMode,
     handlePrint,
     componentRef,
+    handleUpdate,
+    handleClearAll
   } = DashboardContainer();
-
   return (
     <>
       <PrintOrder
@@ -49,9 +51,9 @@ const Dashboard = () => {
         billingData={addData}
         setAddData={setAddData}
         sx={{
-          minHeight: 330,
-          maxHeight: 330,
-          marginBottom: 4,
+          minHeight: 400,
+          maxHeight: 400,
+          marginBottom: 'auto',
           "@media print": {
             display: "none",
           },
@@ -60,12 +62,13 @@ const Dashboard = () => {
       <IMSStack
         position="relative"
         sx={{
+          mt:3,
           "@media print": {
             display: "none",
           },
         }}
       >
-        <IMSForm onSubmit={handleAddData}>
+        <IMSForm key={formData?.GST} onSubmit={handleAddData}>
           <IMSGrid container columnSpacing={3}>
             {mappedBillingFields.map((billingField, index) => {
               return (
@@ -97,7 +100,7 @@ const Dashboard = () => {
                               field.label,
                               index
                             ),
-                          defaultValue: field.defaultValue,
+                          defaultValue: formData[field.name] === undefined ? field.defaultValue : formData[field.name],
                           multiline: field.multiline,
                           rows: field.rows,
                           addNew: field.addNew,
@@ -117,6 +120,26 @@ const Dashboard = () => {
                                 <IMSAutoComplete
                                   {...fieldProps}
                                   options={field?.options}
+                                  getOptionLabel={(option) => option}
+                                  renderOption={(props, option) => {
+                                    const { key, ...optionProps } = props;
+                                    return (
+                                      <IMSStack
+                                        key={key}
+                                        direction="row"
+                                        {...optionProps}
+                                      >
+                                        {
+                                          field?.name === "itemName" ?  
+                                            <>
+                                            {option?.itemName}
+                                            <IMSTypography ml="auto" variant="body2" color="gray">Stock: {option?.stock}</IMSTypography>
+                                            </>
+                                            : option
+                                        }
+                                      </IMSStack>
+                                    );
+                                  }}
                                 />
                               </IMSGrid>
                             );
@@ -180,13 +203,30 @@ const Dashboard = () => {
               <IMSButton variant="contained" type="submit">
                 Add New
               </IMSButton>
-              <IMSButton variant="contained" onClick={handleSave}>
-                Save
-              </IMSButton>
-              <IMSButton variant="contained" onClick={handleCancel}>
-                Cancel
-              </IMSButton>
-              <IMSButton variant="contained" onClick={handlePrint}>
+              {isEditMode ? (
+                <>
+                <IMSButton variant="contained" onClick={handleUpdate}>
+                  Update
+                </IMSButton>
+                <IMSButton variant="contained" onClick={handleClearAll}>
+                  Clear All
+                </IMSButton>
+                </>
+              ) : (
+                <>
+                <IMSButton variant="contained" onClick={handleSave}>
+                  Save
+                </IMSButton>
+                <IMSButton variant="contained" onClick={handleCancel}>
+                  Cancel
+                </IMSButton>
+                </>
+              )}
+              <IMSButton
+                variant="contained"
+                disabled={addData?.length === 0}
+                onClick={handlePrint}
+              >
                 print
               </IMSButton>
             </IMSStack>

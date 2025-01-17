@@ -16,6 +16,7 @@ const IMSAutoComplete = ({
   helperText,
   addNew,
   addClick,
+  ...props
 }) => {
   return (
     <>
@@ -54,6 +55,7 @@ const IMSAutoComplete = ({
           />
         )}
         sx={{ flex: 1 }}
+        {...props}
       />
     </>
   );

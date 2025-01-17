@@ -5,9 +5,13 @@ import { billingFields } from "../description/billingField.description";
 import validation from "../utils/validation";
 import { ApiContainer } from "../api";
 import { useReactToPrint } from "react-to-print";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { productData } from "../store/slice/productSlice";
 
 const DashboardContainer = () => {
   const { apiResponse } = ApiContainer();
+  const navigate = useNavigate()
   const [productList, setProductList] = useState([]);
   const [vendersList, setVendersList] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -20,12 +24,20 @@ const DashboardContainer = () => {
   const [formError, setFormError] = useState({});
   const [addNewCustomer, setAddNewCustomer] = useState({});
   const componentRef = useRef(null);
+  const orderParams = useLocation();
+  const [isEditMode, setIsEditMode] = useState(false);
+  const dispatch = useDispatch()
+
+  const newUser = useSelector((state) => state?.customer?.user || [])
+  const newProduct = useSelector((state) => state?.product?.product || [])
+  
 
   const getProduct = async () => {
     try {
-      const response = await apiResponse("/inventory", "GET");
+      const response = await apiResponse("/product", "GET");
       if (response) {
-        setProductList(response.data.product);
+        setProductList(response.data);
+        dispatch(productData({payload: response.data}))
       }
     } catch {
       toast.error("Something went wrong");
@@ -42,6 +54,19 @@ const DashboardContainer = () => {
     }
   };
 
+  useEffect(() => {
+   if(newProduct){
+    setProductList(newProduct);
+   }
+  }, [newProduct])
+
+  useEffect(() => {
+   if(newUser){
+    const newVenderList = [...vendersList, newUser]
+    setVendersList(newVenderList);
+   }
+  }, [newUser])
+
   const getOrder = async () => {
     try {
       const response = await apiResponse("/orders", "GET");
@@ -54,9 +79,10 @@ const DashboardContainer = () => {
   };
 
   useEffect(() => {
-    getProduct();
-    getOrder();
-    getVenders();
+    const fetchData = async () => {
+      await Promise.all([getProduct(), getOrder(), getVenders()]);
+    };
+    fetchData()
   }, []);
 
   const handleChange = (e, pattern, sName, val, label, index) => {
@@ -65,7 +91,7 @@ const DashboardContainer = () => {
       const selectedName = name || sName;
       const selectedValue = value || val;
 
-      const item = productList?.find((el) => el.itemName === selectedValue);
+      const item = productList?.find((el) => el.itemName === selectedValue?.itemName);
       const vender = vendersList?.find((el) => el.name === selectedValue);
       const isVendorChange = selectedName === "vendorName";
       const isMethod = ["GST", "GSTNumber", "payment", "amountPay"].includes(
@@ -99,7 +125,7 @@ const DashboardContainer = () => {
                           selectedName === "itemName"
                             ? item?.id
                             : prev?.order?.[index].id,
-                        [selectedName]: selectedValue,
+                        [selectedName]: selectedName === "itemName" ? selectedValue.itemName : selectedValue,
                         price:
                           selectedName === "itemName"
                             ? item?.price
@@ -120,7 +146,7 @@ const DashboardContainer = () => {
                         selectedName === "itemName"
                           ? item?.id
                           : prev?.order?.[index].id,
-                      [selectedName]: selectedValue,
+                      [selectedName]: selectedName === "itemName" ? selectedValue?.itemName : selectedValue,
                       price:
                         selectedName === "itemName"
                           ? item?.price
@@ -135,7 +161,10 @@ const DashboardContainer = () => {
           }),
       }));
     }
+    e.$d && setBillDate(dayjs(e.$d))
   };
+
+  console.log('formData', formData)
 
   const handleAddData = (e) => {
     e.preventDefault();
@@ -219,32 +248,35 @@ const DashboardContainer = () => {
       }
 
       setFormData({
-        invoiceNo: "DT_1",
-        billingDate: billDate.$d,
+        invoiceNo:isEditMode ? formData.invoiceNo: "DT_1",
+        billingDate: isEditMode ? formData.billingDate: billDate.$d,
         subtotal: formData.subtotal,
         customerInfo: formData.customerInfo,
         total: formData.total,
       });
     }
-  };
-
+  }  
+   
   useEffect(() => {
-    const subtotal = addData?.reduce((acc, val) => acc + +val.subtotal, 0);
+      const subtotal = addData?.reduce((acc, val) => acc + +val.subtotal, 0);
+  
+      const invoice = orders.map((data) => data.invoiceNo);
+  
+      const gstAmount = formData.GST === "yes" ? (subtotal * 18) / 100 : 0;
+      setFormData((prev) => ({
+        ...prev,
+        invoiceNo: isEditMode ? formData.invoiceNo : invoice.length ? `DT_${invoice.length + 1}` : "DT_1",
+        billingDate: billDate.$d,
+        subtotal: subtotal,
+        order: Array.isArray(prev.order) ? [...prev.order] : [{}],
+        GST: formData.GST || 'no',
+        payment: formData.payment || 'Cash',
+        GSTAmount: gstAmount,
+        total: gstAmount !== 0 ? subtotal + gstAmount : subtotal,
+      }));
+      
+  }, [addData, formData.invoiceNo, formData.payment, formData.GST, billDate, orders, isEditMode]);
 
-    const invoice = orders.map((data) => data.invoiceNo);
-
-    const gstAmount = formData.GST === "yes" ? (subtotal * 18) / 100 : 0;
-
-    setFormData((prev) => ({
-      ...prev,
-      invoiceNo: invoice.length ? `DT_${invoice.length + 1}` : "DT_1",
-      billingDate: billDate.$d,
-      subtotal: subtotal,
-      order: Array.isArray(prev.order) ? [...prev.order] : [{}],
-      payment: "Cash",
-      total: gstAmount !== 0 ? subtotal + gstAmount : subtotal,
-    }));
-  }, [addData, formData.GST, billDate.$d, orders]);
 
   const handleCancel = () => {
     setFormData((prev) => ({
@@ -256,7 +288,14 @@ const DashboardContainer = () => {
       payment: "Cash",
     }));
   };
-
+  const handleClearAll = () => {
+    localStorage.clear()
+    handleCancel()
+    setIsEditMode(false);
+    setAddData([]);
+    navigate('/')
+  };
+  
   const handleSave = async () => {
     let error = {};
     billingFields.forEach((fields) => {
@@ -305,7 +344,6 @@ const DashboardContainer = () => {
         toast.error("Something went wrong");
       }
     }
-    console.log("addData", addData);
   };
 
   const mappedBillingFields = billingFields.map((billingField) => {
@@ -313,12 +351,12 @@ const DashboardContainer = () => {
       if (field.name === "itemName") {
         return {
           ...field,
-          options: productList?.map((product) => product.itemName),
+          options: productList?.map((product) => ({itemName: product.itemName, stock: product.stock})),
         };
       } else if (field.name === "vendorName") {
         return {
           ...field,
-          options: vendersList?.map((vendor) => vendor.name),
+          options: vendersList?.map((vendor) => vendor?.name),
         };
       }
       return field;
@@ -341,6 +379,44 @@ const DashboardContainer = () => {
   const closeNewCustomer = () => {
     setAddNewCustomer({ show: false });
   };
+  const editOrder = (orderID) => {
+    setIsEditMode(true);
+    if (orders.length > 0 && orderID) {
+      const editOrderRecord = orders.find((item) => item.id === Number(orderID));
+      localStorage.setItem('formData', JSON.stringify(editOrderRecord.order))
+      setFormData(editOrderRecord)
+      setBillDate(dayjs(editOrderRecord?.billingDate))
+      setAddData(editOrderRecord?.order)
+    }    
+  };
+  
+  useEffect(() => {
+    const orderID = orderParams?.search.replace("?order/", "");
+    if(orderID) {
+      editOrder(orderID);
+    }
+  }, [orders])
+
+  
+  const handleUpdate = async () => {
+    const orderID = orderParams?.search.replace("?order/", "");
+    const updateRecord = {...formData, order: addData}
+    try {
+      const response = await apiResponse(`/orders/${orderID}`, 'PATCH', null, {
+        ...updateRecord,
+        invoiceNo: updateRecord.invoiceNo,
+        id: Date.now(),
+      })
+        if(response) {
+          toast.success("Updated order successfully")
+          localStorage.clear();
+          setIsEditMode(false);
+          navigate('/orders')
+        }
+    } catch {
+      toast.error("Something went wrong");
+    }
+  }
 
   return {
     mappedBillingFields,
@@ -359,6 +435,9 @@ const DashboardContainer = () => {
     closeNewCustomer,
     handlePrint,
     componentRef,
+    isEditMode,
+    handleUpdate,
+    handleClearAll
   };
 };
 

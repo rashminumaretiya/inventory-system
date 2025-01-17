@@ -3,10 +3,13 @@ import validation from "../utils/validation";
 import { customerFields } from "../description/customerFields.description";
 import toast from "react-hot-toast";
 import { ApiContainer } from "../api";
+import { useDispatch } from "react-redux";
+import { userData } from "../store/slice/customerSlice";
 
 const AddCustomerContainer = () => {
   const [error, setError] = useState({});
   const [formData, setFormData] = useState({});
+  const dispatch = useDispatch()
   const { apiResponse } = ApiContainer();
 
   const handleChange = (e, pattern, sName, val, label) => {
@@ -41,6 +44,7 @@ const AddCustomerContainer = () => {
         });
         if (response) {
           toast.success("Added");
+          dispatch(userData({ payload: formData }))
           setFormData({});
         }
       } catch {

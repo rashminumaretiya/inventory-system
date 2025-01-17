@@ -3,11 +3,15 @@ import validation from "../utils/validation";
 import toast from "react-hot-toast";
 import { ApiContainer } from "../api";
 import { productFields } from "../description/productFields.description";
+import { useDispatch, useSelector } from "react-redux";
+import { productData } from "../store/slice/productSlice";
 
 const AddProductContainer = () => {
   const [error, setError] = useState({});
   const [formData, setFormData] = useState({});
   const { apiResponse } = ApiContainer();
+  const dispatch = useDispatch()
+  const allProduct = useSelector((state) => state?.product?.product || [])
 
   const handleChange = (e, pattern, sName, val, label) => {
     const { name, value } = e.target;
@@ -19,6 +23,7 @@ const AddProductContainer = () => {
     }));
     setFormData((prev) => ({ ...prev, [selectedName]: selectedValue }));
   };
+
   const handleAddProduct = async (e) => {
     e.preventDefault();
     let newErr = {};
@@ -35,16 +40,14 @@ const AddProductContainer = () => {
     }));
     if (Object.values(newErr).every((el) => el === undefined)) {
       try {
-        const response = await apiResponse("/inventory", "PUT", null, {
-          product: [
-            {
-              ...formData,
-              id: Date.now(),
-            },
-          ],
+        const response = await apiResponse("/product", "POST", null, {
+          ...formData,
+          id: Date.now()
         });
         if (response) {
           toast.success("Added");
+          const newProduct = [...allProduct, response.data]
+          dispatch(productData({payload: newProduct}))
           setFormData({});
         }
       } catch {

@@ -93,7 +93,7 @@ const IMSTextField = ({ ...props }) => {
     >
       {props.formLabel && (
         <IMSFormLabel
-          sx={{ minWidth: 120, maxWidth: 120, mb: !props.row ? 0.5 : 0 }}
+          sx={{ minWidth: 120, mb: !props.row ? 0.5 : 0 }}
         >
           {props.formLabel}
         </IMSFormLabel>
