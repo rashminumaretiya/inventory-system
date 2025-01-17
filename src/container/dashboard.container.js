@@ -20,7 +20,6 @@ const DashboardContainer = () => {
   const [addData, setAddData] = useState(
     JSON.parse(localStorage.getItem("formData")) || []
   );
-  const [orderIndex, setOrderIndex] = useState(0);
   const [formError, setFormError] = useState({});
   const [addNewCustomer, setAddNewCustomer] = useState({});
   const componentRef = useRef(null);
@@ -295,7 +294,7 @@ const DashboardContainer = () => {
     setAddData([]);
     navigate('/')
   };
-  
+
   const handleSave = async () => {
     let error = {};
     billingFields.forEach((fields) => {
@@ -425,7 +424,6 @@ const DashboardContainer = () => {
     handleCancel,
     addData,
     setAddData,
-    orderIndex,
     formData,
     formError,
     billDate,

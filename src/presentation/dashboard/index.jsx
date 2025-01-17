@@ -24,7 +24,6 @@ const Dashboard = () => {
     handleCancel,
     addData,
     setAddData,
-    orderIndex,
     formData,
     formError,
     billDate,
@@ -81,7 +80,7 @@ const Dashboard = () => {
                   >
                     <IMSGrid container columnSpacing={3} alignItems="flex-end">
                       {billingField.billingFormFields.map((field, i) => {
-                        const index = orderIndex;
+                        const index = 0;
                         const fieldProps = {
                           key: index,
                           formLabel: field.label,
