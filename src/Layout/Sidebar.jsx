@@ -21,9 +21,9 @@ const menuList = [
     link: "/",
   },
   {
-    menu: "Inventory",
+    menu: "Product",
     icon: <Inventory />,
-    link: "/inventory",
+    link: "/product",
   },
   {
     menu: "Reports",
@@ -31,9 +31,9 @@ const menuList = [
     link: "/reports",
   },
   {
-    menu: "Suppliers",
+    menu: "Customer",
     icon: <Suppliers />,
-    link: "/suppliers",
+    link: "/customer",
   },
   {
     menu: "Orders",

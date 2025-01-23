@@ -29,6 +29,7 @@ const DashboardContainer = () => {
 
   const newUser = useSelector((state) => state?.customer?.user || [])
   const newProduct = useSelector((state) => state?.product?.product || [])
+  const allProduct = useSelector((state) => state?.product?.product || [])
   
 
   const getProduct = async () => {
@@ -141,20 +142,10 @@ const DashboardContainer = () => {
                 : [
                     {
                       ...prev?.order[index],
-                      id:
-                        selectedName === "itemName"
-                          ? item?.id
-                          : prev?.order?.[index].id,
+                      id: selectedName === "itemName" ? item?.id : prev?.order?.[index].id,
                       [selectedName]: selectedName === "itemName" ? selectedValue?.itemName : selectedValue,
-                      price:
-                        selectedName === "itemName"
-                          ? item?.price
-                          : prev.order?.[index].price,
-                      quantityCategory: ["Grams", "Kg", "Pcs."].includes(
-                        selectedValue
-                      )
-                        ? selectedValue
-                        : formData.order?.[index]?.quantityCategory || "Kg",
+                      price: selectedName === "itemName" ? item?.price : prev.order?.[index].price,
+                      quantityCategory: ["Grams", "Kg", "Pcs."].includes(selectedValue) ? selectedValue : item?.quantityCategory || prev.order?.[index].quantityCategory,
                     },
                   ],
           }),
@@ -163,11 +154,10 @@ const DashboardContainer = () => {
     e.$d && setBillDate(dayjs(e.$d))
   };
 
-  console.log('formData', formData)
-
   const handleAddData = (e) => {
     e.preventDefault();
     let error = {};
+    const findProduct = productList.find(data => data.id === formData?.order[0].id)
     billingFields.forEach((fields) => {
       fields.billingFormFields.forEach((field) => {
         if (
@@ -188,8 +178,20 @@ const DashboardContainer = () => {
             field.label
           );
         }
+        if(field.name === 'itemQuantity') {
+          if(formData?.order[0].quantityCategory === 'Grams') {
+            if(Number(findProduct.stock * 1000) < Number(formData?.order[0].itemQuantity)) {
+              error[field?.name] = 'Stock quantity not available'
+            }
+          } else {
+            if(Number(findProduct.stock) < Number(formData?.order[0].itemQuantity)) {
+              error[field?.name] = 'Stock quantity not available'
+            }
+          }
+        }
       });
     });
+    
     setFormError((prev) => ({
       ...prev,
       ...error,
@@ -217,7 +219,7 @@ const DashboardContainer = () => {
                 +data.itemQuantity + +formData.order[0].itemQuantity / 1000;
             } else if (formData.order[0].quantityCategory === "Grams") {
               updatedQuantity =
-                +data.itemQuantity + +formData.order[0].itemQuantity / 1000;
+                +data.itemQuantity + +formData.order[0].itemQuantity;
             } else {
               updatedQuantity =
                 +data.itemQuantity + +formData.order[0].itemQuantity;
@@ -225,8 +227,9 @@ const DashboardContainer = () => {
 
             return {
               ...data,
-              itemQuantity: updatedQuantity,
-              subtotal: (updatedQuantity * formData.order[0].price).toFixed(2),
+              itemQuantity: data.quantityCategory !== 'Pcs.' && updatedQuantity >= 1000 ? updatedQuantity / 1000 : updatedQuantity,
+              quantityCategory: data.quantityCategory !== 'Pcs.' && updatedQuantity >= 1000 ? 'Kg' : data.quantityCategory,
+              subtotal: (data.quantityCategory === 'Grams' ? (updatedQuantity / 1000) * formData.order[0].price : updatedQuantity * formData.order[0].price).toFixed(2),
             };
           }
           return data;
@@ -236,16 +239,17 @@ const DashboardContainer = () => {
       } else {
         existingData?.push({
           ...formData.order[0],
+          itemQuantity: formData.order[0].quantityCategory !== 'Pcs.' && formData.order[0].itemQuantity >= 1000 ? formData.order[0].itemQuantity / 1000 : formData.order[0].itemQuantity,
+          quantityCategory: formData.order[0].quantityCategory !== 'Pcs.' && formData.order[0].itemQuantity >= 1000  ? 'Kg' : formData.order[0].quantityCategory,
           subtotal:
-            formData.order[0].quantityCategory === "Grams"
+            (formData.order[0].quantityCategory === "Grams"
               ? (formData.order[0].price / 1000) *
                 formData.order[0].itemQuantity
-              : formData.order[0].itemQuantity * formData.order[0].price,
+              : formData.order[0].itemQuantity * formData.order[0].price).toFixed(2),
         });
         localStorage.setItem("formData", JSON.stringify(existingData));
         setAddData(existingData);
       }
-
       setFormData({
         invoiceNo:isEditMode ? formData.invoiceNo: "DT_1",
         billingDate: isEditMode ? formData.billingDate: billDate.$d,
@@ -271,7 +275,7 @@ const DashboardContainer = () => {
         GST: formData.GST || 'no',
         payment: formData.payment || 'Cash',
         GSTAmount: gstAmount,
-        total: gstAmount !== 0 ? subtotal + gstAmount : subtotal,
+        total: (gstAmount !== 0 ? subtotal + gstAmount : subtotal).toFixed(2),
       }));
       
   }, [addData, formData.invoiceNo, formData.payment, formData.GST, billDate, orders, isEditMode]);
@@ -324,33 +328,74 @@ const DashboardContainer = () => {
       ...error,
     }));
     if (Object.values(error).every((el) => el === undefined)) {
+      const updatedRecords = productList.filter((el) => 
+        addData.some((item) => item.id === el.id)
+      ).map((el) => {
+        const matchedItem = addData.find((item) => item.id === el.id);
+        return {
+          ...el,
+          stock:
+            (matchedItem.quantityCategory === "Grams"
+              ? (+el.stock * 1000 - matchedItem.itemQuantity) / 1000
+              : +el.stock - matchedItem.itemQuantity).toFixed(2),
+        };
+      });
+      const updatedProductList = productList.map((el) => {
+        const matchedRecord = updatedRecords.find((record) => record.id === el.id);
+        return matchedRecord ? { ...matchedRecord } : el;
+      });
       const order = { ...formData, order: addData };
-      try {
-        const response = await apiResponse("/orders", "POST", null, {
-          ...order,
-          id: Date.now(),
-        });
-        if (response) {
-          toast.success("Order saved successfully");
-          localStorage.removeItem("formData");
-          setAddData([]);
-          setFormData((prev) => ({
-            order: [{}],
-          }));
-          getOrder();
+      const matchedRecord = productList.filter((data) => {
+        return addData.some((record) => record.id === data.id);
+      })
+      let isStockValid = true;
+      matchedRecord.forEach((record) => {
+        const stockInfo = addData.find((data) => data.id === record.id);
+        const quantityCategoryMultiplier = stockInfo.quantityCategory === 'Pcs.' ? 1 : 1000;
+        const requiredStock = stockInfo.itemQuantity * quantityCategoryMultiplier;
+        const availableStock = record.stock * quantityCategoryMultiplier;
+      
+        if (requiredStock > availableStock) {
+          isStockValid = false;
+          toast.error(`${stockInfo.itemName} quantity must be less than ${record.stock}`);
         }
-      } catch {
-        toast.error("Something went wrong");
+      });
+      if(isStockValid) {
+        try {
+          const response = await apiResponse("/orders", "POST", null, {
+            ...order,
+            id: Date.now(),
+          });
+          if (response) {
+            const updatePromises = updatedRecords.map((record) => {
+              return apiResponse(`/product/${record.id}`, "PATCH", null, {
+                stock: record.stock,
+              });
+            });
+            const updateResponses = await Promise.all(updatePromises);
+            if(updateResponses.every((res) => res)) {
+              toast.success("Order saved successfully");
+              localStorage.removeItem("formData");
+              setAddData([]);
+              setFormData((prev) => ({
+                order: [{}],
+              }));
+              dispatch(productData({payload: updatedProductList}))
+            }
+          }
+        } catch {
+          toast.error("Something went wrong");
+        }
       }
     }
   };
-
+  console.log('productList', productList)
   const mappedBillingFields = billingFields.map((billingField) => {
     const updatedFields = billingField.billingFormFields.map((field) => {
       if (field.name === "itemName") {
         return {
           ...field,
-          options: productList?.map((product) => ({itemName: product.itemName, stock: product.stock})),
+          options: productList?.map((product) => ({itemName: product.itemName, stock: product.stock, quantityCategory: product.quantityCategory})),
         };
       } else if (field.name === "vendorName") {
         return {

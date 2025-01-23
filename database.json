@@ -1,120 +1,74 @@
 {
   "product": [
     {
-      "id": 123345534,
+      "quantityCategory": "Kg",
       "itemName": "Apple",
-      "price": 200,
-      "stock": 20
+      "price": "12",
+      "stock": "121",
+      "id": 1737365450768
     },
     {
-      "id": 546756723,
-      "itemName": "balaji wafers",
-      "price": 10,
-      "stock": 20
+      "itemName": "Blue Berry",
+      "price": "120",
+      "stock": "1000",
+      "quantityCategory": "Pcs.",
+      "id": 1737365475438
     },
     {
-      "id": 658734434,
-      "itemName": "Blueberry",
-      "price": 150,
-      "stock": 30
+      "quantityCategory": "Pcs.",
+      "itemName": "Colgate",
+      "price": "80",
+      "stock": "12",
+      "id": 1737365601517
     },
     {
-      "id": 435343465,
-      "itemName": "Coconut oil",
-      "price": 299,
-      "stock": 300
-    },
-    {
-      "id": 324234234,
-      "itemName": "Tomato",
-      "price": 230,
-      "stock": 100
-    },
-    {
-      "id": 334234324,
-      "itemName": "Cucumber",
-      "price": 230,
-      "stock": 10
-    },
-    {
-      "id": 4564565455,
-      "itemName": "Grapes",
-      "price": 100,
-      "stock": 52
-    },
-    {
-      "id": 6456456455,
-      "itemName": "Cow's Ghee",
-      "price": 56,
-      "stock": 22
-    },
-    {
-      "id": 3434534222,
+      "quantityCategory": "Kg",
       "itemName": "Orange",
-      "price": 200,
-      "stock": 80
+      "price": "50",
+      "stock": "498.50",
+      "id": 1737376761989
     },
     {
-      "id": 67345345345,
-      "itemName": "Pomegranate",
-      "price": 125,
-      "stock": 8
+      "quantityCategory": "Pcs.",
+      "itemName": "Balaji kurkure",
+      "price": "10",
+      "stock": "112",
+      "id": 1737626896939
     },
     {
-      "id": 44546456565,
-      "itemName": "Papaya",
-      "price": 225,
-      "stock": 23
+      "quantityCategory": "Kg",
+      "itemName": "Potato",
+      "price": "11",
+      "stock": "11",
+      "id": 1737629069043
     },
     {
-      "id": 55464645654,
-      "itemName": "Alphonso Mango",
-      "price": 115,
-      "stock": 21
+      "quantityCategory": "Grams",
+      "itemName": "Chilli",
+      "price": "20",
+      "stock": "500",
+      "id": 1737629157442
     },
     {
-      "id": 534345345345,
-      "itemName": "Watermelon",
-      "price": 180,
-      "stock": 28
+      "quantityCategory": "Pcs.",
+      "itemName": "Banana",
+      "price": "100",
+      "stock": "2000",
+      "id": 1737638278413
     }
   ],
   "venders": [
     {
-      "name": "Abhi",
-      "phone": "7896541230",
-      "address": "Abc circle, Surat",
-      "id": 1728043515071
+      "name": "Ramesh",
+      "phone": "121212121212",
+      "address": "Abc, circle, jotangiya",
+      "id": 1737362532285
     },
     {
-      "name": "Raj Gevriya",
-      "phone": "1234567890",
-      "address": "Xyz circle, Surat",
-      "id": 1728043543022
-    },
-    {
-      "name": "Milan C",
-      "phone": "1231231232",
-      "address": "mahadev circle",
-      "id": 1728043592926
-    },
-    {
-      "name": "Harshil Gajera",
-      "phone": "1287633254564",
-      "address": "Xyz circle, Surat",
-      "id": 1728043954587
-    },
-    {
-      "name": "Shardul shurma",
-      "phone": "123123123123",
-      "address": "123, Surat",
-      "id": 1731662318731
-    },
-    {
-      "name": "Chirag",
-      "phone": "8965456321",
-      "address": "Hirabagh, surat",
-      "id": 1733289556932
+      "name": "Sardule",
+      "phone": "8998989898",
+      "address": "ABC, circle",
+      "id": 1737459499663
     }
   ],
   "orders": [
@@ -384,6 +338,81 @@
         "address": "Hirabagh, surat"
       },
       "id": 1737095433473
+    },
+    {
+      "invoiceNo": "DT_7",
+      "billingDate": "2025-01-21T06:58:37.738Z",
+      "subtotal": 120,
+      "customerInfo": {
+        "vendorName": "Ramesh",
+        "vendorPhone": "121212121212",
+        "address": "Abc, circle, jotangiya"
+      },
+      "total": "120.00",
+      "order": [
+        {
+          "id": 1737365450768,
+          "itemName": "Apple",
+          "price": "12",
+          "quantityCategory": "Kg",
+          "itemQuantity": "10",
+          "subtotal": "120.00"
+        }
+      ],
+      "GST": "no",
+      "payment": "Cash",
+      "GSTAmount": 0,
+      "id": 1737459377839
+    },
+    {
+      "invoiceNo": "DT_8",
+      "billingDate": "2025-01-23T06:50:04.030Z",
+      "subtotal": 75,
+      "customerInfo": {
+        "vendorName": "Ramesh",
+        "vendorPhone": "121212121212",
+        "address": "Abc, circle, jotangiya"
+      },
+      "total": "75.00",
+      "order": [
+        {
+          "id": 1737376761989,
+          "itemName": "Orange",
+          "price": "50",
+          "quantityCategory": "Kg",
+          "itemQuantity": "1.5",
+          "subtotal": "75.00"
+        }
+      ],
+      "GST": "no",
+      "payment": "Cash",
+      "GSTAmount": 0,
+      "id": 1737615060524
+    },
+    {
+      "invoiceNo": "DT_9",
+      "billingDate": "2025-01-23T09:14:04.667Z",
+      "subtotal": 120,
+      "customerInfo": {
+        "vendorName": "Ramesh",
+        "vendorPhone": "121212121212",
+        "address": "Abc, circle, jotangiya"
+      },
+      "total": "120.00",
+      "order": [
+        {
+          "id": 1737365450768,
+          "itemName": "Apple",
+          "price": "12",
+          "quantityCategory": "Kg",
+          "itemQuantity": "10",
+          "subtotal": "120.00"
+        }
+      ],
+      "GST": "no",
+      "payment": "Cash",
+      "GSTAmount": 0,
+      "id": 1737623656637
     }
   ]
 }

@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
-import validation from "../utils/validation";
-import toast from "react-hot-toast";
-import { ApiContainer } from "../api";
-import { productFields } from "../description/productFields.description";
 import { useDispatch, useSelector } from "react-redux";
+import validation from "../utils/validation";
+import { ApiContainer } from "../api";
 import { productData } from "../store/slice/productSlice";
+import toast from "react-hot-toast";
+import { productFields } from "../description/productFields.description";
 
-const AddProductContainer = () => {
-  const [error, setError] = useState({});
-  const [formData, setFormData] = useState({});
+const EditProductContainer = ({editData}) => {
+    const [error, setError] = useState({});
+  const [formData, setFormData] = useState(editData);
   const { apiResponse } = ApiContainer();
   const dispatch = useDispatch()
-  const allProduct = useSelector((state) => state?.product?.product || [])
+
 
   const handleChange = (e, pattern, sName, val, label) => {
     const { name, value } = e.target;
@@ -40,14 +40,13 @@ const AddProductContainer = () => {
     }));
     if (Object.values(newErr).every((el) => el === undefined || el === '')) {
       try {
-        const response = await apiResponse("/product", "POST", null, {
+        const response = await apiResponse(`/product/${editData.id}`, "PATCH", null, {
           ...formData,
           id: Date.now()
         });
         if (response) {
-          toast.success("Added");
-          const newProduct = [...allProduct, response?.data]
-          dispatch(productData({payload: newProduct}))
+          toast.success("Updated product successfully");
+          dispatch(productData({payload: [response?.data]}))
           setFormData({});
         }
       } catch {
@@ -55,10 +54,16 @@ const AddProductContainer = () => {
       }
     }
   };
+  console.log('formData', formData)
   useEffect(()=> {
-    setFormData((prev) => ({ ...prev, quantityCategory: 'Kg' }));
-  }, [])
-  return { handleChange, handleAddProduct, error, formData };
-};
+    setFormData((prev) => (editData));
+  }, [editData])
+    return {
+        handleChange, 
+        handleAddProduct,
+        error,
+        formData
+    }
+}
 
-export default AddProductContainer;
+export default EditProductContainer

@@ -15,6 +15,7 @@ import PrintOrder from "./printOrder";
 import ProductTable from "./productTable";
 import AddProduct from "./addProduct";
 import IMSTypography from "../../shared/IMSTypography";
+import IMSListItem from "../../shared/IMSListItem";
 
 const Dashboard = () => {
   const {
@@ -86,9 +87,10 @@ const Dashboard = () => {
                           formLabel: field.label,
                           name: field.name,
                           value:
-                            formData[field.name] ||
+                          field?.name === "itemName" ? formData[field.sector]?.[index]?.[field.name]?.itemName :
+                            (formData[field.name] ||
                             formData[field.sector]?.[field.name] ||
-                            formData[field.sector]?.[index]?.[field.name] ||
+                            formData[field.sector]?.[index]?.[field.name] )||
                             "",
                           onChange: (e, val) =>
                             handleChange(
@@ -119,24 +121,26 @@ const Dashboard = () => {
                                 <IMSAutoComplete
                                   {...fieldProps}
                                   options={field?.options}
-                                  getOptionLabel={(option) => option}
+                                  getOptionLabel={(option) => field?.name === "itemName" ? option.itemName : option}
                                   renderOption={(props, option) => {
                                     const { key, ...optionProps } = props;
                                     return (
-                                      <IMSStack
+                                      <IMSListItem
                                         key={key}
                                         direction="row"
                                         {...optionProps}
+                                        disabled={Number(option?.stock) === 0}
+                                        sx={{pointerEvents: Number(option?.stock) === 0 && 'none'}}
                                       >
                                         {
                                           field?.name === "itemName" ?  
                                             <>
                                             {option?.itemName}
-                                            <IMSTypography ml="auto" variant="body2" color="gray">Stock: {option?.stock}</IMSTypography>
+                                            <IMSTypography ml="auto" variant="body2" color="gray">{option?.stock} {option?.quantityCategory}</IMSTypography>
                                             </>
                                             : option
                                         }
-                                      </IMSStack>
+                                      </IMSListItem>
                                     );
                                   }}
                                 />

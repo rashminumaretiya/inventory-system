@@ -2,6 +2,7 @@ import React from "react";
 import Dashboard from "../presentation/dashboard";
 import Layout from "../Layout";
 import Orders from "../presentation/orders";
+import Product from "../presentation/product";
 
 const publicRoutes = [
   {
@@ -11,6 +12,10 @@ const publicRoutes = [
       {
         path: "/",
         element: <Dashboard />,
+      },
+      {
+        path: "/product",
+        element: <Product />,
       },
       {
         path: "/orders",
