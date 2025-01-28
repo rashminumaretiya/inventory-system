@@ -33,7 +33,7 @@ const theme = createTheme({
       contrastText: '#fff'
     },
     warning: {
-      main: "#fbf3dd",
+      main: '#ffc527'
     },
   },
   typography: {

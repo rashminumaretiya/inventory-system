@@ -16,6 +16,7 @@ import ProductTable from "./productTable";
 import AddProduct from "./addProduct";
 import IMSTypography from "../../shared/IMSTypography";
 import IMSListItem from "../../shared/IMSListItem";
+import { CircularProgress } from "@mui/material";
 
 const Dashboard = () => {
   const {
@@ -36,7 +37,8 @@ const Dashboard = () => {
     handlePrint,
     componentRef,
     handleUpdate,
-    handleClearAll
+    handleClearAll,
+    loading
   } = DashboardContainer();
   return (
     <>
@@ -217,8 +219,8 @@ const Dashboard = () => {
                 </>
               ) : (
                 <>
-                <IMSButton variant="contained" onClick={handleSave}>
-                  Save
+                <IMSButton disabled={loading} variant="contained" onClick={handleSave}>
+                  Save {loading && <CircularProgress size={16} sx={{ml:1}}/>}
                 </IMSButton>
                 <IMSButton variant="contained" onClick={handleCancel}>
                   Cancel

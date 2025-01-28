@@ -12,7 +12,7 @@ export const customerFields = [
     type: "number",
     label: "Phone Number",
     md: 12,
-    pattern: "notEmpty",
+    pattern: "phoneNumber",
   },
   {
     name: "address",

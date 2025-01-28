@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import validation from "../utils/validation";
 import { ApiContainer } from "../api";
 import { productData } from "../store/slice/productSlice";
@@ -38,6 +38,7 @@ const EditProductContainer = ({editData}) => {
       ...prev,
       ...newErr,
     }));
+    formData.stock = formData.quantityCategory === 'Grams'? (formData?.stock / 1000).toFixed(3) : formData?.stock
     if (Object.values(newErr).every((el) => el === undefined || el === '')) {
       try {
         const response = await apiResponse(`/product/${editData.id}`, "PATCH", null, {
@@ -54,7 +55,6 @@ const EditProductContainer = ({editData}) => {
       }
     }
   };
-  console.log('formData', formData)
   useEffect(()=> {
     setFormData((prev) => (editData));
   }, [editData])

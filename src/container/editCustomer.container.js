@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 import validation from "../utils/validation";
-import toast from "react-hot-toast";
 import { ApiContainer } from "../api";
-import { productFields } from "../description/productFields.description";
-import { useDispatch, useSelector } from "react-redux";
-import { productData } from "../store/slice/productSlice";
+import toast from "react-hot-toast";
+import { customerFields } from "../description/customerFields.description";
+import { userData } from "../store/slice/customerSlice";
 
-const AddProductContainer = () => {
-  const [error, setError] = useState({});
-  const [formData, setFormData] = useState({});
+const EditCustomerContainer = ({editData}) => {
+    const [error, setError] = useState({});
+  const [formData, setFormData] = useState(editData);
   const { apiResponse } = ApiContainer();
   const dispatch = useDispatch()
-  const allProduct = useSelector((state) => state?.product?.product || [])
+
 
   const handleChange = (e, pattern, sName, val, label) => {
     const { name, value } = e.target;
@@ -24,11 +24,10 @@ const AddProductContainer = () => {
     setFormData((prev) => ({ ...prev, [selectedName]: selectedValue }));
   };
 
-  
-  const handleAddProduct = async (e) => {
+  const handleEditCustomer = async (e) => {
     e.preventDefault();
     let newErr = {};
-    productFields.forEach((field) => {
+    customerFields.forEach((field) => {
       newErr[field.name] = validation(
         field.pattern,
         formData[field.name],
@@ -39,17 +38,15 @@ const AddProductContainer = () => {
       ...prev,
       ...newErr,
     }));
-    formData.stock = formData.quantityCategory === 'Grams'? (formData?.stock / 1000).toFixed(3) : formData?.stock
     if (Object.values(newErr).every((el) => el === undefined || el === '')) {
       try {
-        const response = await apiResponse("/product", "POST", null, {
+        const response = await apiResponse(`/venders/${editData.id}`, "PATCH", null, {
           ...formData,
           id: Date.now()
         });
         if (response) {
-          toast.success("Added");
-          const newProduct = [...allProduct, response?.data]
-          dispatch(productData({payload: newProduct}))
+          toast.success("Updated Customer successfully");
+          dispatch(userData({payload: response?.data}))
           setFormData({});
         }
       } catch {
@@ -58,9 +55,14 @@ const AddProductContainer = () => {
     }
   };
   useEffect(()=> {
-    setFormData((prev) => ({ ...prev, quantityCategory: 'Kg' }));
-  }, [])
-  return { handleChange, handleAddProduct, error, formData };
-};
+    setFormData((prev) => (editData));
+  }, [editData])
+    return {
+        handleChange, 
+        handleEditCustomer,
+        error,
+        formData
+    }
+}
 
-export default AddProductContainer;
+export default EditCustomerContainer

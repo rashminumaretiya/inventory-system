@@ -26,6 +26,7 @@ const DashboardContainer = () => {
   const orderParams = useLocation();
   const [isEditMode, setIsEditMode] = useState(false);
   const dispatch = useDispatch()
+  const [loading, setLoading] = useState(false)
 
   const newUser = useSelector((state) => state?.customer?.user || [])
   const newProduct = useSelector((state) => state?.product?.product || [])
@@ -179,12 +180,12 @@ const DashboardContainer = () => {
           );
         }
         if(field.name === 'itemQuantity') {
-          if(formData?.order[0].quantityCategory === 'Grams') {
-            if(Number(findProduct.stock * 1000) < Number(formData?.order[0].itemQuantity)) {
+          if(formData?.order[0].quantityCategory === 'Pcs.') {
+            if(Number(findProduct?.stock) < Number(formData?.order[0].itemQuantity)) {
               error[field?.name] = 'Stock quantity not available'
             }
           } else {
-            if(Number(findProduct.stock) < Number(formData?.order[0].itemQuantity)) {
+            if(Number(findProduct?.stock * 1000) < Number(formData?.order[0].itemQuantity)) {
               error[field?.name] = 'Stock quantity not available'
             }
           }
@@ -227,7 +228,7 @@ const DashboardContainer = () => {
 
             return {
               ...data,
-              itemQuantity: data.quantityCategory !== 'Pcs.' && updatedQuantity >= 1000 ? updatedQuantity / 1000 : updatedQuantity,
+              itemQuantity: (data.quantityCategory !== 'Pcs.' && updatedQuantity >= 1000 ? updatedQuantity / 1000 : updatedQuantity).toFixed(2),
               quantityCategory: data.quantityCategory !== 'Pcs.' && updatedQuantity >= 1000 ? 'Kg' : data.quantityCategory,
               subtotal: (data.quantityCategory === 'Grams' ? (updatedQuantity / 1000) * formData.order[0].price : updatedQuantity * formData.order[0].price).toFixed(2),
             };
@@ -290,9 +291,11 @@ const DashboardContainer = () => {
       total: formData.total,
       payment: "Cash",
     }));
+    setAddData([])
+    localStorage.removeItem('formData');
   };
   const handleClearAll = () => {
-    localStorage.clear()
+    localStorage.removeItem('formData');
     handleCancel()
     setIsEditMode(false);
     setAddData([]);
@@ -328,6 +331,7 @@ const DashboardContainer = () => {
       ...error,
     }));
     if (Object.values(error).every((el) => el === undefined)) {
+      setLoading(true)
       const updatedRecords = productList.filter((el) => 
         addData.some((item) => item.id === el.id)
       ).map((el) => {
@@ -335,9 +339,9 @@ const DashboardContainer = () => {
         return {
           ...el,
           stock:
-            (matchedItem.quantityCategory === "Grams"
-              ? (+el.stock * 1000 - matchedItem.itemQuantity) / 1000
-              : +el.stock - matchedItem.itemQuantity).toFixed(2),
+            (matchedItem.quantityCategory === "Kg"
+              ? (+el.stock * 1000 - matchedItem.itemQuantity * 1000) / 1000
+              : (matchedItem.quantityCategory === "Grams" ? (+el.stock * 1000 - matchedItem.itemQuantity) / 1000 : +el.stock - matchedItem.itemQuantity) ).toFixed(3),
         };
       });
       const updatedProductList = productList.map((el) => {
@@ -352,12 +356,12 @@ const DashboardContainer = () => {
       matchedRecord.forEach((record) => {
         const stockInfo = addData.find((data) => data.id === record.id);
         const quantityCategoryMultiplier = stockInfo.quantityCategory === 'Pcs.' ? 1 : 1000;
-        const requiredStock = stockInfo.itemQuantity * quantityCategoryMultiplier;
+        const requiredStock = +stockInfo.itemQuantity * quantityCategoryMultiplier / (stockInfo.quantityCategory === 'Grams' ? 1000 : 1);
         const availableStock = record.stock * quantityCategoryMultiplier;
-      
         if (requiredStock > availableStock) {
           isStockValid = false;
           toast.error(`${stockInfo.itemName} quantity must be less than ${record.stock}`);
+          setLoading(false)
         }
       });
       if(isStockValid) {
@@ -381,15 +385,16 @@ const DashboardContainer = () => {
                 order: [{}],
               }));
               dispatch(productData({payload: updatedProductList}))
+              setLoading(false)
             }
           }
         } catch {
           toast.error("Something went wrong");
+          setLoading(false)
         }
       }
     }
   };
-  console.log('productList', productList)
   const mappedBillingFields = billingFields.map((billingField) => {
     const updatedFields = billingField.billingFormFields.map((field) => {
       if (field.name === "itemName") {
@@ -428,7 +433,7 @@ const DashboardContainer = () => {
     if (orders.length > 0 && orderID) {
       const editOrderRecord = orders.find((item) => item.id === Number(orderID));
       localStorage.setItem('formData', JSON.stringify(editOrderRecord.order))
-      setFormData(editOrderRecord)
+      setFormData({...editOrderRecord, order: []})
       setBillDate(dayjs(editOrderRecord?.billingDate))
       setAddData(editOrderRecord?.order)
     }    
@@ -445,6 +450,18 @@ const DashboardContainer = () => {
   const handleUpdate = async () => {
     const orderID = orderParams?.search.replace("?order/", "");
     const updateRecord = {...formData, order: addData}
+    const editOrderRecord = orders.find((item) => item.id === Number(orderID));
+    const matchRecord = editOrderRecord?.order.filter((el) => addData.some((item) => item.id === el.id)).map((data) => {
+      const matched = addData.find((item) => item.id === data.id)
+      if(matched.itemQuantity !== data.itemQuantity) {
+        const product = productList.find((product) => product.id === matched.id);
+        if (product) {
+          const updatedStock = (product.stock - (matched.itemQuantity - data.itemQuantity)).toFixed(3);
+          return { id: matched.id, stock: updatedStock };
+        }
+      }
+      return null;
+    }).filter(Boolean);
     try {
       const response = await apiResponse(`/orders/${orderID}`, 'PATCH', null, {
         ...updateRecord,
@@ -452,10 +469,18 @@ const DashboardContainer = () => {
         id: Date.now(),
       })
         if(response) {
-          toast.success("Updated order successfully")
-          localStorage.clear();
-          setIsEditMode(false);
-          navigate('/orders')
+          const updatePromises = matchRecord?.map((record) => {
+            return apiResponse(`/product/${record.id}`, "PATCH", null, {
+              stock: record.stock,
+            });
+          });
+          const updateResponses = await Promise.all(updatePromises);
+          if(updateResponses.every((res) => res)) {
+            toast.success("Updated order successfully")
+            localStorage.removeItem('formData');
+            setIsEditMode(false);
+            navigate('/orders')
+          }
         }
     } catch {
       toast.error("Something went wrong");
@@ -480,7 +505,8 @@ const DashboardContainer = () => {
     componentRef,
     isEditMode,
     handleUpdate,
-    handleClearAll
+    handleClearAll,
+    loading
   };
 };
 

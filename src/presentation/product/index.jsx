@@ -119,8 +119,6 @@ const Product = () => {
     }
   };
 
-  console.log('allProducts', allProducts)
-
   useEffect(() => {
     const uniqueProducts = [...new Map([...productList, ...allProducts].map(item => [item.id, item])).values()];
     setFilterOrderList(uniqueProducts);
@@ -148,7 +146,7 @@ const Product = () => {
     }
   };
   const handleUpdateProduct = (id) => {
-    const editItem = productList.find((item) => item.id === id)
+    const editItem = filterOrderList.find((item) => item.id === id)
     setEditData(editItem)
     setEditProductDialog(true)
   };

@@ -1,4 +1,5 @@
 import {
+  Chip,
   Collapse,
   Divider,
   IconButton,
@@ -26,6 +27,7 @@ import IMSGrid from "../../shared/IMSGrid";
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { Edit } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
   maxHeight: "calc(100vh - 164px)",
@@ -129,7 +131,6 @@ const Orders = () => {
   const handleEditOrder = async (e, id) => {
     e.stopPropagation()
     navigate(`/?order/${id}`)
-    localStorage.clear()
   }
 
   useEffect(() => {
@@ -195,7 +196,7 @@ const Orders = () => {
                 </TableCell>
               </TableRow>
             ) : (
-              filterOrderList.sort((a, b) => b.invoiceNo.localeCompare(a.invoiceNo))
+              filterOrderList.sort((a, b) => b.id - a.id)
                 ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((data, i) =>
                   <>
@@ -215,7 +216,7 @@ const Orders = () => {
                       </TableCell>
                       <TableCell>{data?.customerInfo.vendorName}</TableCell>
                       <TableCell>{data?.customerInfo.vendorPhone}</TableCell>
-                      <TableCell>{data?.payment}</TableCell>
+                      <TableCell><Chip label={data?.payment} size="small" color={data?.payment === 'Pending' ? 'warning': data?.payment === 'Online' ? 'primary' : 'success'} /></TableCell>
                       <TableCell>{data?.GSTNumber ? data?.GSTNumber : 'N/A'}</TableCell>
                       <TableCell>{data?.total}</TableCell>
                       <TableCell>
