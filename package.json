@@ -18,6 +18,8 @@
     "axios": "^1.7.3",
     "dayjs": "^1.11.12",
     "json-server": "^1.0.0-beta.3",
+    "pdfmake": "^0.2.7",
+    "pdfmake-unicode": "^0.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hot-toast": "^2.4.1",
@@ -32,7 +34,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "server": "json-server database.json --watch --port 8000"
   },
   "eslintConfig": {
     "extends": [

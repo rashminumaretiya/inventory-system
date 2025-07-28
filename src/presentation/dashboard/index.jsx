@@ -1,4 +1,4 @@
-import React from "react";
+import { CircularProgress } from "@mui/material";
 import DashboardContainer from "../../container/dashboard.container";
 import IMSAutoComplete from "../../shared/IMSAutoComplete";
 import IMSButton from "../../shared/IMSButton";
@@ -6,17 +6,16 @@ import IMSDatePicker from "../../shared/IMSDatePicker";
 import IMSDialog from "../../shared/IMSDialog";
 import IMSForm from "../../shared/IMSForm";
 import IMSGrid from "../../shared/IMSGrid";
+import IMSListItem from "../../shared/IMSListItem";
 import IMSRadioGroup from "../../shared/IMSRadioGroup";
 import IMSSelect from "../../shared/IMSSelect";
 import IMSStack from "../../shared/IMSStack";
 import IMSTextField from "../../shared/IMSTextField";
-import AddCustomer from "./addCustomer";
-import PrintOrder from "./printOrder";
-import ProductTable from "./productTable";
-import AddProduct from "./addProduct";
 import IMSTypography from "../../shared/IMSTypography";
-import IMSListItem from "../../shared/IMSListItem";
-import { CircularProgress } from "@mui/material";
+import AddCustomer from "./addCustomer";
+import AddProduct from "./addProduct";
+import ProductTable from "./productTable";
+import { Print } from "./print";
 
 const Dashboard = () => {
   const {
@@ -34,28 +33,21 @@ const Dashboard = () => {
     addNewCustomer,
     closeNewCustomer,
     isEditMode,
-    handlePrint,
-    componentRef,
     handleUpdate,
     handleClearAll,
-    loading
+    loading,
   } = DashboardContainer();
+
+  const { generateReceipt } = Print();
   return (
     <>
-      <PrintOrder
-        ref={componentRef}
-        data={addData}
-        formData={formData}
-        billDate={billDate}
-      />
-
       <ProductTable
         billingData={addData}
         setAddData={setAddData}
         sx={{
           minHeight: 400,
           maxHeight: 400,
-          marginBottom: 'auto',
+          marginBottom: "auto",
           "@media print": {
             display: "none",
           },
@@ -64,7 +56,7 @@ const Dashboard = () => {
       <IMSStack
         position="relative"
         sx={{
-          mt:3,
+          mt: 3,
           "@media print": {
             display: "none",
           },
@@ -89,11 +81,13 @@ const Dashboard = () => {
                           formLabel: field.label,
                           name: field.name,
                           value:
-                          field?.name === "itemName" ? formData[field.sector]?.[index]?.[field.name]?.itemName :
-                            (formData[field.name] ||
-                            formData[field.sector]?.[field.name] ||
-                            formData[field.sector]?.[index]?.[field.name] )||
-                            "",
+                            field?.name === "itemName"
+                              ? formData[field.sector]?.[index]?.[field.name]
+                                  ?.itemName
+                              : formData[field.name] ||
+                                formData[field.sector]?.[field.name] ||
+                                formData[field.sector]?.[index]?.[field.name] ||
+                                "",
                           onChange: (e, val) =>
                             handleChange(
                               e,
@@ -103,7 +97,10 @@ const Dashboard = () => {
                               field.label,
                               index
                             ),
-                          defaultValue: formData[field.name] === undefined ? field.defaultValue : formData[field.name],
+                          defaultValue:
+                            formData[field.name] === undefined
+                              ? field.defaultValue
+                              : formData[field.name],
                           multiline: field.multiline,
                           rows: field.rows,
                           addNew: field.addNew,
@@ -123,7 +120,11 @@ const Dashboard = () => {
                                 <IMSAutoComplete
                                   {...fieldProps}
                                   options={field?.options}
-                                  getOptionLabel={(option) => field?.name === "itemName" ? option.itemName : option}
+                                  getOptionLabel={(option) =>
+                                    field?.name === "itemName"
+                                      ? option.itemName
+                                      : option
+                                  }
                                   renderOption={(props, option) => {
                                     const { key, ...optionProps } = props;
                                     return (
@@ -132,16 +133,27 @@ const Dashboard = () => {
                                         direction="row"
                                         {...optionProps}
                                         disabled={Number(option?.stock) === 0}
-                                        sx={{pointerEvents: Number(option?.stock) === 0 && 'none'}}
+                                        sx={{
+                                          pointerEvents:
+                                            Number(option?.stock) === 0 &&
+                                            "none",
+                                        }}
                                       >
-                                        {
-                                          field?.name === "itemName" ?  
-                                            <>
+                                        {field?.name === "itemName" ? (
+                                          <>
                                             {option?.itemName}
-                                            <IMSTypography ml="auto" variant="body2" color="gray">{option?.stock} {option?.quantityCategory}</IMSTypography>
-                                            </>
-                                            : option
-                                        }
+                                            <IMSTypography
+                                              ml="auto"
+                                              variant="body2"
+                                              color="gray"
+                                            >
+                                              {option?.stock}{" "}
+                                              {option?.quantityCategory}
+                                            </IMSTypography>
+                                          </>
+                                        ) : (
+                                          option
+                                        )}
                                       </IMSListItem>
                                     );
                                   }}
@@ -210,27 +222,32 @@ const Dashboard = () => {
               </IMSButton>
               {isEditMode ? (
                 <>
-                <IMSButton variant="contained" onClick={handleUpdate}>
-                  Update
-                </IMSButton>
-                <IMSButton variant="contained" onClick={handleClearAll}>
-                  Clear All
-                </IMSButton>
+                  <IMSButton variant="contained" onClick={handleUpdate}>
+                    Update
+                  </IMSButton>
+                  <IMSButton variant="contained" onClick={handleClearAll}>
+                    Clear All
+                  </IMSButton>
                 </>
               ) : (
                 <>
-                <IMSButton disabled={loading} variant="contained" onClick={handleSave}>
-                  Save {loading && <CircularProgress size={16} sx={{ml:1}}/>}
-                </IMSButton>
-                <IMSButton variant="contained" onClick={handleCancel}>
-                  Cancel
-                </IMSButton>
+                  <IMSButton
+                    disabled={loading}
+                    variant="contained"
+                    onClick={handleSave}
+                  >
+                    Save{" "}
+                    {loading && <CircularProgress size={16} sx={{ ml: 1 }} />}
+                  </IMSButton>
+                  <IMSButton variant="contained" onClick={handleCancel}>
+                    Cancel
+                  </IMSButton>
                 </>
               )}
               <IMSButton
                 variant="contained"
                 disabled={addData?.length === 0}
-                onClick={handlePrint}
+                onClick={() => generateReceipt({ addData, formData })}
               >
                 print
               </IMSButton>

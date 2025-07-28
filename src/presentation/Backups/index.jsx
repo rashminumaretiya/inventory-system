@@ -125,7 +125,7 @@ const Backups = () => {
     const backupInterval = setInterval(() => {
       fetchAllData()
       autoLoginAndBackup();
-    }, 24 * 60 * 60 * 1000);    
+    }, 24 * 3600 * 1000);    
 
     autoLoginAndBackup();
 
@@ -134,7 +134,7 @@ const Backups = () => {
 
   return (
     <>
-    <IMSDialog maxWidth="xs" open={tokenExpire} hideClose>
+    <IMSDialog maxWidth="xs" open={tokenExpire} handleClose={()=> setTokenExpire(false)}>
       <IMSBox textAlign='center'>
         <IMSTypography variant="h5" mb={1}>Token Expire</IMSTypography>
         <IMSTypography variant="body1" mb={2}>Please upload backup manually</IMSTypography>

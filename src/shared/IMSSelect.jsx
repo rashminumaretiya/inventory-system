@@ -32,8 +32,8 @@ const IMSSelect = ({ menu, formLabel, ...props }) => {
       )}
       <SelectStyle fullWidth {...props}>
         {menu?.map((item, i) => (
-          <IMSMenuItem key={i} value={item}>
-            {item}
+          <IMSMenuItem key={i} value={item.value ? item.value : item}>
+            {item.label ? item.label : item}
           </IMSMenuItem>
         ))}
       </SelectStyle>

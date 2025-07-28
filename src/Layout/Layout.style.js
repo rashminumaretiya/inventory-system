@@ -42,7 +42,7 @@ export const SidebarWrapper = MUIStyled(IMSStack)(({ theme }) => ({
           marginRight: 8,
         },
         "& span": {
-          verticalAlign: "middle",
+          verticalAlign: "sub",
           color: theme.palette.white.main,
         },
         "&.active": {

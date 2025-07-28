@@ -30,14 +30,14 @@ const theme = createTheme({
     },
     success: {
       main: "#27ae60",
-      contrastText: '#fff'
+      contrastText: "#fff",
     },
     warning: {
-      main: '#ffc527'
+      main: "#ffc527",
     },
   },
   typography: {
-    fontFamily: '"Roboto", sans-serif',
+    fontFamily: '"Mukta Vaani", sans-serif',
     body1: {
       color: "rgba(0, 0, 0, 0.87)",
     },

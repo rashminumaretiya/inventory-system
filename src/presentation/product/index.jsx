@@ -58,7 +58,7 @@ export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
 const Product = () => {
   const { apiResponse } = ApiContainer();
   const [productList, setProductList] = useState([]);
-  const [filterOrderList, setFilterOrderList] = useState([]);
+  const [filterProductList, setFilterProductList] = useState([]);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(20);
   const [searchText, setSearchText] = useState("");
@@ -109,7 +109,8 @@ const Product = () => {
           billDate.toLocaleDateString()
       );
     }
-    setFilterOrderList(searchList);
+    setFilterProductList(searchList);
+    setPage(0);
   };
   const handleChange = (e) => {
     if (e?.target) {
@@ -121,7 +122,7 @@ const Product = () => {
 
   useEffect(() => {
     const uniqueProducts = [...new Map([...productList, ...allProducts].map(item => [item.id, item])).values()];
-    setFilterOrderList(uniqueProducts);
+    setFilterProductList(uniqueProducts);
   }, [productList, allProducts])
 
   const handleDeteleModal = (id) => {
@@ -146,7 +147,7 @@ const Product = () => {
     }
   };
   const handleUpdateProduct = (id) => {
-    const editItem = filterOrderList.find((item) => item.id === id)
+    const editItem = filterProductList.find((item) => item.id === id)
     setEditData(editItem)
     setEditProductDialog(true)
   };
@@ -196,7 +197,7 @@ const Product = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filterOrderList.length === 0 ? (
+            {filterProductList.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9}>
                   <IMSTypography
@@ -209,7 +210,7 @@ const Product = () => {
                 </TableCell>
               </TableRow>
             ) : (
-              filterOrderList
+              filterProductList
                 .sort((a, b) => a.itemName?.localeCompare(b.itemName))
                 ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((data, i) => (
@@ -258,7 +259,7 @@ const Product = () => {
       <TablePagination
         rowsPerPageOptions={[20, 50, 100]}
         component="div"
-        count={productList.length}
+        count={filterProductList ? filterProductList.length : productList.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}

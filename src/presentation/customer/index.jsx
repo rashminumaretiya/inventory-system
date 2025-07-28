@@ -1,5 +1,4 @@
 import {
-    Chip,
     Divider,
     IconButton,
     InputAdornment,
@@ -18,13 +17,11 @@ import {
   import toast from "react-hot-toast";
   import IMSTextField from "../../shared/IMSTextField";
   import { Search } from "../../shared/icon";
-  import dayjs from "dayjs";
   import IMSGrid from "../../shared/IMSGrid";
   import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
   import { Edit } from "@mui/icons-material";
   import IMSButton from "../../shared/IMSButton";
   import IMSDialog from "../../shared/IMSDialog";
-  import AddProduct from "../dashboard/addProduct";
   import { useSelector } from "react-redux";
   import IMSStack from "../../shared/IMSStack";
 import AddCustomer from "../dashboard/addCustomer";
@@ -102,6 +99,7 @@ import EditCustomer from "./editCustomer";
         );
       }
       setFilterCustomerList(searchList);
+      setPage(0);
     };
     const handleChange = (e) => {
       if (e?.target) {
@@ -235,7 +233,7 @@ import EditCustomer from "./editCustomer";
         <TablePagination
           rowsPerPageOptions={[20, 50, 100]}
           component="div"
-          count={customerList.length}
+          count={filterCustomerList ? filterCustomerList.length : customerList.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

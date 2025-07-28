@@ -14,14 +14,14 @@ function App() {
     <div className="App">
       <GoogleOAuthProvider clientId="1027066066194-5tqh7vt83mijpup2od7q5n29jthuhmfa.apps.googleusercontent.com">
         <Provider store={store}>
-        <ThemeProvider theme={theme}>
-          <BrowserRouter>
-            <Toaster />
-            <CssBaseline />
-            <AllRoutes />
-            <Backups/>
-          </BrowserRouter>
-        </ThemeProvider>
+          <ThemeProvider theme={theme}>
+            <BrowserRouter>
+              <Toaster />
+              <CssBaseline />
+              <AllRoutes />
+              {/* <Backups/> */}
+            </BrowserRouter>
+          </ThemeProvider>
         </Provider>
       </GoogleOAuthProvider>
     </div>

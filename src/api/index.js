@@ -6,7 +6,7 @@ export const ApiContainer = () => {
       const headers = {
         ...config,
       };
-      axios(`https://h3rcpp2q-8000.inc1.devtunnels.ms${URL}`, {
+      axios(`http://localhost:8000${URL}`, {
         method: method,
         headers,
         data: payload,

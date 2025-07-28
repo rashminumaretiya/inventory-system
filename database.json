@@ -3,926 +3,184 @@
     {
       "itemName": "Blue Berry",
       "price": "120",
-      "stock": "4.000",
+      "stock": "2.000",
       "quantityCategory": "Pcs.",
-      "id": 1737365475438
+      "id": "1737365475438"
     },
     {
       "quantityCategory": "Pcs.",
       "itemName": "Colgate",
       "price": "80",
       "stock": "0.000",
-      "id": 1737365601517
+      "id": "1737365601517"
     },
     {
       "quantityCategory": "Kg",
       "itemName": "Orange",
       "price": "50",
       "stock": "400.000",
-      "id": 1737376761989
+      "id": "1737376761989"
     },
     {
       "quantityCategory": "Pcs.",
       "itemName": "Balaji kurkure",
       "price": "10",
       "stock": "112",
-      "id": 1737626896939
+      "id": "1737626896939"
     },
     {
       "quantityCategory": "Kg",
       "itemName": "Potato",
       "price": "11",
       "stock": "11",
-      "id": 1737629069043
+      "id": "1737629069043"
     },
     {
       "quantityCategory": "Grams",
       "itemName": "Chilli",
       "price": "20",
       "stock": "0.000",
-      "id": 1737629157442
+      "id": "1737629157442"
     },
     {
       "quantityCategory": "Pcs.",
       "itemName": "Banana",
       "price": "100",
       "stock": "1966.000",
-      "id": 1737638278413
+      "id": "1737638278413"
     },
     {
       "quantityCategory": "Pcs.",
       "itemName": "Waffer",
       "price": "10",
       "stock": "125.000",
-      "id": 1738056363336
+      "id": "1738056363336"
     },
     {
       "quantityCategory": "Kg",
       "itemName": "cdsdcds",
       "stock": "NaN",
       "price": "12",
-      "id": 1738063919673
+      "id": "1738063919673"
     },
     {
       "quantityCategory": "Kg",
       "stock": "9999999899.900",
       "price": "10",
       "itemName": "njmyuj",
-      "id": 1738064024995
+      "id": "1738064024995"
+    },
+    {
+      "id": "1753693190212",
+      "quantityCategory": "Kg",
+      "itemName": "ધાણાદાર ",
+      "price": "10",
+      "stock": "107.000"
     }
   ],
   "venders": [
     {
       "name": "Ramesh",
-      "phone": "7878787878",
+      "phone": "7878787871",
       "address": "Abc, circle, jotangiya1",
-      "id": 1737362532285
+      "id": "1737362532285"
     },
     {
       "name": "Sardule",
       "phone": "8998989898",
       "address": "ABC, circle",
-      "id": 1737459499663
+      "id": "1737459499663"
     },
     {
       "name": "Bhavin",
       "phone": "1231231231",
       "address": "Abc, circle, mahesana",
-      "id": 1737698981487
+      "id": "1737698981487"
     },
     {
       "name": "Abhi",
       "phone": "1212121212",
       "address": "Abc, circle23",
-      "id": 1737699177726
+      "id": "1737699177726"
     },
     {
       "name": "N/A",
       "address": "-",
       "phone": "0000000000",
-      "id": 1737707960065
+      "id": "1737707960065"
     },
     {
       "name": "Jay",
       "phone": "9876543100",
       "address": "Bhavani circle",
-      "id": 1738061141108
+      "id": "1738061141108"
+    },
+    {
+      "id": "1753693149070",
+      "name": "ભાવિન ",
+      "phone": "1234568902",
+      "address": "સુદામા ચોક મોટા વરાછા "
     }
   ],
   "orders": [
     {
+      "id": "1753692189285",
       "invoiceNo": "DT_1",
-      "billingDate": "2025-01-28T04:20:49.676Z",
-      "subtotal": 103,
+      "billingDate": "2025-07-28T08:42:58.655Z",
+      "subtotal": 131,
       "customerInfo": {
         "vendorName": "Bhavin",
         "vendorPhone": "1231231231",
         "address": "Abc, circle, mahesana"
       },
-      "total": "103.00",
+      "total": "131.00",
       "order": [
         {
-          "id": 1737365450768,
-          "itemName": "Apple",
-          "price": "21",
-          "quantityCategory": "Kg",
-          "itemQuantity": "1",
-          "subtotal": "21.00"
-        },
-        {
-          "id": 1737365601517,
-          "itemName": "Colgate",
-          "price": "80",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "1",
-          "subtotal": "80.00"
-        },
-        {
-          "id": 1737629157442,
-          "itemName": "Chilli",
-          "price": "20",
-          "quantityCategory": "Grams",
-          "itemQuantity": "100",
-          "subtotal": "2.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738038079658
-    },
-    {
-      "invoiceNo": "DT_2",
-      "billingDate": "2025-01-28T04:33:39.199Z",
-      "subtotal": 2,
-      "customerInfo": {
-        "vendorName": "Sardule",
-        "vendorPhone": "8998989898",
-        "address": "ABC, circle"
-      },
-      "total": "2.00",
-      "order": [
-        {
-          "id": 1737629157442,
-          "itemName": "Chilli",
-          "price": "20",
-          "quantityCategory": "Grams",
-          "itemQuantity": "100",
-          "subtotal": "2.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738038831327
-    },
-    {
-      "invoiceNo": "DT_3",
-      "billingDate": "2025-01-28T04:41:14.463Z",
-      "subtotal": 12046,
-      "customerInfo": {
-        "vendorName": "Ramesh",
-        "vendorPhone": "7878787878",
-        "address": "Abc, circle, jotangiya1"
-      },
-      "total": "12046.00",
-      "order": [
-        {
-          "id": 1737365450768,
-          "itemName": "Apple",
-          "price": "21",
-          "quantityCategory": "Kg",
-          "itemQuantity": "2.00",
-          "subtotal": "42.00"
-        },
-        {
-          "id": 1737365475438,
+          "id": "1737365475438",
           "itemName": "Blue Berry",
           "price": "120",
           "quantityCategory": "Pcs.",
-          "itemQuantity": "100",
-          "subtotal": "12000.00"
+          "itemQuantity": "1",
+          "subtotal": "120.00"
         },
         {
-          "id": 1737629157442,
-          "itemName": "Chilli",
-          "price": "20",
-          "quantityCategory": "Grams",
-          "itemQuantity": "200",
-          "subtotal": "4.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738039338898
-    },
-    {
-      "invoiceNo": "DT_4",
-      "billingDate": "2025-01-28T04:43:08.508Z",
-      "subtotal": 21,
-      "customerInfo": {
-        "vendorName": "N/A",
-        "vendorPhone": "0000000000",
-        "address": "-"
-      },
-      "total": "21.00",
-      "order": [
-        {
-          "id": 1737365450768,
-          "itemName": "Apple",
-          "price": "21",
+          "id": "1737629069043",
+          "itemName": "Potato",
+          "price": "11",
           "quantityCategory": "Kg",
           "itemQuantity": "1",
-          "subtotal": "21.00"
+          "subtotal": "11.00"
         }
       ],
       "GST": "no",
       "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738039395122
+      "GSTAmount": 0
     },
     {
-      "invoiceNo": "DT_5",
-      "billingDate": "2025-01-28T04:43:30.707Z",
-      "subtotal": 80,
-      "customerInfo": {
-        "vendorName": "Abhi",
-        "vendorPhone": "1212121212",
-        "address": "Abc, circle23"
-      },
-      "total": "80.00",
+      "id": "1753693227716",
+      "invoiceNo": "DT_3",
+      "billingDate": "2025-07-28T09:00:10.933Z",
+      "subtotal": 130,
       "order": [
         {
-          "id": 1737365601517,
-          "itemName": "Colgate",
-          "price": "80",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "1",
-          "subtotal": "80.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738039423009
-    },
-    {
-      "invoiceNo": "DT_6",
-      "billingDate": "2025-01-28T06:26:24.089Z",
-      "subtotal": 4925,
-      "customerInfo": {
-        "vendorName": "Ramesh",
-        "vendorPhone": "7878787878",
-        "address": "Abc, circle, jotangiya1"
-      },
-      "total": "4925.00",
-      "order": [
-        {
-          "id": 1737376761989,
-          "itemName": "Orange",
-          "price": "50",
+          "id": 1753693190212,
+          "itemName": "ધાણાદાર ",
+          "price": "10",
           "quantityCategory": "Kg",
-          "itemQuantity": "98.50",
-          "subtotal": "4925.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738045603696
-    },
-    {
-      "invoiceNo": "DT_7",
-      "billingDate": "2025-01-28T07:03:58.719Z",
-      "subtotal": 8,
-      "customerInfo": {
-        "vendorName": "N/A",
-        "vendorPhone": "0000000000",
-        "address": "-"
-      },
-      "total": "8.00",
-      "order": [
-        {
-          "id": 1737629157442,
-          "itemName": "Chilli",
-          "price": "20",
-          "quantityCategory": "Grams",
-          "itemQuantity": "400",
-          "subtotal": "8.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738047848930
-    },
-    {
-      "invoiceNo": "DT_8",
-      "billingDate": "2025-01-28T09:25:04.949Z",
-      "subtotal": 1230,
-      "customerInfo": {
-        "vendorName": "Ramesh",
-        "vendorPhone": "7878787878",
-        "address": "Abc, circle, jotangiya1"
-      },
-      "total": "1230.00",
-      "order": [
-        {
-          "id": 1738056363336,
-          "itemName": "Waffer",
-          "price": "10",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "3",
-          "subtotal": "30.00"
-        },
-        {
-          "id": 1737638278413,
-          "itemName": "Banana",
-          "price": "100",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "12",
-          "subtotal": "1200.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738056485246
-    },
-    {
-      "invoiceNo": "DT_8",
-      "billingDate": "2025-01-28T09:25:04.949Z",
-      "subtotal": 1230,
-      "customerInfo": {
-        "vendorName": "Ramesh",
-        "vendorPhone": "7878787878",
-        "address": "Abc, circle, jotangiya1"
-      },
-      "total": "1230.00",
-      "order": [
-        {
-          "id": 1738056363336,
-          "itemName": "Waffer",
-          "price": "10",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "3",
-          "subtotal": "30.00"
-        },
-        {
-          "id": 1737638278413,
-          "itemName": "Banana",
-          "price": "100",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "12",
-          "subtotal": "1200.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738056488173
-    },
-    {
-      "invoiceNo": "DT_10",
-      "billingDate": "2025-01-28T09:29:09.903Z",
-      "subtotal": 0.6,
-      "customerInfo": {
-        "vendorName": "Bhavin",
-        "vendorPhone": "1231231231",
-        "address": "Abc, circle, mahesana"
-      },
-      "total": "0.71",
-      "order": [
-        {
-          "id": 1737629157442,
-          "itemName": "Chilli",
-          "price": "20",
-          "quantityCategory": "Grams",
-          "itemQuantity": "30.02",
-          "subtotal": "0.60"
+          "itemQuantity": "13",
+          "subtotal": "130.00"
         }
       ],
       "GST": "yes",
       "payment": "Cash",
-      "GSTAmount": 0.10799999999999998,
-      "GSTNumber": "123456789",
-      "id": 1738056668598
-    },
-    {
-      "invoiceNo": "DT_11",
-      "billingDate": "2025-01-28T09:34:11.151Z",
-      "subtotal": 109200,
+      "GSTAmount": 23.4,
+      "total": "153.40",
       "customerInfo": {
-        "vendorName": "Bhavin",
-        "vendorPhone": "1231231231",
-        "address": "Abc, circle, mahesana"
+        "vendorName": "ભાવિન ",
+        "vendorPhone": "1234568902",
+        "address": "સુદામા ચોક મોટા વરાછા "
       },
-      "total": "109200.00",
-      "order": [
-        {
-          "id": 1737365475438,
-          "itemName": "Blue Berry",
-          "price": "120",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "910.00",
-          "subtotal": "109200.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738056881085
-    },
-    {
-      "invoiceNo": "DT_12",
-      "billingDate": "2025-01-28T09:34:53.485Z",
-      "subtotal": 1440,
-      "customerInfo": {
-        "vendorName": "Ramesh",
-        "vendorPhone": "7878787878",
-        "address": "Abc, circle, jotangiya1"
-      },
-      "total": "1440.00",
-      "order": [
-        {
-          "id": 1737365601517,
-          "itemName": "Colgate",
-          "price": "80",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "18.00",
-          "subtotal": "1440.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738056928486
-    },
-    {
-      "invoiceNo": "DT_13",
-      "billingDate": "2025-01-28T09:40:46.909Z",
-      "subtotal": 800,
-      "customerInfo": {
-        "vendorName": "Ramesh",
-        "vendorPhone": "7878787878",
-        "address": "Abc, circle, jotangiya1"
-      },
-      "total": "800.00",
-      "order": [
-        {
-          "id": 1737365601517,
-          "itemName": "Colgate",
-          "price": "80",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "10.00",
-          "subtotal": "800.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738057257253
-    },
-    {
-      "invoiceNo": "DT_14",
-      "billingDate": "2025-01-28T09:41:29.741Z",
-      "subtotal": 800,
-      "customerInfo": {
-        "vendorName": "Ramesh",
-        "vendorPhone": "7878787878",
-        "address": "Abc, circle, jotangiya1"
-      },
-      "total": "800.00",
-      "order": [
-        {
-          "id": 1737365601517,
-          "itemName": "Colgate",
-          "price": "80",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "10.00",
-          "subtotal": "800.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738057307629
-    },
-    {
-      "invoiceNo": "DT_15",
-      "billingDate": "2025-01-28T09:43:16.814Z",
-      "subtotal": 800,
-      "order": [
-        {
-          "id": 1737365601517,
-          "itemName": "Colgate",
-          "price": "80",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "10.00",
-          "subtotal": "800.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "total": "800.00",
-      "customerInfo": {
-        "vendorName": "Ramesh",
-        "vendorPhone": "7878787878",
-        "address": "Abc, circle, jotangiya1"
-      },
-      "id": 1738057405357
-    },
-    {
-      "invoiceNo": "DT_16",
-      "billingDate": "2025-01-28T09:45:29.236Z",
-      "subtotal": 1200,
-      "customerInfo": {
-        "vendorName": "Ramesh",
-        "vendorPhone": "7878787878",
-        "address": "Abc, circle, jotangiya1"
-      },
-      "total": "1200.00",
-      "order": [
-        {
-          "id": 1737365475438,
-          "itemName": "Blue Berry",
-          "price": "120",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "10.00",
-          "subtotal": "1200.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738057547028
-    },
-    {
-      "invoiceNo": "DT_17",
-      "billingDate": "2025-01-28T09:47:21.490Z",
-      "subtotal": 1200,
-      "customerInfo": {
-        "vendorName": "Bhavin",
-        "vendorPhone": "1231231231",
-        "address": "Abc, circle, mahesana"
-      },
-      "total": "1200.00",
-      "order": [
-        {
-          "id": 1737365475438,
-          "itemName": "Blue Berry",
-          "price": "120",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "10.00",
-          "subtotal": "1200.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738057651619
-    },
-    {
-      "invoiceNo": "DT_18",
-      "billingDate": "2025-01-28T09:54:16.416Z",
-      "subtotal": 1200,
-      "customerInfo": {
-        "vendorName": "Ramesh",
-        "vendorPhone": "7878787878",
-        "address": "Abc, circle, jotangiya1"
-      },
-      "total": "1200.00",
-      "order": [
-        {
-          "id": 1737365475438,
-          "itemName": "Blue Berry",
-          "price": "120",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "10.00",
-          "subtotal": "1200.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738058080701
-    },
-    {
-      "invoiceNo": "DT_19",
-      "billingDate": "2025-01-28T09:55:05.958Z",
-      "subtotal": 600,
-      "customerInfo": {
-        "vendorName": "Ramesh",
-        "vendorPhone": "7878787878",
-        "address": "Abc, circle, jotangiya1"
-      },
-      "total": "600.00",
-      "order": [
-        {
-          "id": 1737365475438,
-          "itemName": "Blue Berry",
-          "price": "120",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "5",
-          "subtotal": "600.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738058115412
-    },
-    {
-      "invoiceNo": "DT_20",
-      "billingDate": "2025-01-28T09:56:38.306Z",
-      "subtotal": 480,
-      "customerInfo": {
-        "vendorName": "Ramesh",
-        "vendorPhone": "7878787878",
-        "address": "Abc, circle, jotangiya1"
-      },
-      "total": "480.00",
-      "order": [
-        {
-          "id": 1737365475438,
-          "itemName": "Blue Berry",
-          "price": "120",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "4",
-          "subtotal": "480.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738058207683
-    },
-    {
-      "invoiceNo": "DT_21",
-      "billingDate": "2025-01-28T09:57:26.854Z",
-      "subtotal": 480,
-      "customerInfo": {
-        "vendorName": "Sardule",
-        "vendorPhone": "8998989898",
-        "address": "ABC, circle"
-      },
-      "total": "480.00",
-      "order": [
-        {
-          "id": 1737365475438,
-          "itemName": "Blue Berry",
-          "price": "120",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "4",
-          "subtotal": "480.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738058253115
-    },
-    {
-      "invoiceNo": "DT_22",
-      "billingDate": "2025-01-28T09:59:15.309Z",
-      "subtotal": 480,
-      "customerInfo": {
-        "vendorName": "Ramesh",
-        "vendorPhone": "7878787878",
-        "address": "Abc, circle, jotangiya1"
-      },
-      "total": "480.00",
-      "order": [
-        {
-          "id": 1737365475438,
-          "itemName": "Blue Berry",
-          "price": "120",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "4",
-          "subtotal": "480.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738058362659
-    },
-    {
-      "invoiceNo": "DT_23",
-      "billingDate": "2025-01-28T10:00:13.896Z",
-      "subtotal": 480,
-      "customerInfo": {
-        "vendorName": "Abhi",
-        "vendorPhone": "1212121212",
-        "address": "Abc, circle23"
-      },
-      "total": "480.00",
-      "order": [
-        {
-          "id": 1737365475438,
-          "itemName": "Blue Berry",
-          "price": "120",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "4",
-          "subtotal": "480.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738058420499
-    },
-    {
-      "invoiceNo": "DT_24",
-      "billingDate": "2025-01-28T10:01:53.239Z",
-      "subtotal": 480,
-      "customerInfo": {
-        "vendorName": "Ramesh",
-        "vendorPhone": "7878787878",
-        "address": "Abc, circle, jotangiya1"
-      },
-      "total": "480.00",
-      "order": [
-        {
-          "id": 1737365475438,
-          "itemName": "Blue Berry",
-          "price": "120",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "4",
-          "subtotal": "480.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738058523441
-    },
-    {
-      "invoiceNo": "DT_25",
-      "billingDate": "2025-01-28T11:22:54.156Z",
-      "subtotal": 720,
-      "order": [
-        {
-          "id": 1737365601517,
-          "itemName": "Colgate",
-          "price": "80",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "9.00",
-          "subtotal": "720.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "total": "720.00",
-      "customerInfo": {
-        "vendorName": "Jay",
-        "vendorPhone": "9876543100",
-        "address": "Bhavani circle"
-      },
-      "id": 1738063387099
-    },
-    {
-      "invoiceNo": "DT_26",
-      "billingDate": "2025-01-28T11:23:56.271Z",
-      "subtotal": 1000,
-      "order": [
-        {
-          "id": 1737638278413,
-          "itemName": "Banana",
-          "price": "100",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "10",
-          "subtotal": "1000.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "total": "1000.00",
-      "customerInfo": {
-        "vendorName": "N/A",
-        "vendorPhone": "0000000000",
-        "address": "-"
-      },
-      "id": 1738063449188
-    },
-    {
-      "invoiceNo": "DT_27",
-      "billingDate": "2025-01-28T11:25:11.863Z",
-      "subtotal": 11.4,
-      "customerInfo": {
-        "vendorName": "N/A",
-        "vendorPhone": "0000000000",
-        "address": "-"
-      },
-      "total": "11.40",
-      "order": [
-        {
-          "id": 1737629157442,
-          "itemName": "Chilli",
-          "price": "20",
-          "quantityCategory": "Grams",
-          "itemQuantity": "570",
-          "subtotal": "11.40"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738063529356
-    },
-    {
-      "invoiceNo": "DT_27",
-      "billingDate": "2025-01-28T11:25:11.863Z",
-      "subtotal": 100,
-      "customerInfo": {
-        "vendorName": "n/a"
-      },
-      "total": "100.00",
-      "order": [
-        {
-          "id": 1738056363336,
-          "vendorPhone": "5",
-          "price": "10",
-          "quantityCategory": "Pcs.",
-          "itemName": "Waffer",
-          "itemQuantity": "10",
-          "subtotal": "100.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738063655957
-    },
-    {
-      "invoiceNo": "DT_29",
-      "billingDate": "2025-01-28T11:29:04.712Z",
-      "subtotal": 120,
-      "customerInfo": {
-        "vendorName": "Jay",
-        "vendorPhone": "9876543100",
-        "address": "Bhavani circle"
-      },
-      "total": "120.00",
-      "order": [
-        {
-          "id": 1738056363336,
-          "itemName": "Waffer",
-          "price": "10",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "12",
-          "subtotal": "120.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738063852000
-    },
-    {
-      "invoiceNo": "DT_29",
-      "billingDate": "2025-01-28T11:29:04.712Z",
-      "subtotal": 2442200,
-      "customerInfo": {
-        "vendorName": "Jay",
-        "vendorPhone": "9876543100",
-        "address": "Bhavani circle"
-      },
-      "total": "2442200.00",
-      "order": [
-        {
-          "id": 1737638278413,
-          "itemName": "Banana",
-          "price": "100",
-          "quantityCategory": "Pcs.",
-          "itemQuantity": "12",
-          "subtotal": "1200.00"
-        },
-        {
-          "id": 1738063919673,
-          "itemName": "cdsdcds",
-          "price": "12",
-          "quantityCategory": "Kg",
-          "itemQuantity": 120,
-          "subtotal": "1440000.00"
-        },
-        {
-          "id": 1738064024995,
-          "itemQuantity": "100.10",
-          "price": "10",
-          "quantityCategory": "Kg",
-          "itemName": "njmyuj",
-          "subtotal": "1001000.00"
-        }
-      ],
-      "GST": "no",
-      "payment": "Cash",
-      "GSTAmount": 0,
-      "id": 1738066105513
+      "GSTNumber": "12334342324234"
     }
   ]
 }
