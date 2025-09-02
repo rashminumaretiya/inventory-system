@@ -11,14 +11,14 @@
       "quantityCategory": "Pcs.",
       "itemName": "Colgate",
       "price": "80",
-      "stock": "200",
+      "stock": "199.000",
       "id": "1737365601517"
     },
     {
       "quantityCategory": "Kg",
       "itemName": "Orange",
       "price": "50",
-      "stock": "387.000",
+      "stock": "386.000",
       "id": "1737376761989"
     },
     {
@@ -39,7 +39,7 @@
       "quantityCategory": "Grams",
       "itemName": "Chilli",
       "price": "20",
-      "stock": "1.980",
+      "stock": "1.860",
       "id": "1737629157442"
     },
     {
@@ -61,7 +61,7 @@
       "quantityCategory": "Kg",
       "itemName": "ધાણાદાળ ",
       "price": "10",
-      "stock": "73.000"
+      "stock": "71.000"
     }
   ],
   "venders": [
@@ -110,7 +110,7 @@
   ],
   "orders": [
     {
-      "id": 1756114852941,
+      "id": "1756114852941",
       "invoiceNo": "DT_1",
       "billingDate": "2025-08-25T09:40:17.829Z",
       "subtotal": 470,
@@ -151,7 +151,7 @@
       "GSTAmount": 0
     },
     {
-      "id": 1756114951780,
+      "id": "1756114951780",
       "invoiceNo": "DT_2",
       "billingDate": "2025-08-26T09:42:08.000Z",
       "subtotal": 42,
@@ -184,7 +184,7 @@
       "GSTAmount": 0
     },
     {
-      "id": 1756114984236,
+      "id": "1756114984236",
       "invoiceNo": "DT_3",
       "billingDate": "2025-08-27T09:42:43.000Z",
       "subtotal": 500.4,
@@ -218,7 +218,7 @@
       "GSTNumber": "4322343"
     },
     {
-      "id": 1756115121850,
+      "id": "1756115121850",
       "invoiceNo": "DT_4",
       "billingDate": "2025-09-01T09:44:57.000Z",
       "subtotal": 1450,
@@ -257,6 +257,81 @@
       "GST": "no",
       "payment": "Cash",
       "GSTAmount": 0
+    },
+    {
+      "id": 1756787540489,
+      "invoiceNo": "DT_5",
+      "billingDate": "2025-09-02T04:31:12.209Z",
+      "subtotal": 70.4,
+      "customerInfo": {
+        "vendorName": "ભાવિન ",
+        "vendorPhone": "1234568902",
+        "address": "સુદામા ચોક મોટા વરાછા "
+      },
+      "total": "70.40",
+      "order": [
+        {
+          "id": "1737376761989",
+          "itemName": "Orange",
+          "price": "50",
+          "quantityCategory": "Kg",
+          "itemQuantity": "1",
+          "subtotal": "50.00"
+        },
+        {
+          "id": "1753693190212",
+          "itemName": "ધાણાદાળ ",
+          "price": "10",
+          "quantityCategory": "Kg",
+          "itemQuantity": "2",
+          "subtotal": "20.00"
+        },
+        {
+          "id": "1737629157442",
+          "itemName": "Chilli",
+          "price": "20",
+          "quantityCategory": "Grams",
+          "itemQuantity": "20",
+          "subtotal": "0.40"
+        }
+      ],
+      "GST": "no",
+      "payment": "Cash",
+      "GSTAmount": 0
+    },
+    {
+      "id": 1756788603849,
+      "invoiceNo": "DT_6",
+      "billingDate": "2025-09-02T04:49:13.353Z",
+      "subtotal": 82,
+      "customerInfo": {
+        "vendorName": "N/A",
+        "vendorPhone": "0000000000",
+        "address": "-"
+      },
+      "total": "96.76",
+      "order": [
+        {
+          "id": "1737629157442",
+          "itemName": "Chilli",
+          "price": "20",
+          "quantityCategory": "Grams",
+          "itemQuantity": "100.00",
+          "subtotal": "2.00"
+        },
+        {
+          "id": "1737365601517",
+          "itemName": "Colgate",
+          "price": "80",
+          "quantityCategory": "Pcs.",
+          "itemQuantity": "1",
+          "subtotal": "80.00"
+        }
+      ],
+      "GST": "yes",
+      "payment": "Cash",
+      "GSTAmount": 14.76,
+      "GSTNumber": "34534345345"
     }
   ]
 }

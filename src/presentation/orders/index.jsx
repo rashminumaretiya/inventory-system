@@ -1,4 +1,4 @@
-import { Edit } from "@mui/icons-material";
+import { Edit, PrintOutlined } from "@mui/icons-material";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
@@ -27,6 +27,7 @@ import IMSGrid from "../../shared/IMSGrid";
 import IMSTextField from "../../shared/IMSTextField";
 import IMSTypography from "../../shared/IMSTypography";
 import { MUIStyled } from "../../shared/MUIStyled";
+import { Print } from "../dashboard/print";
 
 export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
   maxHeight: "calc(100vh - 186px)",
@@ -142,6 +143,8 @@ const Orders = () => {
   useEffect(() => {
     applyFilters();
   }, [searchText, billDate, orderList]);
+
+  const { generateReceipt } = Print();
 
   return (
     <>
@@ -261,6 +264,15 @@ const Orders = () => {
                         >
                           <DeleteOutlineIcon />
                         </IconButton>
+                        <IconButton
+                          color="primary"
+                          onClick={() =>
+                            generateReceipt(data?.order, filterOrderList[i])
+                          }
+                        >
+                          <PrintOutlined />
+                        </IconButton>
+                        {console.log("filterOrderList", filterOrderList[i])}
                       </TableCell>
                     </TableRow>
                     <TableRow>

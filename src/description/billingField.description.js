@@ -85,7 +85,11 @@ export const billingFields = [
               value: "Grams",
               disabled: current.value === "Pcs.",
             },
-            { label: "Pcs.", value: "Pcs." },
+            {
+              label: "Pcs.",
+              value: "Pcs.",
+              disabled: current.value === "Kg" || current.value === "Grams",
+            },
           ];
         },
       },

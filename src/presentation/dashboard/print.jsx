@@ -15,7 +15,7 @@ pdfMake.fonts = {
 };
 
 export const Print = () => {
-  const generateReceipt = ({ addData, formData }) => {
+  const generateReceipt = (addData, formData) => {
     const docDefinition = {
       pageSize: { width: 230, height: "auto" },
       pageMargins: [10, 10, 10, 10],

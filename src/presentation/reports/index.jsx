@@ -102,7 +102,8 @@ const Reports = () => {
       }, {});
 
       const labels = Object.keys(grouped);
-      const data = Object.values(grouped);
+      const data = Object.values(grouped).map((val) => Number(val.toFixed(2)));
+      console.log("data", data);
 
       setChartData((prev) => ({
         ...prev,
@@ -111,15 +112,14 @@ const Reports = () => {
       }));
     }
   }, [orders]);
+
   const handleChange = (e) => {
     setOptions(e.target.value);
   };
 
-  console.log("orders", orders);
-
   return (
     <>
-      <IMSStack direction="row" spacing={2}>
+      <IMSStack direction="row" spacing={2} mb={4}>
         <IMSSelect
           onChange={handleChange}
           defaultValue="product"

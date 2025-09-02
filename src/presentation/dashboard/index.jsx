@@ -39,6 +39,7 @@ const Dashboard = () => {
   } = DashboardContainer();
 
   const { generateReceipt } = Print();
+
   return (
     <>
       <ProductTable
@@ -246,7 +247,7 @@ const Dashboard = () => {
               <IMSButton
                 variant="contained"
                 disabled={addData?.length === 0}
-                onClick={() => generateReceipt({ addData, formData })}
+                onClick={() => generateReceipt(addData, formData)}
               >
                 print
               </IMSButton>

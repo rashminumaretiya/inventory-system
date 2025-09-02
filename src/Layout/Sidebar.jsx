@@ -61,8 +61,6 @@ const Sidebar = () => {
     },
   ];
 
-  console.log("language", language);
-
   return (
     <SidebarWrapper>
       <IMSStack direction="row" alignItems="center" p={2} color="white.main">

@@ -171,8 +171,6 @@ const DashboardContainer = () => {
     e.$d && setBillDate(dayjs(e.$d));
   };
 
-  console.log("formData", formData);
-
   const handleAddData = (e) => {
     e.preventDefault();
     let error = {};
