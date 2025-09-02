@@ -17,7 +17,7 @@ export const HeaderWrapper = MUIStyled(AppBar)(({ theme }) => ({
   },
 }));
 export const SidebarWrapper = MUIStyled(IMSStack)(({ theme }) => ({
-  background: `linear-gradient(180deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+  background: `linear-gradient(180deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
   position: "fixed",
   left: 0,
   top: 0,

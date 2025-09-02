@@ -6,7 +6,7 @@ export const ApiContainer = () => {
       const headers = {
         ...config,
       };
-      axios(`http://localhost:8000${URL}`, {
+      axios(`https://json-hosting-f86n.onrender.com${URL}`, {
         method: method,
         headers,
         data: payload,

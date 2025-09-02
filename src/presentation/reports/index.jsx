@@ -101,14 +101,25 @@ const Reports = () => {
         return acc;
       }, {});
 
-      const labels = Object.keys(grouped);
-      const data = Object.values(grouped).map((val) => Number(val.toFixed(2)));
-      console.log("data", data);
+      const labels = Object.keys(grouped).sort(
+        (a, b) => new Date(a) - new Date(b)
+      );
+
+      const seriesData = labels.map((date) => [
+        new Date(date).getTime(), // x = timestamp
+        Number(grouped[date].toFixed(2)), // y = value rounded
+      ]);
 
       setChartData((prev) => ({
         ...prev,
-        series: [{ name: "Total Sales", data }],
-        options: { ...prev.options, labels },
+        series: [{ name: "Total Sales", data: seriesData }],
+        options: {
+          ...prev.options,
+          xaxis: {
+            ...prev.options.xaxis,
+            type: "datetime",
+          },
+        },
       }));
     }
   }, [orders]);

@@ -6,28 +6,28 @@ import theme from "./shared/theme";
 import { CssBaseline } from "@mui/material";
 import { Provider } from "react-redux";
 import store from "./store";
-import { GoogleOAuthProvider } from "@react-oauth/google";
-import Backups from "./presentation/Backups";
+// import { GoogleOAuthProvider } from "@react-oauth/google";
+// import Backups from "./presentation/Backups";
 import { I18nextProvider } from "react-i18next";
 import i18n from "./i18n/i18n";
 
 function App() {
   return (
     <div className="App">
-      <GoogleOAuthProvider clientId="1027066066194-5tqh7vt83mijpup2od7q5n29jthuhmfa.apps.googleusercontent.com">
-        <Provider store={store}>
-          <ThemeProvider theme={theme}>
-            <I18nextProvider i18n={i18n}>
-              <BrowserRouter>
-                <Toaster />
-                <CssBaseline />
-                <AllRoutes />
-                {/* <Backups/> */}
-              </BrowserRouter>
-            </I18nextProvider>
-          </ThemeProvider>
-        </Provider>
-      </GoogleOAuthProvider>
+      {/* <GoogleOAuthProvider clientId="1027066066194-5tqh7vt83mijpup2od7q5n29jthuhmfa.apps.googleusercontent.com"> */}
+      <Provider store={store}>
+        <ThemeProvider theme={theme}>
+          <I18nextProvider i18n={i18n}>
+            <BrowserRouter>
+              <Toaster />
+              <CssBaseline />
+              <AllRoutes />
+              {/* <Backups/> */}
+            </BrowserRouter>
+          </I18nextProvider>
+        </ThemeProvider>
+      </Provider>
+      {/* </GoogleOAuthProvider> */}
     </div>
   );
 }

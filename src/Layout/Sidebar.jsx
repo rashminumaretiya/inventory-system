@@ -17,6 +17,7 @@ import IMSSelect from "../shared/IMSSelect";
 import { useDispatch } from "react-redux";
 import i18n from "../i18n/i18n";
 import { useTranslation } from "react-i18next";
+import { ReactComponent as Logo } from "../assets/logo.svg";
 
 const Sidebar = () => {
   const location = useLocation();
@@ -63,9 +64,14 @@ const Sidebar = () => {
 
   return (
     <SidebarWrapper>
-      <IMSStack direction="row" alignItems="center" p={2} color="white.main">
-        <AdbIcon sx={{ display: { xs: "none", md: "flex" }, mr: 1 }} />
-        <IMSTypography variant="h6">Logo</IMSTypography>
+      <IMSStack
+        direction="row"
+        alignItems="center"
+        p={2}
+        color="white.main"
+        sx={{ "& svg": { width: 160, height: 62 } }}
+      >
+        <Logo />
       </IMSStack>
       <IMSList>
         {menuList.map((item, i) => {
