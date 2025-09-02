@@ -18,6 +18,8 @@ const IMSAutoComplete = ({
   addClick,
   ...props
 }) => {
+  console.log("options", options);
+  console.log("value", value, name);
   return (
     <>
       {addNew && (

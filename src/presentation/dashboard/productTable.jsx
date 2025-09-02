@@ -11,6 +11,7 @@ import {
 import React from "react";
 import IMSTypography from "../../shared/IMSTypography";
 import { MUIStyled } from "../../shared/MUIStyled";
+import { useTranslation } from "react-i18next";
 
 export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
   "& .MuiTableHead-root": {
@@ -29,6 +30,7 @@ export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
   },
 }));
 const ProductTable = ({ billingData, setAddData, hideAction, sx }) => {
+  const { t } = useTranslation();
   const handleRemoveItem = (index) => {
     const filterData = billingData.filter((_, i) => i !== index);
     localStorage.setItem("formData", JSON.stringify([...filterData]));
@@ -39,12 +41,14 @@ const ProductTable = ({ billingData, setAddData, hideAction, sx }) => {
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>SNo.</TableCell>
-            <TableCell>Item Name</TableCell>
-            <TableCell>Item Qty</TableCell>
-            <TableCell align="right">Price</TableCell>
-            <TableCell align="right">Total</TableCell>
-            {!hideAction && <TableCell align="right">Action</TableCell>}
+            <TableCell>{t("description.serial_no")}</TableCell>
+            <TableCell>{t("description.item_name")}</TableCell>
+            <TableCell>{t("description.item_qty")}</TableCell>
+            <TableCell align="right">{t("description.price")}</TableCell>
+            <TableCell align="right">{t("description.total")}</TableCell>
+            {!hideAction && (
+              <TableCell align="right">{t("description.action")}</TableCell>
+            )}
           </TableRow>
         </TableHead>
         <TableBody>

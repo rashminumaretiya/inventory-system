@@ -13,6 +13,7 @@ const SelectStyle = MUIStyled(Select)(({ theme }) => ({
   },
 }));
 const IMSSelect = ({ menu, formLabel, ...props }) => {
+  const resolvedMenu = typeof menu === "function" ? menu(props) : menu;
   return (
     <FormControl
       fullWidth
@@ -31,8 +32,12 @@ const IMSSelect = ({ menu, formLabel, ...props }) => {
         </IMSFormLabel>
       )}
       <SelectStyle fullWidth {...props}>
-        {menu?.map((item, i) => (
-          <IMSMenuItem key={i} value={item.value ? item.value : item}>
+        {resolvedMenu?.map((item, i) => (
+          <IMSMenuItem
+            key={i}
+            value={item.value ? item.value : item}
+            disabled={item?.disabled}
+          >
             {item.label ? item.label : item}
           </IMSMenuItem>
         ))}

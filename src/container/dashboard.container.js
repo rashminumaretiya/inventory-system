@@ -171,6 +171,8 @@ const DashboardContainer = () => {
     e.$d && setBillDate(dayjs(e.$d));
   };
 
+  console.log("formData", formData);
+
   const handleAddData = (e) => {
     e.preventDefault();
     let error = {};
@@ -198,6 +200,9 @@ const DashboardContainer = () => {
           );
         }
         if (field.name === "itemQuantity") {
+          if (formData?.order[0].itemQuantity <= 0) {
+            error[field?.name] = "Quantity must be 1 or more";
+          }
           if (formData?.order[0].quantityCategory === "Pcs.") {
             if (
               Number(findProduct?.stock) <

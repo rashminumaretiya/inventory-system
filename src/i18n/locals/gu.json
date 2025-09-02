@@ -1,0 +1,17 @@
+{
+  "description": {
+    "serial_no": "ક્રમ નંબર",
+    "item_name": "આઇટમનું નામ",
+    "item_qty": "જથ્થો",
+    "price": "ભાવ",
+    "total": "કુલ",
+    "action": "ક્રિયા"
+  },
+  "menu": {
+    "dashboard": "ડૅશબોર્ડ",
+    "product": "પ્રોડક્ટ",
+    "reports": "અહેવાલ",
+    "customer": "ગ્રાહક",
+    "orders": "ઓર્ડર"
+  }
+}

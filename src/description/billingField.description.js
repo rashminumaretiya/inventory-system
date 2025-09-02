@@ -74,16 +74,26 @@ export const billingFields = [
         name: "quantityCategory",
         type: "select",
         defaultValue: "Kg",
-        menu: ["Kg", "Grams", "Pcs."],
         md: 4,
         sector: "order",
+        menu: (formData, index) => {
+          const current = formData;
+          return [
+            { label: "Kg", value: "Kg", disabled: current.value === "Pcs." },
+            {
+              label: "Grams",
+              value: "Grams",
+              disabled: current.value === "Pcs.",
+            },
+            { label: "Pcs.", value: "Pcs." },
+          ];
+        },
       },
       {
         name: "price",
         type: "number",
         label: "Price",
         md: 4,
-        disabled: true,
         sector: "order",
       },
       {
@@ -112,7 +122,7 @@ export const billingFields = [
         name: "payment",
         type: "select",
         defaultValue: "Cash",
-        menu: ["Cash", 'Pending', 'Online'],
+        menu: ["Cash", "Pending", "Online"],
         md: 6,
         sector: "order",
         gutterNone: true,

@@ -1,0 +1,17 @@
+{
+  "description": {
+    "serial_no": "SNo.",
+    "item_name": "Item Name",
+    "item_qty": "Item Qty",
+    "price": "Price",
+    "total": "Total",
+    "action": "Action"
+  },
+  "menu": {
+    "dashboard": "Dashboard",
+    "product": "Product",
+    "reports": "Reports",
+    "customer": "Customer",
+    "orders": "Orders"
+  }
+}

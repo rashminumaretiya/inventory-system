@@ -83,7 +83,6 @@ const Dashboard = () => {
                           value:
                             field?.name === "itemName"
                               ? formData[field.sector]?.[index]?.[field.name]
-                                  ?.itemName
                               : formData[field.name] ||
                                 formData[field.sector]?.[field.name] ||
                                 formData[field.sector]?.[index]?.[field.name] ||
@@ -120,11 +119,11 @@ const Dashboard = () => {
                                 <IMSAutoComplete
                                   {...fieldProps}
                                   options={field?.options}
-                                  getOptionLabel={(option) =>
-                                    field?.name === "itemName"
-                                      ? option.itemName
-                                      : option
-                                  }
+                                  getOptionLabel={(option) => {
+                                    return field?.name === "itemName"
+                                      ? option?.itemName || option
+                                      : option;
+                                  }}
                                   renderOption={(props, option) => {
                                     const { key, ...optionProps } = props;
                                     return (
