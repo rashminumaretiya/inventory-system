@@ -25,9 +25,10 @@ import { Edit } from "@mui/icons-material";
 import IMSButton from "../../shared/IMSButton";
 import IMSDialog from "../../shared/IMSDialog";
 import AddProduct from "../dashboard/addProduct";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import IMSStack from "../../shared/IMSStack";
 import EditProduct from "./editProduct";
+import { productData } from "../../store/slice/productSlice";
 
 export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
   maxHeight: "calc(100vh - 164px)",
@@ -63,11 +64,12 @@ const Product = () => {
   const [rowsPerPage, setRowsPerPage] = React.useState(20);
   const [searchText, setSearchText] = useState("");
   const [billDate, setBillDate] = useState(null);
-  const [show, setShow] = useState(false)
-  const [deleteProduct, setDeleteProduct] = useState({})
+  const [show, setShow] = useState(false);
+  const [deleteProduct, setDeleteProduct] = useState({});
   const [editData, setEditData] = useState({});
-  const [editProductDialog, setEditProductDialog] = useState(false)
-  const allProducts = useSelector((state) => state?.product?.product || [])
+  const [editProductDialog, setEditProductDialog] = useState(false);
+  const allProducts = useSelector((state) => state?.product?.product || []);
+  const dispatch = useDispatch();
 
   const getOrders = async () => {
     try {
@@ -93,12 +95,15 @@ const Product = () => {
     setPage(0);
   };
   const applyFilters = () => {
-    let searchList = [...productList];
+    const uniqueProducts = [
+      ...new Map(
+        [...productList, ...allProducts].map((item) => [item.id, item])
+      ).values(),
+    ];
+    let searchList = [...uniqueProducts];
     if (searchText) {
       searchList = searchList.filter((el) =>
-        el?.itemName
-          .toLowerCase()
-          .includes(searchText.toLowerCase())
+        el?.itemName.toLowerCase().includes(searchText.toLowerCase())
       );
     }
 
@@ -112,6 +117,7 @@ const Product = () => {
     setFilterProductList(searchList);
     setPage(0);
   };
+
   const handleChange = (e) => {
     if (e?.target) {
       setSearchText(e.target.value);
@@ -121,13 +127,17 @@ const Product = () => {
   };
 
   useEffect(() => {
-    const uniqueProducts = [...new Map([...productList, ...allProducts].map(item => [item.id, item])).values()];
+    const uniqueProducts = [
+      ...new Map(
+        [...productList, ...allProducts].map((item) => [item.id, item])
+      ).values(),
+    ];
     setFilterProductList(uniqueProducts);
-  }, [productList, allProducts])
+  }, [productList, allProducts]);
 
   const handleDeteleModal = (id) => {
-    setDeleteProduct({show: true, id: id});
-  }
+    setDeleteProduct({ show: true, id: id });
+  };
 
   const handleDeleteProduct = async (id) => {
     const filteredData = productList.filter((item) => item.id === id);
@@ -140,16 +150,19 @@ const Product = () => {
       if (response) {
         toast.success("Product deleted successfully");
         setProductList(productList.filter((item) => item.id !== id));
-        setDeleteProduct({show: false});
+        setDeleteProduct({ show: false });
+        dispatch(
+          productData({ payload: productList.filter((item) => item.id !== id) })
+        );
       }
     } catch {
       toast.error("Something went wrong");
     }
   };
   const handleUpdateProduct = (id) => {
-    const editItem = filterProductList.find((item) => item.id === id)
-    setEditData(editItem)
-    setEditProductDialog(true)
+    const editItem = filterProductList.find((item) => item.id === id);
+    setEditData(editItem);
+    setEditProductDialog(true);
   };
 
   useEffect(() => {
@@ -158,6 +171,7 @@ const Product = () => {
 
   const handleAddProduct = () => {
     setShow(true);
+    dispatch(productData({ payload: productList }));
   };
 
   return (
@@ -179,8 +193,10 @@ const Product = () => {
             }}
           />
         </IMSGrid>
-        <IMSGrid item md={4} textAlign='right'>
-          <IMSButton variant="contained" onClick={handleAddProduct}>Add Product</IMSButton>
+        <IMSGrid item md={4} textAlign="right">
+          <IMSButton variant="contained" onClick={handleAddProduct}>
+            Add Product
+          </IMSButton>
         </IMSGrid>
       </IMSGrid>
       <Divider sx={{ mb: 3 }} />
@@ -215,15 +231,12 @@ const Product = () => {
                 ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((data, i) => (
                   <>
-                    <TableRow
-                      key={i}
-                      sx={{ cursor: "pointer" }}
-                    >
-                      <TableCell>{i+1}</TableCell>
+                    <TableRow key={i} sx={{ cursor: "pointer" }}>
+                      <TableCell>{i + 1}</TableCell>
                       <TableCell>{data?.itemName}</TableCell>
                       <TableCell>₹ {data?.price}</TableCell>
                       <TableCell>
-                        {data?.stock}{' '}
+                        {data?.stock}{" "}
                         <IMSTypography
                           color="natural.main"
                           variant="body2"
@@ -233,7 +246,11 @@ const Product = () => {
                         </IMSTypography>
                       </TableCell>
                       <TableCell>
-                        <Chip color={data?.stock <= 0 ? 'error' : 'success'} size="small" label={data?.stock <= 0 ? 'Out of stock' : 'In stock'}/>
+                        <Chip
+                          color={data?.stock <= 0 ? "error" : "success"}
+                          size="small"
+                          label={data?.stock <= 0 ? "Out of stock" : "In stock"}
+                        />
                       </TableCell>
                       <TableCell>
                         <IconButton
@@ -259,38 +276,55 @@ const Product = () => {
       <TablePagination
         rowsPerPageOptions={[20, 50, 100]}
         component="div"
-        count={filterProductList ? filterProductList.length : productList.length}
+        count={
+          filterProductList ? filterProductList.length : productList.length
+        }
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
       <IMSDialog
-          title={"Add New Product"}
-          open={show}
-          maxWidth="sm"
-          handleClose={()=>setShow(false)}
-        >
-        <AddProduct/>
+        title={"Add New Product"}
+        open={show}
+        maxWidth="sm"
+        handleClose={() => setShow(false)}
+      >
+        <AddProduct />
       </IMSDialog>
       <IMSDialog
-          title={"Edit Product"}
-          open={editProductDialog}
-          maxWidth="sm"
-          handleClose={()=>setEditProductDialog(false)}
-        >
-        <EditProduct editData={editData}/>
+        title={"Edit Product"}
+        open={editProductDialog}
+        maxWidth="sm"
+        handleClose={() => setEditProductDialog(false)}
+      >
+        <EditProduct editData={editData} />
       </IMSDialog>
       <IMSDialog
-          title={"Are you sure ?"}
-          open={deleteProduct.show}
-          maxWidth="xs"
-          handleClose={()=>setDeleteProduct({show: false})}
-        >
-        <IMSTypography mb={2} color="natural.main">Do you really want to delete these records? this process cannot be undone.</IMSTypography>
+        title={"Are you sure ?"}
+        open={deleteProduct.show}
+        maxWidth="xs"
+        handleClose={() => setDeleteProduct({ show: false })}
+      >
+        <IMSTypography mb={2} color="natural.main">
+          Do you really want to delete these records? this process cannot be
+          undone.
+        </IMSTypography>
         <IMSStack direction="row" spacing={2}>
-          <IMSButton variant="outlined" color="black" onClick={()=>setDeleteProduct({show: false})}>Cancel</IMSButton>
-          <IMSButton variant="contained" color="error" onClick={() => handleDeleteProduct(deleteProduct.id)}>Delete</IMSButton>
+          <IMSButton
+            variant="outlined"
+            color="black"
+            onClick={() => setDeleteProduct({ show: false })}
+          >
+            Cancel
+          </IMSButton>
+          <IMSButton
+            variant="contained"
+            color="error"
+            onClick={() => handleDeleteProduct(deleteProduct.id)}
+          >
+            Delete
+          </IMSButton>
         </IMSStack>
       </IMSDialog>
     </>

@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import AdbIcon from "@mui/icons-material/Adb";
+import { useEffect, useState } from "react";
 import IMSList from "../shared/IMSList";
 import IMSListItem from "../shared/IMSListItem";
 import { Link, useLocation } from "react-router-dom";
@@ -14,7 +13,6 @@ import { SidebarWrapper } from "./Layout.style";
 import IMSTypography from "../shared/IMSTypography";
 import IMSStack from "../shared/IMSStack";
 import IMSSelect from "../shared/IMSSelect";
-import { useDispatch } from "react-redux";
 import i18n from "../i18n/i18n";
 import { useTranslation } from "react-i18next";
 import { ReactComponent as Logo } from "../assets/logo.svg";
@@ -22,7 +20,6 @@ import { ReactComponent as Logo } from "../assets/logo.svg";
 const Sidebar = () => {
   const location = useLocation();
   const { t } = useTranslation();
-  const dispatch = useDispatch();
   const [language, setLanguage] = useState("");
   const handleChangeLanguage = (event) => {
     const selectedLanguage = event.target.value;
@@ -94,7 +91,7 @@ const Sidebar = () => {
           onChange={handleChangeLanguage}
           value={language}
           menu={[
-            { label: "English", value: "en" },
+            { label: "English", value: "en-GB" },
             { label: "ગુજરાતી", value: "gu" },
           ]}
           sx={{

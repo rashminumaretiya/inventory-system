@@ -10,8 +10,8 @@ const AddProductContainer = () => {
   const [error, setError] = useState({});
   const [formData, setFormData] = useState({});
   const { apiResponse } = ApiContainer();
-  const dispatch = useDispatch()
-  const allProduct = useSelector((state) => state?.product?.product || [])
+  const dispatch = useDispatch();
+  const allProduct = useSelector((state) => state?.product?.product || []);
 
   const handleChange = (e, pattern, sName, val, label) => {
     const { name, value } = e.target;
@@ -24,7 +24,6 @@ const AddProductContainer = () => {
     setFormData((prev) => ({ ...prev, [selectedName]: selectedValue }));
   };
 
-  
   const handleAddProduct = async (e) => {
     e.preventDefault();
     let newErr = {};
@@ -35,21 +34,41 @@ const AddProductContainer = () => {
         field.label
       );
     });
+    formData.stock =
+      formData.quantityCategory === "Grams"
+        ? (formData?.stock / 1000).toFixed(3)
+        : formData?.stock;
+
     setError((prev) => ({
       ...prev,
       ...newErr,
     }));
-    formData.stock = formData.quantityCategory === 'Grams'? (formData?.stock / 1000).toFixed(3) : formData?.stock
-    if (Object.values(newErr).every((el) => el === undefined || el === '')) {
+
+    if (!newErr.name) {
+      const isDuplicate = allProduct.some(
+        (prod) =>
+          prod.itemName?.trim().toLowerCase() ===
+          formData.itemName?.trim().toLowerCase()
+      );
+      if (isDuplicate) {
+        setError((prev) => ({
+          ...prev,
+          itemName: "Duplicate product found please enter different product",
+        }));
+        return;
+      }
+    }
+
+    if (Object.values(newErr).every((el) => el === undefined || el === "")) {
       try {
         const response = await apiResponse("/product", "POST", null, {
           ...formData,
-          id: Date.now()
+          id: Date.now(),
         });
         if (response) {
           toast.success("Added");
-          const newProduct = [...allProduct, response?.data]
-          dispatch(productData({payload: newProduct}))
+          const newProduct = [...allProduct, response?.data];
+          dispatch(productData({ payload: newProduct }));
           setFormData({});
         }
       } catch {
@@ -57,9 +76,9 @@ const AddProductContainer = () => {
       }
     }
   };
-  useEffect(()=> {
-    setFormData((prev) => ({ ...prev, quantityCategory: 'Kg' }));
-  }, [])
+  useEffect(() => {
+    setFormData((prev) => ({ ...prev, quantityCategory: "Kg" }));
+  }, []);
   return { handleChange, handleAddProduct, error, formData };
 };
 

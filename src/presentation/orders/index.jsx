@@ -272,7 +272,6 @@ const Orders = () => {
                         >
                           <PrintOutlined />
                         </IconButton>
-                        {console.log("filterOrderList", filterOrderList[i])}
                       </TableCell>
                     </TableRow>
                     <TableRow>
