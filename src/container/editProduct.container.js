@@ -51,7 +51,7 @@ const EditProductContainer = ({ editData }) => {
             id: Date.now(),
           }
         );
-        if (response) {
+        if (response.success) {
           toast.success("Updated product successfully");
           dispatch(productData({ payload: [response?.data] }));
           setFormData({});

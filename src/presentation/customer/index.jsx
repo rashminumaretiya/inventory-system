@@ -71,7 +71,7 @@ const Customer = () => {
   const getOrders = async () => {
     try {
       const response = await apiResponse("/venders", "GET");
-      if (response) {
+      if (response.success) {
         setCustomerList(response.data);
       }
     } catch {
@@ -128,7 +128,7 @@ const Customer = () => {
         "DELETE",
         filteredData
       );
-      if (response) {
+      if (response.success) {
         toast.success("Customer deleted successfully");
         setCustomerList(customerList.filter((item) => item.id !== id));
         setDeleteCustomer({ show: false });

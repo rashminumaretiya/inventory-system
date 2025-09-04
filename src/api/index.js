@@ -13,10 +13,10 @@ export const ApiContainer = () => {
         data: payload,
       })
         .then((res) => {
-          return resolve(res);
+          return resolve({ ...res, success: true });
         })
         .catch((err) => {
-          return reject(err);
+          return reject({ ...err, success: false });
         });
     });
   return { apiResponse };

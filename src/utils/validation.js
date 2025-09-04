@@ -1,7 +1,7 @@
 const validation = (pattern, value, label, t) => {
   const notEmpty = (label, value) => {
     if (value === "" || value === null || value === undefined) {
-      return t("errorMsg.pleaseEnter", { field: t(label) });
+      return t("errorMsg.pleaseEnter", { field: t(label).toLowerCase() });
     }
   };
   const phoneNumber = (label, value) => {
@@ -9,7 +9,7 @@ const validation = (pattern, value, label, t) => {
     const phoneRegex =
       /^[+]?(\d{1,2})?[\s.-]?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
     if (!value) {
-      return t("errorMsg.pleaseEnter", { field: t(label) });
+      return t("errorMsg.pleaseEnter", { field: t(label).toLowerCase() });
     } else if (!phoneRegex.test(value)) {
       return t("errorMsg.validNumber");
     }

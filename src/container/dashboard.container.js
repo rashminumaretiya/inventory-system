@@ -35,7 +35,7 @@ const DashboardContainer = () => {
   const getProduct = async () => {
     try {
       const response = await apiResponse("/product", "GET");
-      if (response) {
+      if (response.success) {
         setProductList(response.data);
         dispatch(productData({ payload: response.data }));
       }
@@ -46,7 +46,7 @@ const DashboardContainer = () => {
   const getVenders = async () => {
     try {
       const response = await apiResponse("/venders", "GET");
-      if (response) {
+      if (response.success) {
         setVendersList(response.data);
       }
     } catch {
@@ -70,7 +70,7 @@ const DashboardContainer = () => {
   const getOrder = async () => {
     try {
       const response = await apiResponse("/orders", "GET");
-      if (response) {
+      if (response.success) {
         setOrders(response.data);
       }
     } catch {
@@ -434,7 +434,7 @@ const DashboardContainer = () => {
             ...order,
             id: Date.now(),
           });
-          if (response) {
+          if (response.success) {
             const updatePromises = updatedRecords.map((record) => {
               return apiResponse(`/product/${record.id}`, "PATCH", null, {
                 stock: record.stock,
@@ -564,7 +564,7 @@ const DashboardContainer = () => {
         invoiceNo: updateRecord.invoiceNo,
         id: editOrderRecord.id,
       });
-      if (response) {
+      if (response.success) {
         const updatePromises = matchRecord?.map((record) => {
           return apiResponse(`/product/${record.id}`, "PATCH", null, {
             stock: record.stock,

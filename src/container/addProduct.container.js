@@ -68,7 +68,7 @@ const AddProductContainer = () => {
           ...formData,
           id: Date.now(),
         });
-        if (response) {
+        if (response.success) {
           toast.success("Added");
           const newProduct = [...allProduct, response?.data];
           dispatch(productData({ payload: newProduct }));

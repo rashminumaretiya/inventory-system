@@ -25,7 +25,7 @@ export const Print = () => {
       },
       content: [
         {
-          text: "દેવાંગી તમાકુ\n", // Gujarati Title
+          text: "દેવાંગી ટોબેકો\n", // Gujarati Title
           style: "header",
           alignment: "center",
         },

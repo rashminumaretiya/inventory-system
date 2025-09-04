@@ -7,13 +7,17 @@ import { ApiContainer } from "../../api";
 import toast from "react-hot-toast";
 import moment from "moment/moment";
 import { useTranslation } from "react-i18next";
+import IMSGrid from "../../shared/IMSGrid";
+import { Card, Paper } from "@mui/material";
+import IMSDatePicker from "../../shared/IMSDatePicker";
 
 const Reports = () => {
   const { t } = useTranslation();
   const { apiResponse } = ApiContainer();
   const [options, setOptions] = useState("product");
   const [orders, setOrders] = useState([]);
-  const [date, setDate] = useState([]);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
 
   const endpoints = {
     product: "product",
@@ -39,7 +43,7 @@ const Reports = () => {
         });
       } else {
         const response = await apiResponse(`/${options}`, "GET");
-        if (response.status !== 200) throw new Error(`${options} failed`);
+        if (response.success === false) throw new Error(`${options} failed`);
         combinedData = { [options]: response.data };
       }
 
@@ -61,7 +65,7 @@ const Reports = () => {
   const getOrder = async () => {
     try {
       const response = await apiResponse("/orders", "GET");
-      if (response) {
+      if (response.success) {
         setOrders(response.data);
       }
     } catch {
@@ -84,7 +88,7 @@ const Reports = () => {
         zoom: { enabled: true },
       },
       dataLabels: { enabled: false },
-      stroke: { curve: "straight" },
+      stroke: { curve: "smooth" },
       title: { text: t("description.salesByDate"), align: "left" },
       xaxis: { type: "datetime" },
       yaxis: { opposite: true },
@@ -94,7 +98,22 @@ const Reports = () => {
 
   useEffect(() => {
     if (orders?.length) {
-      const grouped = orders.reduce((acc, order) => {
+      let filteredOrders = orders;
+
+      if (startDate) {
+        const selectedMonth = moment(
+          startDate.toDate ? startDate.toDate() : startDate
+        );
+        filteredOrders = orders.filter((order) => {
+          const orderDate = moment(order.billingDate);
+          return (
+            orderDate.month() === selectedMonth.month() &&
+            orderDate.year() === selectedMonth.year()
+          );
+        });
+      }
+
+      const grouped = filteredOrders.reduce((acc, order) => {
         const date = moment(order.billingDate).format("YYYY-MM-DD");
         acc[date] = (acc[date] || 0) + Number(order.total);
         return acc;
@@ -105,23 +124,16 @@ const Reports = () => {
       );
 
       const seriesData = labels.map((date) => [
-        new Date(date).getTime(), // x = timestamp
-        Number(grouped[date].toFixed(2)), // y = value rounded
+        new Date(date).getTime(),
+        Number(grouped[date].toFixed(2)),
       ]);
 
       setChartData((prev) => ({
         ...prev,
         series: [{ name: t("description.totalSales"), data: seriesData }],
-        options: {
-          ...prev.options,
-          xaxis: {
-            ...prev.options.xaxis,
-            type: "datetime",
-          },
-        },
       }));
     }
-  }, [orders]);
+  }, [orders, startDate, t]);
 
   const handleChange = (e) => {
     setOptions(e.target.value);
@@ -148,12 +160,24 @@ const Reports = () => {
           {t("buttonText.download")}
         </IMSButton>
       </IMSStack>
-      <ReactApexChart
-        options={chartData.options}
-        series={chartData.series}
-        type="area"
-        height={350}
-      />
+      <IMSGrid container>
+        <IMSGrid item md={6}>
+          <Card elevation={5} sx={{ p: 2 }}>
+            <IMSDatePicker
+              views={["year", "month"]}
+              formLabel="Select Month"
+              value={startDate}
+              onChange={(newValue) => setStartDate(newValue)}
+            />
+            <ReactApexChart
+              options={chartData.options}
+              series={chartData.series}
+              type="area"
+              height={350}
+            />
+          </Card>
+        </IMSGrid>
+      </IMSGrid>
     </>
   );
 };

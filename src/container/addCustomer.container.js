@@ -45,7 +45,7 @@ const AddCustomerContainer = () => {
           ...formData,
           id: Date.now(),
         });
-        if (response) {
+        if (response.success) {
           toast.success("Added");
           dispatch(userData({ payload: formData }));
           setFormData({});

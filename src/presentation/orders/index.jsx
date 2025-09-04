@@ -71,7 +71,7 @@ const Orders = () => {
   const getOrders = async () => {
     try {
       const response = await apiResponse("/orders", "GET");
-      if (response) {
+      if (response.success) {
         setOrderList(response.data);
         setFilterOrderList(response.data);
       }
@@ -129,7 +129,7 @@ const Orders = () => {
         "DELETE",
         filteredData
       );
-      if (response) {
+      if (response.success) {
         toast.success("Order deleted successfully");
         setOrderList(orderList.filter((item) => item.id !== id));
       }

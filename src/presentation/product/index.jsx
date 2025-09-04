@@ -76,7 +76,7 @@ const Product = () => {
   const getOrders = async () => {
     try {
       const response = await apiResponse("/product", "GET");
-      if (response) {
+      if (response.success) {
         setProductList(response.data);
       }
     } catch {
@@ -137,7 +137,7 @@ const Product = () => {
     setFilterProductList(uniqueProducts);
   }, [productList, allProducts]);
 
-  const handleDeteleModal = (id) => {
+  const handleDeleteModal = (id) => {
     setDeleteProduct({ show: true, id: id });
   };
 
@@ -149,7 +149,7 @@ const Product = () => {
         "DELETE",
         filteredData
       );
-      if (response) {
+      if (response.success) {
         toast.success("Product deleted successfully");
         setProductList(productList.filter((item) => item.id !== id));
         setDeleteProduct({ show: false });
@@ -266,7 +266,7 @@ const Product = () => {
                           <Edit />
                         </IconButton>
                         <IconButton
-                          onClick={() => handleDeteleModal(data?.id)}
+                          onClick={() => handleDeleteModal(data?.id)}
                           color="error"
                         >
                           <DeleteOutlineIcon />
