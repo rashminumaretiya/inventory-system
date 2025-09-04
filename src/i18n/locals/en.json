@@ -5,13 +5,69 @@
     "item_qty": "Item Qty",
     "price": "Price",
     "total": "Total",
-    "action": "Action"
+    "action": "Action",
+    "search": "Search...",
+    "rowsPerPage": "Rows per page",
+    "inStock": "In stock",
+    "outOfStock": "Out of stock",
+    "salesByDate": "Sales by Date",
+    "totalSales": "Total Sales",
+    "noDataFound": "No Data Found",
+    "deleteNote": "Do you really want to delete these records? this process cannot be undone.",
+    "addOneProduct": "Please add at least one product"
   },
   "menu": {
     "dashboard": "Dashboard",
     "product": "Product",
     "reports": "Reports",
     "customer": "Customer",
-    "orders": "Orders"
+    "orders": "Orders",
+    "all": "All"
+  },
+  "formLabel": {
+    "invoiceNo": "Invoice No.",
+    "billingDate": "Billing Date",
+    "customerName": "Customer Name",
+    "addNewCustomer": "Add New Customer",
+    "phoneNumber": "Phone Number",
+    "customerAddress": "Customer Address",
+    "itemName": "Item Name",
+    "addNewItem": "Add New Item",
+    "itemQuantity": "Item Quantity",
+    "GST": "GST(18%)",
+    "GSTNumber": "GST Number",
+    "payment": "Payment",
+    "amountPay": "Amount Pay",
+    "subtotal": "Subtotal",
+    "GSTAmount": "GST Amount",
+    "totalPrice": "Total Price",
+    "addNewProduct": "Add New Product",
+    "stockQuantity": "Stock Quantity",
+    "stockCategory": "Stock Category",
+    "productName": "Product Name",
+    "stock": "Stock",
+    "status": "status",
+    "editCustomer": "Edit Customer",
+    "areYouSure": "Are you sure ?",
+    "invoiceDate": "Invoice Date",
+    "editProduct": "Edit Product"
+  },
+  "errorMsg": {
+    "pleaseEnter": "Please enter {{field}}",
+    "validNumber": "Please Valid phone number"
+  },
+  "buttonText": {
+    "addNew": "Add New",
+    "update": "Update",
+    "clearAll": "Clear All",
+    "save": "Save",
+    "cancel": "Cancel",
+    "print": "Print",
+    "addCustomer": "Add Customer",
+    "addProduct": "Add Product",
+    "download": "Download",
+    "updateCustomer": "Update Customer",
+    "delete": "Delete",
+    "updateProduct": "Update Product"
   }
 }

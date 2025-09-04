@@ -61,7 +61,7 @@ const ProductTable = ({ billingData, setAddData, hideAction, sx }) => {
                   lineHeight="80px"
                   color="natural.main"
                 >
-                  No Data Added
+                  {t("description.noDataFound")}
                 </IMSTypography>
               </TableCell>
             </TableRow>

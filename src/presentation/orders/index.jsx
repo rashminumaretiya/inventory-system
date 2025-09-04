@@ -28,6 +28,7 @@ import IMSTextField from "../../shared/IMSTextField";
 import IMSTypography from "../../shared/IMSTypography";
 import { MUIStyled } from "../../shared/MUIStyled";
 import { Print } from "../dashboard/print";
+import { useTranslation } from "react-i18next";
 
 export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
   maxHeight: "calc(100vh - 186px)",
@@ -56,6 +57,7 @@ export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
 }));
 
 const Orders = () => {
+  const { t } = useTranslation();
   const { apiResponse } = ApiContainer();
   const [orderList, setOrderList] = useState([]);
   const [filterOrderList, setFilterOrderList] = useState([]);
@@ -152,7 +154,7 @@ const Orders = () => {
         <IMSGrid item md={4}>
           <IMSTextField
             variant="outlined"
-            placeholder="Search..."
+            placeholder={t("description.search")}
             gutterNone
             name="search"
             onChange={handleChange}
@@ -181,14 +183,14 @@ const Orders = () => {
           <TableHead>
             <TableRow>
               <TableCell />
-              <TableCell>Invoice No</TableCell>
-              <TableCell>Invoice Date</TableCell>
-              <TableCell>User Name</TableCell>
-              <TableCell>User Phone</TableCell>
-              <TableCell>Payment</TableCell>
-              <TableCell>GST Number</TableCell>
-              <TableCell>Total</TableCell>
-              <TableCell>Action</TableCell>
+              <TableCell>{t("formLabel.invoiceNo")}</TableCell>
+              <TableCell>{t("formLabel.invoiceDate")}</TableCell>
+              <TableCell>{t("formLabel.customerName")}</TableCell>
+              <TableCell>{t("formLabel.phoneNumber")}</TableCell>
+              <TableCell>{t("formLabel.payment")}</TableCell>
+              <TableCell>{t("formLabel.GSTNumber")}</TableCell>
+              <TableCell>{t("formLabel.totalPrice")}</TableCell>
+              <TableCell>{t("description.action")}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -200,7 +202,7 @@ const Orders = () => {
                     lineHeight="80px"
                     color="natural.main"
                   >
-                    No Data Added
+                    {t("description.noDataFound")}
                   </IMSTypography>
                 </TableCell>
               </TableRow>
@@ -316,6 +318,7 @@ const Orders = () => {
         </Table>
       </TableContainerStyle>
       <TablePagination
+        labelRowsPerPage={t("description.rowsPerPage")}
         rowsPerPageOptions={[20, 50, 100]}
         component="div"
         count={filterOrderList ? filterOrderList.length : orderList.length}

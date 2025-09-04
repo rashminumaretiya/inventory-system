@@ -5,8 +5,10 @@ import { ApiContainer } from "../api";
 import { productFields } from "../description/productFields.description";
 import { useDispatch, useSelector } from "react-redux";
 import { productData } from "../store/slice/productSlice";
+import { useTranslation } from "react-i18next";
 
 const AddProductContainer = () => {
+  const { t } = useTranslation();
   const [error, setError] = useState({});
   const [formData, setFormData] = useState({});
   const { apiResponse } = ApiContainer();
@@ -19,7 +21,7 @@ const AddProductContainer = () => {
     const selectedValue = value || val;
     setError((prev) => ({
       ...prev,
-      [selectedName]: validation(pattern, selectedValue, label),
+      [selectedName]: validation(pattern, selectedValue, label, t),
     }));
     setFormData((prev) => ({ ...prev, [selectedName]: selectedValue }));
   };
@@ -31,7 +33,8 @@ const AddProductContainer = () => {
       newErr[field.name] = validation(
         field.pattern,
         formData[field.name],
-        field.label
+        field.label,
+        t
       );
     });
     formData.stock =
@@ -79,7 +82,7 @@ const AddProductContainer = () => {
   useEffect(() => {
     setFormData((prev) => ({ ...prev, quantityCategory: "Kg" }));
   }, []);
-  return { handleChange, handleAddProduct, error, formData };
+  return { handleChange, handleAddProduct, error, formData, t };
 };
 
 export default AddProductContainer;

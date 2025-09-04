@@ -7,7 +7,7 @@ import { productFields } from "../../description/productFields.description";
 import AddProductContainer from "../../container/addProduct.container";
 
 const AddProduct = () => {
-  const { handleChange, handleAddProduct, error, formData } =
+  const { handleChange, handleAddProduct, error, formData, t } =
     AddProductContainer();
   return (
     <IMSForm onSubmit={handleAddProduct}>
@@ -20,7 +20,7 @@ const AddProduct = () => {
       />
       <IMSStack direction="row" justifyContent="flex-end" spacing={1}>
         <IMSButton variant="contained" type="submit">
-          Add Product
+          {t("buttonText.addProduct")}
         </IMSButton>
       </IMSStack>
     </IMSForm>

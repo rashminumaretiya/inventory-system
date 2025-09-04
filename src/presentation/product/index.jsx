@@ -29,6 +29,7 @@ import { useDispatch, useSelector } from "react-redux";
 import IMSStack from "../../shared/IMSStack";
 import EditProduct from "./editProduct";
 import { productData } from "../../store/slice/productSlice";
+import { useTranslation } from "react-i18next";
 
 export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
   maxHeight: "calc(100vh - 164px)",
@@ -57,6 +58,7 @@ export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
 }));
 
 const Product = () => {
+  const { t } = useTranslation();
   const { apiResponse } = ApiContainer();
   const [productList, setProductList] = useState([]);
   const [filterProductList, setFilterProductList] = useState([]);
@@ -180,7 +182,7 @@ const Product = () => {
         <IMSGrid item md={4}>
           <IMSTextField
             variant="outlined"
-            placeholder="Search..."
+            placeholder={t("description.search")}
             gutterNone
             name="search"
             onChange={handleChange}
@@ -195,7 +197,7 @@ const Product = () => {
         </IMSGrid>
         <IMSGrid item md={4} textAlign="right">
           <IMSButton variant="contained" onClick={handleAddProduct}>
-            Add Product
+            {t("buttonText.addProduct")}
           </IMSButton>
         </IMSGrid>
       </IMSGrid>
@@ -205,11 +207,11 @@ const Product = () => {
           <TableHead>
             <TableRow>
               <TableCell>#</TableCell>
-              <TableCell>Product Name</TableCell>
-              <TableCell>Price</TableCell>
-              <TableCell>Stock</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Action</TableCell>
+              <TableCell>{t("formLabel.productName")}</TableCell>
+              <TableCell>{t("description.price")}</TableCell>
+              <TableCell>{t("formLabel.stock")}</TableCell>
+              <TableCell>{t("formLabel.status")}</TableCell>
+              <TableCell>{t("description.action")}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -221,7 +223,7 @@ const Product = () => {
                     lineHeight="80px"
                     color="natural.main"
                   >
-                    No Data Added
+                    {t("description.noDataFound")}
                   </IMSTypography>
                 </TableCell>
               </TableRow>
@@ -249,7 +251,11 @@ const Product = () => {
                         <Chip
                           color={data?.stock <= 0 ? "error" : "success"}
                           size="small"
-                          label={data?.stock <= 0 ? "Out of stock" : "In stock"}
+                          label={
+                            data?.stock <= 0
+                              ? t("description.outOfStock")
+                              : t("description.inStock")
+                          }
                         />
                       </TableCell>
                       <TableCell>
@@ -280,12 +286,13 @@ const Product = () => {
           filterProductList ? filterProductList.length : productList.length
         }
         rowsPerPage={rowsPerPage}
+        labelRowsPerPage={t("description.rowsPerPage")}
         page={page}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
       <IMSDialog
-        title={"Add New Product"}
+        title={t("formLabel.addNewProduct")}
         open={show}
         maxWidth="sm"
         handleClose={() => setShow(false)}
@@ -293,7 +300,7 @@ const Product = () => {
         <AddProduct />
       </IMSDialog>
       <IMSDialog
-        title={"Edit Product"}
+        title={t("formLabel.editProduct")}
         open={editProductDialog}
         maxWidth="sm"
         handleClose={() => setEditProductDialog(false)}
@@ -301,14 +308,13 @@ const Product = () => {
         <EditProduct editData={editData} />
       </IMSDialog>
       <IMSDialog
-        title={"Are you sure ?"}
+        title={t("formLabel.areYouSure")}
         open={deleteProduct.show}
         maxWidth="xs"
         handleClose={() => setDeleteProduct({ show: false })}
       >
         <IMSTypography mb={2} color="natural.main">
-          Do you really want to delete these records? this process cannot be
-          undone.
+          {t("description.deleteNote")}
         </IMSTypography>
         <IMSStack direction="row" spacing={2}>
           <IMSButton
@@ -316,14 +322,14 @@ const Product = () => {
             color="black"
             onClick={() => setDeleteProduct({ show: false })}
           >
-            Cancel
+            {t("buttonText.cancel")}
           </IMSButton>
           <IMSButton
             variant="contained"
             color="error"
             onClick={() => handleDeleteProduct(deleteProduct.id)}
           >
-            Delete
+            {t("buttonText.delete")}
           </IMSButton>
         </IMSStack>
       </IMSDialog>

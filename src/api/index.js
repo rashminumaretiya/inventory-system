@@ -3,7 +3,8 @@ import axios from "axios";
 export const ApiContainer = () => {
   const apiResponse = (URL, method, config, payload) =>
     new Promise((resolve, reject) => {
-      const headers = {
+      let headers = {
+        "Content-Type": "application/json",
         ...config,
       };
       axios(`https://json-hosting-f86n.onrender.com${URL}`, {

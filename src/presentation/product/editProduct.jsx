@@ -1,14 +1,14 @@
-import React from 'react'
-import IMSForm from '../../shared/IMSForm'
-import IMSFormFields from '../../shared/IMSFormFields'
-import IMSStack from '../../shared/IMSStack'
-import IMSButton from '../../shared/IMSButton'
-import EditProductContainer from '../../container/editProduct.container'
-import { productFields } from '../../description/productFields.description'
+import React from "react";
+import IMSForm from "../../shared/IMSForm";
+import IMSFormFields from "../../shared/IMSFormFields";
+import IMSStack from "../../shared/IMSStack";
+import IMSButton from "../../shared/IMSButton";
+import EditProductContainer from "../../container/editProduct.container";
+import { productFields } from "../../description/productFields.description";
 
-const EditProduct = ({editData}) => {
-    const { handleChange, handleAddProduct, formData, error } =
-    EditProductContainer({editData});
+const EditProduct = ({ editData }) => {
+  const { handleChange, handleAddProduct, formData, error, t } =
+    EditProductContainer({ editData });
   return (
     <IMSForm onSubmit={handleAddProduct}>
       <IMSFormFields
@@ -20,11 +20,11 @@ const EditProduct = ({editData}) => {
       />
       <IMSStack direction="row" justifyContent="flex-end" spacing={1}>
         <IMSButton variant="contained" type="submit">
-          Update Product
+          {t("buttonText.updateProduct")}
         </IMSButton>
       </IMSStack>
     </IMSForm>
-  )
-}
+  );
+};
 
-export default EditProduct
+export default EditProduct;

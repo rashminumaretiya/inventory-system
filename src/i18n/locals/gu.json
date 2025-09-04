@@ -5,13 +5,69 @@
     "item_qty": "જથ્થો",
     "price": "ભાવ",
     "total": "કુલ",
-    "action": "ક્રિયા"
+    "action": "ઍક્શન",
+    "search": "શોધો...",
+    "rowsPerPage": "પેજ દીઠ પંક્તિઓ",
+    "inStock": "સ્ટોકમાં છે",
+    "outOfStock": "સ્ટોકમાં નથી",
+    "salesByDate": "તારીખ મુજબ વેચાણ",
+    "totalSales": "કુલ વેચાણ",
+    "noDataFound": "કોઈ ડેટા નથી",
+    "deleteNote": "શું તમે ખરેખર આ રેકોર્ડ્ કાઢી નાખવા માંગો છો? આ રેકોર્ડ્ પાછો આવશે નહીં.",
+    "addOneProduct": "કૃપા કરીને ઓછામાં ઓછો એક પ્રોડક્ટ એડ કરો"
   },
   "menu": {
     "dashboard": "ડૅશબોર્ડ",
     "product": "પ્રોડક્ટ",
     "reports": "અહેવાલ",
     "customer": "ગ્રાહક",
-    "orders": "ઓર્ડર"
+    "orders": "ઓર્ડર",
+    "all": "બધા"
+  },
+  "formLabel": {
+    "invoiceNo": "ઇન્વોઇસ નં.",
+    "billingDate": "બિલિંગ તારીખ",
+    "customerName": "ગ્રાહકનું નામ",
+    "addNewCustomer": "નવો ગ્રાહક ઉમેરો",
+    "phoneNumber": "ફોન નંબર",
+    "customerAddress": "ગ્રાહકનું સરનામું",
+    "itemName": "આઇટમનું નામ",
+    "addNewItem": "નવી આઇટમ ઉમેરો",
+    "itemQuantity": "આઇટમની સંખ્યા",
+    "GST": "જી.એસ.ટી.(18%)",
+    "GSTNumber": "જી.એસ.ટી. નંબર",
+    "payment": "પેમેન્ટ",
+    "amountPay": "પેમેન્ટ રકમ",
+    "subtotal": "સબટોટલ",
+    "GSTAmount": "જી.એસ.ટી. રકમ",
+    "totalPrice": "કુલ કિંમત",
+    "addNewProduct": "નવી પ્રોડક્ટ એડ કરો",
+    "stockQuantity": "સ્ટોક ક્વાન્ટિટી",
+    "stockCategory": "સ્ટોક કેટેગરી",
+    "productName": "પ્રોડક્ટનું નામ",
+    "stock": "સ્ટોક",
+    "status": "સ્ટેટસ",
+    "editCustomer": "ગ્રાહકમાં ફેરફાર કરો",
+    "areYouSure": "શું તમને ખાતરી છે?",
+    "invoiceDate": "બીલ તારીખ",
+    "editProduct": "પ્રોડક્ટ એડિટ કરો"
+  },
+  "errorMsg": {
+    "pleaseEnter": "{{field}} નાખો",
+    "validNumber": "કૃપા કરીને માન્ય ફોન નંબર દાખલ કરો"
+  },
+  "buttonText": {
+    "addNew": "એડ કરો",
+    "update": "અપડેટ કરો",
+    "clearAll": "બધું સાફ કરો",
+    "save": "સાચવો",
+    "cancel": "રદ કરો",
+    "print": "પ્રિન્ટ કરો",
+    "addCustomer": "કસ્ટમર ઉમેરો",
+    "addProduct": "પ્રોડક્ટ ઉમેરો",
+    "download": "ડાઉનલોડ કરો",
+    "updateCustomer": "કસ્ટમર અપડેટ કરો",
+    "delete": "કાઢી નાખો",
+    "updateProduct": "પ્રોડક્ટ અપડેટ કરો"
   }
 }

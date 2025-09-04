@@ -5,8 +5,10 @@ import IMSTextField from "./IMSTextField";
 import IMSRadioGroup from "./IMSRadioGroup";
 import IMSDatePicker from "./IMSDatePicker";
 import IMSSelect from "./IMSSelect";
+import { useTranslation } from "react-i18next";
 
 const IMSFormFields = ({ onChange, error, helperText, value, ...props }) => {
+  const { t } = useTranslation();
   return (
     <IMSGrid container columnSpacing={3}>
       {props.fields.map((field, index) => {
@@ -16,7 +18,7 @@ const IMSFormFields = ({ onChange, error, helperText, value, ...props }) => {
               <IMSGrid item md={field?.md} key={index}>
                 <IMSAutoComplete
                   type={field?.type}
-                  formLabel={field?.label}
+                  formLabel={t(field.label)}
                   options={field?.options}
                   onChange={(e, val) =>
                     onChange(e, field?.pattern, field?.name, val, field?.label)
@@ -37,7 +39,7 @@ const IMSFormFields = ({ onChange, error, helperText, value, ...props }) => {
                   }
                   error={error?.[field?.name]}
                   helperText={error?.[field?.name]}
-                  formLabel={field?.label}
+                  formLabel={t(field.label)}
                   label=""
                   value={value[field?.name] || ""}
                 />
@@ -66,7 +68,7 @@ const IMSFormFields = ({ onChange, error, helperText, value, ...props }) => {
                   }
                   type={field?.type}
                   menu={field?.menu}
-                  formLabel={field?.label}
+                  formLabel={t(field.label)}
                   defaultValue={field?.defaultValue}
                   error={error?.[field?.name]}
                   helperText={error?.[field?.name]}

@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { billingFields } from "../description/billingField.description";
 import validation from "../utils/validation";
@@ -7,9 +7,11 @@ import { ApiContainer } from "../api";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { productData } from "../store/slice/productSlice";
+import { useTranslation } from "react-i18next";
 
 const DashboardContainer = () => {
   const { apiResponse } = ApiContainer();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [productList, setProductList] = useState([]);
   const [vendersList, setVendersList] = useState([]);
@@ -89,18 +91,19 @@ const DashboardContainer = () => {
       const selectedName = name || sName;
       const selectedValue = value || val;
 
-      const item = productList?.find(
-        (el) => el.itemName === selectedValue?.itemName
-      );
-      const vender = vendersList?.find((el) => el.name === selectedValue);
+      const item = productList?.find((el) => el.itemName === val?.itemName);
+      const vendor = vendersList?.find((el) => el.name === val?.vendorName);
       const isVendorChange = selectedName === "vendorName";
+      const isItemChange = selectedName === "itemName";
       const isMethod = ["GST", "GSTNumber", "payment", "amountPay"].includes(
         selectedName
       );
+
       setFormError((prev) => ({
         ...prev,
-        [selectedName]: validation(pattern, selectedValue, label),
+        [selectedName]: validation(pattern, selectedValue, label, t),
       }));
+
       setFormData((prev) => ({
         ...prev,
         ...(isMethod && {
@@ -108,9 +111,9 @@ const DashboardContainer = () => {
         }),
         ...(isVendorChange && {
           customerInfo: {
-            [selectedName]: selectedValue,
-            vendorPhone: vender?.phone,
-            address: vender?.address,
+            vendorName: vendor?.name,
+            vendorPhone: vendor?.phone,
+            address: vendor?.address,
           },
         }),
         ...(!isVendorChange &&
@@ -121,18 +124,13 @@ const DashboardContainer = () => {
                     if (i === index) {
                       return {
                         ...prev?.order[index],
-                        id:
-                          selectedName === "itemName"
-                            ? item?.id
-                            : prev?.order?.[index].id,
-                        [selectedName]:
-                          selectedName === "itemName"
-                            ? selectedValue.itemName
-                            : selectedValue,
-                        price:
-                          selectedName === "itemName"
-                            ? item?.price
-                            : prev.order?.[index].price,
+                        id: isItemChange ? item?.id : prev?.order?.[index].id,
+                        [selectedName]: isItemChange
+                          ? val?.itemName
+                          : selectedValue,
+                        price: isItemChange
+                          ? item?.price
+                          : prev.order?.[index].price,
                         quantityCategory: ["Grams", "Kg", "Pcs."].includes(
                           selectedValue
                         )
@@ -145,18 +143,13 @@ const DashboardContainer = () => {
                 : [
                     {
                       ...prev?.order[index],
-                      id:
-                        selectedName === "itemName"
-                          ? item?.id
-                          : prev?.order?.[index].id,
-                      [selectedName]:
-                        selectedName === "itemName"
-                          ? selectedValue?.itemName
-                          : selectedValue,
-                      price:
-                        selectedName === "itemName"
-                          ? item?.price
-                          : prev.order?.[index].price,
+                      id: isItemChange ? item?.id : prev?.order?.[index].id,
+                      [selectedName]: isItemChange
+                        ? val?.itemName
+                        : selectedValue,
+                      price: isItemChange
+                        ? item?.price
+                        : prev.order?.[index].price,
                       quantityCategory: ["Grams", "Kg", "Pcs."].includes(
                         selectedValue
                       )
@@ -168,7 +161,9 @@ const DashboardContainer = () => {
           }),
       }));
     }
-    e.$d && setBillDate(dayjs(e.$d));
+    if (e?.$d) {
+      setBillDate(dayjs(e.$d));
+    }
   };
 
   const handleAddData = (e) => {
@@ -187,14 +182,16 @@ const DashboardContainer = () => {
           error[field?.name] = validation(
             field.pattern,
             field.value || formData.order[0][field.name],
-            field.label
+            field.label,
+            t
           );
         }
         if (field.name === "GSTNumber" && formData.GST === "yes") {
           error[field?.name] = validation(
             field.pattern,
             formData?.GSTNumber,
-            field.label
+            field.label,
+            t
           );
         }
         if (field.name === "itemQuantity") {
@@ -295,13 +292,15 @@ const DashboardContainer = () => {
         localStorage.setItem("formData", JSON.stringify(existingData));
         setAddData(existingData);
       }
-      setFormData({
+      setFormData((prev) => ({
+        ...prev,
         invoiceNo: isEditMode ? formData.invoiceNo : "DT_1",
         billingDate: isEditMode ? formData.billingDate : billDate.$d,
+        order: [{}],
         subtotal: formData.subtotal,
         customerInfo: formData.customerInfo,
         total: formData.total,
-      });
+      }));
     }
   };
 
@@ -364,18 +363,20 @@ const DashboardContainer = () => {
           error[field?.name] = validation(
             field.pattern,
             field.value || formData?.customerInfo?.[field.name],
-            field.label
+            field.label,
+            t
           );
         }
         if (field.name === "GSTNumber" && formData.GST === "yes") {
           error[field?.name] = validation(
             field.pattern,
             field.value || formData?.GSTNumber,
-            field.label
+            field.label,
+            t
           );
         }
         if (addData.length === 0) {
-          error["itemName"] = "Please add at least one product";
+          error["itemName"] = t("description.addOneProduct");
         }
       });
     });
@@ -444,7 +445,7 @@ const DashboardContainer = () => {
               toast.success("Order saved successfully");
               localStorage.removeItem("formData");
               setAddData([]);
-              setFormData((prev) => ({
+              setFormData(() => ({
                 order: [{}],
               }));
               dispatch(productData({ payload: updatedProductList }));
@@ -472,7 +473,11 @@ const DashboardContainer = () => {
       } else if (field.name === "vendorName") {
         return {
           ...field,
-          options: vendersList?.map((vendor) => vendor?.name),
+          options: vendersList?.map((vendor) => ({
+            vendorName: vendor?.name,
+            vendorPhone: vendor?.phone,
+            address: vendor?.address,
+          })),
         };
       }
       return field;
@@ -490,29 +495,35 @@ const DashboardContainer = () => {
   const closeNewCustomer = () => {
     setAddNewCustomer({ show: false });
   };
-  const editOrder = (orderID) => {
-    setIsEditMode(true);
-    if (orders.length > 0 && Number(orderID)) {
-      const editOrderRecord = orders.find(
-        (item) => Number(item.id) === Number(orderID)
-      );
-      if (!editOrderRecord) {
-        toast.error("Order not found");
-        return;
+  const editOrder = useCallback(
+    (orderID) => {
+      setIsEditMode(true);
+      if (orders.length > 0 && Number(orderID)) {
+        const editOrderRecord = orders.find(
+          (item) => Number(item.id) === Number(orderID)
+        );
+        if (!editOrderRecord) {
+          toast.error("Order not found");
+          return;
+        }
+        localStorage.setItem(
+          "formData",
+          JSON.stringify(editOrderRecord?.order)
+        );
+        setFormData({ ...editOrderRecord, order: [] });
+        setBillDate(dayjs(editOrderRecord?.billingDate));
+        setAddData(editOrderRecord?.order);
       }
-      localStorage.setItem("formData", JSON.stringify(editOrderRecord?.order));
-      setFormData({ ...editOrderRecord, order: [] });
-      setBillDate(dayjs(editOrderRecord?.billingDate));
-      setAddData(editOrderRecord?.order);
-    }
-  };
+    },
+    [orders]
+  );
 
   useEffect(() => {
     const orderID = orderParams?.search.replace("?order/", "");
     if (orderID) {
       editOrder(orderID);
     }
-  }, [orders, orderParams]);
+  }, [orders, orderParams, editOrder]);
 
   const handleUpdate = async () => {
     const orderID = orderParams?.search.replace("?order/", "");

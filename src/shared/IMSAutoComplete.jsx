@@ -2,6 +2,7 @@ import { Autocomplete } from "@mui/material";
 import React from "react";
 import IMSTextField from "./IMSTextField";
 import IMSTypography from "./IMSTypography";
+import { useTranslation } from "react-i18next";
 
 const IMSAutoComplete = ({
   formLabel,
@@ -18,6 +19,7 @@ const IMSAutoComplete = ({
   addClick,
   ...props
 }) => {
+  const { t } = useTranslation();
   return (
     <>
       {addNew && (
@@ -33,7 +35,7 @@ const IMSAutoComplete = ({
           variant="body2"
           color="primary"
         >
-          {addNew}
+          {t(addNew)}
         </IMSTypography>
       )}
       <Autocomplete

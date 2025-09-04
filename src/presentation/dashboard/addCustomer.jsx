@@ -7,7 +7,7 @@ import AddCustomerContainer from "../../container/addCustomer.container";
 import { customerFields } from "../../description/customerFields.description";
 
 const AddCustomer = () => {
-  const { handleChange, handleAddCustomer, error, formData } =
+  const { handleChange, handleAddCustomer, error, formData, t } =
     AddCustomerContainer();
   return (
     <IMSForm onSubmit={handleAddCustomer}>
@@ -20,7 +20,7 @@ const AddCustomer = () => {
       />
       <IMSStack direction="row" justifyContent="flex-end" spacing={1}>
         <IMSButton variant="contained" type="submit">
-          Add Customer
+          {t("buttonText.addCustomer")}
         </IMSButton>
       </IMSStack>
     </IMSForm>

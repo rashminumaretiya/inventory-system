@@ -16,6 +16,7 @@ import AddCustomer from "./addCustomer";
 import AddProduct from "./addProduct";
 import ProductTable from "./productTable";
 import { Print } from "./print";
+import { useTranslation } from "react-i18next";
 
 const Dashboard = () => {
   const {
@@ -38,6 +39,7 @@ const Dashboard = () => {
     loading,
   } = DashboardContainer();
 
+  const { t } = useTranslation();
   const { generateReceipt } = Print();
 
   return (
@@ -64,7 +66,7 @@ const Dashboard = () => {
         }}
       >
         <IMSForm key={formData?.GST} onSubmit={handleAddData}>
-          <IMSGrid container columnSpacing={3}>
+          <IMSGrid container columnSpacing={2}>
             {mappedBillingFields.map((billingField, index) => {
               return (
                 <>
@@ -74,21 +76,23 @@ const Dashboard = () => {
                     sx={billingField?.sx}
                     key={index}
                   >
-                    <IMSGrid container columnSpacing={3} alignItems="flex-end">
+                    <IMSGrid container columnSpacing={2} alignItems="flex-end">
                       {billingField.billingFormFields.map((field, i) => {
                         const index = 0;
                         const fieldProps = {
                           key: index,
-                          formLabel: field.label,
+                          formLabel: t(field.label),
                           name: field.name,
                           value:
                             field?.name === "itemName"
-                              ? formData[field.sector]?.[index]?.[field.name]
-                              : formData[field.name] ||
+                              ? formData?.order?.[index]?.[field.name] || ""
+                              : field?.name === "vendorName"
+                              ? formData?.customerInfo?.[field.name] || ""
+                              : formData[field?.name] ||
                                 formData[field.sector]?.[field.name] ||
                                 formData[field.sector]?.[index]?.[field.name] ||
                                 "",
-                          onChange: (e, val) =>
+                          onChange: (e, val) => {
                             handleChange(
                               e,
                               field.pattern,
@@ -96,10 +100,11 @@ const Dashboard = () => {
                               val,
                               field.label,
                               index
-                            ),
+                            );
+                          },
                           defaultValue:
                             formData[field.name] === undefined
-                              ? field.defaultValue
+                              ? field?.defaultValue
                               : formData[field.name],
                           multiline: field.multiline,
                           rows: field.rows,
@@ -120,9 +125,15 @@ const Dashboard = () => {
                                 <IMSAutoComplete
                                   {...fieldProps}
                                   options={field?.options}
+                                  autoHighlight
+                                  blurOnSelect={true}
+                                  selectOnFocus={true}
+                                  freeSolo
                                   getOptionLabel={(option) => {
                                     return field?.name === "itemName"
                                       ? option?.itemName || option
+                                      : field?.name === "vendorName"
+                                      ? option?.vendorName || option
                                       : option;
                                   }}
                                   renderOption={(props, option) => {
@@ -152,7 +163,7 @@ const Dashboard = () => {
                                             </IMSTypography>
                                           </>
                                         ) : (
-                                          option
+                                          option?.vendorName
                                         )}
                                       </IMSListItem>
                                     );
@@ -218,15 +229,15 @@ const Dashboard = () => {
               bottom={0}
             >
               <IMSButton variant="contained" type="submit">
-                Add New
+                {t("buttonText.addNew")}
               </IMSButton>
               {isEditMode ? (
                 <>
                   <IMSButton variant="contained" onClick={handleUpdate}>
-                    Update
+                    {t("buttonText.update")}
                   </IMSButton>
                   <IMSButton variant="contained" onClick={handleClearAll}>
-                    Clear All
+                    {t("buttonText.clearAll")}
                   </IMSButton>
                 </>
               ) : (
@@ -236,11 +247,11 @@ const Dashboard = () => {
                     variant="contained"
                     onClick={handleSave}
                   >
-                    Save{" "}
+                    {t("buttonText.save")}{" "}
                     {loading && <CircularProgress size={16} sx={{ ml: 1 }} />}
                   </IMSButton>
                   <IMSButton variant="contained" onClick={handleCancel}>
-                    Cancel
+                    {t("buttonText.cancel")}
                   </IMSButton>
                 </>
               )}
@@ -249,7 +260,7 @@ const Dashboard = () => {
                 disabled={addData?.length === 0}
                 onClick={() => generateReceipt(addData, formData)}
               >
-                print
+                {t("buttonText.print")}
               </IMSButton>
             </IMSStack>
           </IMSGrid>
@@ -257,7 +268,7 @@ const Dashboard = () => {
       </IMSStack>
       {addNewCustomer.option === "customerInfo" && (
         <IMSDialog
-          title={"Add New Customer"}
+          title={t("formLabel.addNewCustomer")}
           open={addNewCustomer.show}
           maxWidth="sm"
           handleClose={closeNewCustomer}
@@ -267,7 +278,7 @@ const Dashboard = () => {
       )}
       {addNewCustomer.option === "order" && (
         <IMSDialog
-          title={"Add New Product"}
+          title={t("formLabel.addNewProduct")}
           open={addNewCustomer.show}
           maxWidth="sm"
           handleClose={closeNewCustomer}

@@ -5,13 +5,14 @@ import { ApiContainer } from "../api";
 import { productData } from "../store/slice/productSlice";
 import toast from "react-hot-toast";
 import { productFields } from "../description/productFields.description";
+import { useTranslation } from "react-i18next";
 
-const EditProductContainer = ({editData}) => {
-    const [error, setError] = useState({});
+const EditProductContainer = ({ editData }) => {
+  const { t } = useTranslation();
+  const [error, setError] = useState({});
   const [formData, setFormData] = useState(editData);
   const { apiResponse } = ApiContainer();
-  const dispatch = useDispatch()
-
+  const dispatch = useDispatch();
 
   const handleChange = (e, pattern, sName, val, label) => {
     const { name, value } = e.target;
@@ -19,7 +20,7 @@ const EditProductContainer = ({editData}) => {
     const selectedValue = value || val;
     setError((prev) => ({
       ...prev,
-      [selectedName]: validation(pattern, selectedValue, label),
+      [selectedName]: validation(pattern, selectedValue, label, t),
     }));
     setFormData((prev) => ({ ...prev, [selectedName]: selectedValue }));
   };
@@ -31,23 +32,28 @@ const EditProductContainer = ({editData}) => {
       newErr[field.name] = validation(
         field.pattern,
         formData[field.name],
-        field.label
+        field.label,
+        t
       );
     });
     setError((prev) => ({
       ...prev,
       ...newErr,
     }));
-    formData.stock = formData.quantityCategory === 'Grams'? (formData?.stock / 1000).toFixed(3) : formData?.stock
-    if (Object.values(newErr).every((el) => el === undefined || el === '')) {
+    if (Object.values(newErr).every((el) => el === undefined || el === "")) {
       try {
-        const response = await apiResponse(`/product/${editData.id}`, "PATCH", null, {
-          ...formData,
-          id: Date.now()
-        });
+        const response = await apiResponse(
+          `/product/${editData.id}`,
+          "PATCH",
+          null,
+          {
+            ...formData,
+            id: Date.now(),
+          }
+        );
         if (response) {
           toast.success("Updated product successfully");
-          dispatch(productData({payload: [response?.data]}))
+          dispatch(productData({ payload: [response?.data] }));
           setFormData({});
         }
       } catch {
@@ -55,15 +61,16 @@ const EditProductContainer = ({editData}) => {
       }
     }
   };
-  useEffect(()=> {
-    setFormData((prev) => (editData));
-  }, [editData])
-    return {
-        handleChange, 
-        handleAddProduct,
-        error,
-        formData
-    }
-}
+  useEffect(() => {
+    setFormData((prev) => editData);
+  }, [editData]);
+  return {
+    handleChange,
+    handleAddProduct,
+    error,
+    formData,
+    t,
+  };
+};
 
-export default EditProductContainer
+export default EditProductContainer;

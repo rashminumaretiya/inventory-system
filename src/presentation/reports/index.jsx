@@ -6,8 +6,10 @@ import ReactApexChart from "react-apexcharts";
 import { ApiContainer } from "../../api";
 import toast from "react-hot-toast";
 import moment from "moment/moment";
+import { useTranslation } from "react-i18next";
 
 const Reports = () => {
+  const { t } = useTranslation();
   const { apiResponse } = ApiContainer();
   const [options, setOptions] = useState("product");
   const [orders, setOrders] = useState([]);
@@ -26,22 +28,19 @@ const Reports = () => {
       if (options === "all") {
         const fetchPromises = Object.entries(endpoints).map(
           async ([key, endpoint]) => {
-            const response = await fetch(`http://localhost:8000/${endpoint}`);
-            if (!response.ok) throw new Error(`${endpoint} failed`);
-            const data = await response.json();
-            return [key, data];
+            const response = await apiResponse(`/${endpoint}`, "GET");
+            if (response.status !== 200) throw new Error(`${endpoint} failed`);
+            return [key, response.data];
           }
         );
-
         const results = await Promise.all(fetchPromises);
         results.forEach(([key, data]) => {
           combinedData[key] = data;
         });
       } else {
-        const response = await fetch(`http://localhost:8000/${options}`);
-        if (!response.ok) throw new Error(`${options} failed`);
-        const data = await response.json();
-        combinedData = { [options]: data };
+        const response = await apiResponse(`/${options}`, "GET");
+        if (response.status !== 200) throw new Error(`${options} failed`);
+        combinedData = { [options]: response.data };
       }
 
       const jsonStr = JSON.stringify(combinedData, null, 2);
@@ -55,7 +54,7 @@ const Reports = () => {
       a.click();
       document.body.removeChild(a);
     } catch (error) {
-      console.error("Error downloading JSON:", error);
+      toast.error("Error downloading JSON:", error);
     }
   };
 
@@ -86,7 +85,7 @@ const Reports = () => {
       },
       dataLabels: { enabled: false },
       stroke: { curve: "straight" },
-      title: { text: "Sales by Date", align: "left" },
+      title: { text: t("description.salesByDate"), align: "left" },
       xaxis: { type: "datetime" },
       yaxis: { opposite: true },
       legend: { horizontalAlign: "left" },
@@ -112,7 +111,7 @@ const Reports = () => {
 
       setChartData((prev) => ({
         ...prev,
-        series: [{ name: "Total Sales", data: seriesData }],
+        series: [{ name: t("description.totalSales"), data: seriesData }],
         options: {
           ...prev.options,
           xaxis: {
@@ -135,14 +134,18 @@ const Reports = () => {
           onChange={handleChange}
           defaultValue="product"
           menu={[
-            { label: "All", value: "all" },
-            { label: "Product", value: "product" },
-            { label: "Venders", value: "venders" },
-            { label: "Orders", value: "orders" },
+            { label: t("menu.all"), value: "all" },
+            { label: t("menu.product"), value: "product" },
+            { label: t("menu.customer"), value: "venders" },
+            { label: t("menu.orders"), value: "orders" },
           ]}
         />
-        <IMSButton variant="contained" onClick={handleDownload}>
-          Download
+        <IMSButton
+          variant="contained"
+          sx={{ flex: "none" }}
+          onClick={handleDownload}
+        >
+          {t("buttonText.download")}
         </IMSButton>
       </IMSStack>
       <ReactApexChart

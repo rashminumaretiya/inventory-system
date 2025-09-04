@@ -5,13 +5,14 @@ import { ApiContainer } from "../api";
 import toast from "react-hot-toast";
 import { customerFields } from "../description/customerFields.description";
 import { userData } from "../store/slice/customerSlice";
+import { useTranslation } from "react-i18next";
 
-const EditCustomerContainer = ({editData}) => {
-    const [error, setError] = useState({});
+const EditCustomerContainer = ({ editData }) => {
+  const { t } = useTranslation();
+  const [error, setError] = useState({});
   const [formData, setFormData] = useState(editData);
   const { apiResponse } = ApiContainer();
-  const dispatch = useDispatch()
-
+  const dispatch = useDispatch();
 
   const handleChange = (e, pattern, sName, val, label) => {
     const { name, value } = e.target;
@@ -19,7 +20,7 @@ const EditCustomerContainer = ({editData}) => {
     const selectedValue = value || val;
     setError((prev) => ({
       ...prev,
-      [selectedName]: validation(pattern, selectedValue, label),
+      [selectedName]: validation(pattern, selectedValue, label, t),
     }));
     setFormData((prev) => ({ ...prev, [selectedName]: selectedValue }));
   };
@@ -31,22 +32,28 @@ const EditCustomerContainer = ({editData}) => {
       newErr[field.name] = validation(
         field.pattern,
         formData[field.name],
-        field.label
+        field.label,
+        t
       );
     });
     setError((prev) => ({
       ...prev,
       ...newErr,
     }));
-    if (Object.values(newErr).every((el) => el === undefined || el === '')) {
+    if (Object.values(newErr).every((el) => el === undefined || el === "")) {
       try {
-        const response = await apiResponse(`/venders/${editData.id}`, "PATCH", null, {
-          ...formData,
-          id: Date.now()
-        });
+        const response = await apiResponse(
+          `/venders/${editData.id}`,
+          "PATCH",
+          null,
+          {
+            ...formData,
+            id: Date.now(),
+          }
+        );
         if (response) {
           toast.success("Updated Customer successfully");
-          dispatch(userData({payload: response?.data}))
+          dispatch(userData({ payload: response?.data }));
           setFormData({});
         }
       } catch {
@@ -54,15 +61,16 @@ const EditCustomerContainer = ({editData}) => {
       }
     }
   };
-  useEffect(()=> {
-    setFormData((prev) => (editData));
-  }, [editData])
-    return {
-        handleChange, 
-        handleEditCustomer,
-        error,
-        formData
-    }
-}
+  useEffect(() => {
+    setFormData((prev) => editData);
+  }, [editData]);
+  return {
+    handleChange,
+    handleEditCustomer,
+    error,
+    formData,
+    t,
+  };
+};
 
-export default EditCustomerContainer
+export default EditCustomerContainer;

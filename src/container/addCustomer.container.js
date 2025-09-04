@@ -5,11 +5,13 @@ import toast from "react-hot-toast";
 import { ApiContainer } from "../api";
 import { useDispatch } from "react-redux";
 import { userData } from "../store/slice/customerSlice";
+import { useTranslation } from "react-i18next";
 
 const AddCustomerContainer = () => {
+  const { t } = useTranslation();
   const [error, setError] = useState({});
   const [formData, setFormData] = useState({});
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const { apiResponse } = ApiContainer();
 
   const handleChange = (e, pattern, sName, val, label) => {
@@ -18,7 +20,7 @@ const AddCustomerContainer = () => {
     const selectedValue = value || val;
     setError((prev) => ({
       ...prev,
-      [selectedName]: validation(pattern, selectedValue, label),
+      [selectedName]: validation(pattern, selectedValue, label, t),
     }));
     setFormData((prev) => ({ ...prev, [selectedName]: selectedValue }));
   };
@@ -29,7 +31,8 @@ const AddCustomerContainer = () => {
       newErr[field.name] = validation(
         field.pattern,
         formData[field.name],
-        field.label
+        field.label,
+        t
       );
     });
     setError((prev) => ({
@@ -44,7 +47,7 @@ const AddCustomerContainer = () => {
         });
         if (response) {
           toast.success("Added");
-          dispatch(userData({ payload: formData }))
+          dispatch(userData({ payload: formData }));
           setFormData({});
         }
       } catch {
@@ -52,7 +55,7 @@ const AddCustomerContainer = () => {
       }
     }
   };
-  return { handleChange, handleAddCustomer, error, formData };
+  return { handleChange, handleAddCustomer, error, formData, t };
 };
 
 export default AddCustomerContainer;
