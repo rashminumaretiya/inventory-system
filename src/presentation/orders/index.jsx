@@ -1,4 +1,9 @@
-import { Edit, PrintOutlined } from "@mui/icons-material";
+import {
+  BrowserUpdatedOutlined,
+  Download,
+  Edit,
+  PrintOutlined,
+} from "@mui/icons-material";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
@@ -15,6 +20,7 @@ import {
   TableHead,
   TablePagination,
   TableRow,
+  TableSortLabel,
 } from "@mui/material";
 import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
@@ -29,6 +35,8 @@ import IMSTypography from "../../shared/IMSTypography";
 import { MUIStyled } from "../../shared/MUIStyled";
 import { Print } from "../dashboard/print";
 import { useTranslation } from "react-i18next";
+import IMSButton from "../../shared/IMSButton";
+import IMSStack from "../../shared/IMSStack";
 
 export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
   maxHeight: "calc(100vh - 186px)",
@@ -59,6 +67,7 @@ export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
 const Orders = () => {
   const { t } = useTranslation();
   const { apiResponse } = ApiContainer();
+  const navigate = useNavigate();
   const [orderList, setOrderList] = useState([]);
   const [filterOrderList, setFilterOrderList] = useState([]);
   const [open, setOpen] = React.useState({});
@@ -66,7 +75,8 @@ const Orders = () => {
   const [rowsPerPage, setRowsPerPage] = React.useState(20);
   const [searchText, setSearchText] = useState("");
   const [billDate, setBillDate] = useState(null);
-  const navigate = useNavigate();
+  const [order, setOrder] = useState("asc");
+  const [orderBy, setOrderBy] = useState(null);
 
   const getOrders = async () => {
     try {
@@ -79,10 +89,6 @@ const Orders = () => {
       toast.error("Something went wrong");
     }
   };
-
-  useEffect(() => {
-    getOrders();
-  }, []);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -109,6 +115,7 @@ const Orders = () => {
           billDate.toLocaleDateString()
       );
     }
+    searchList = searchList.sort((a, b) => b.id - a.id);
     setFilterOrderList(searchList);
     setPage(0);
   };
@@ -142,11 +149,98 @@ const Orders = () => {
     navigate(`/?order/${id}`);
   };
 
+  const handleRequestSort = (property, type = "string") => {
+    const isAsc = orderBy === property && order === "asc";
+    const newOrder = isAsc ? "desc" : "asc";
+    setOrder(newOrder);
+    setOrderBy(property);
+
+    const sortedArray = [...filterOrderList].sort((a, b) => {
+      let valA = a[property];
+      let valB = b[property];
+
+      if (type === "number") {
+        valA = Number(valA || 0);
+        valB = Number(valB || 0);
+      } else if (type === "date") {
+        valA = new Date(valA).getTime();
+        valB = new Date(valB).getTime();
+      } else {
+        valA = valA ? String(valA).toLowerCase() : "";
+        valB = valB ? String(valB).toLowerCase() : "";
+      }
+
+      if (valA < valB) return newOrder === "asc" ? -1 : 1;
+      if (valA > valB) return newOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    setFilterOrderList(sortedArray);
+  };
+
+  useEffect(() => {
+    getOrders();
+  }, []);
+
   useEffect(() => {
     applyFilters();
   }, [searchText, billDate, orderList]);
 
   const { generateReceipt } = Print();
+
+  const handleImport = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const json = JSON.parse(event.target.result);
+        const importOrderList = json.orders.filter(
+          (item) =>
+            !filterOrderList.some((el) => el.invoiceNo === item.invoiceNo)
+        );
+
+        if (importOrderList.length === 0) {
+          toast.success("No new orders to import");
+          return;
+        }
+        const newData = [...filterOrderList, ...importOrderList].sort(
+          (a, b) => b.id - a.id
+        );
+        try {
+          await toast.promise(
+            (async () => {
+              for (const order of importOrderList) {
+                const response = await apiResponse(
+                  "/orders",
+                  "POST",
+                  null,
+                  order
+                );
+                if (!response.success) {
+                  throw new Error(`Failed to import order ${order.invoiceNo}`);
+                }
+              }
+              return true;
+            })(),
+            {
+              loading: "Importing...",
+              success: "Orders imported successfully",
+              error: "Failed to import orders",
+            }
+          );
+          setFilterOrderList(newData);
+        } catch {
+          toast.error("Something went wrong while importing");
+        }
+      } catch (err) {
+        console.error("Invalid JSON file", err);
+      }
+    };
+
+    reader.readAsText(file);
+  };
 
   return (
     <>
@@ -168,13 +262,41 @@ const Orders = () => {
           />
         </IMSGrid>
         <IMSGrid item md={4}>
-          <IMSDatePicker
-            onChange={handleChange}
-            slotProps={{
-              field: { clearable: true },
-            }}
-            sx={{ "& .MuiButtonBase-root": { position: "absolute" } }}
-          />
+          <IMSStack direction="row" alignItems="flex-start" gap={2}>
+            <IMSDatePicker
+              onChange={handleChange}
+              slotProps={{
+                field: { clearable: true },
+              }}
+              sx={{ "& .MuiButtonBase-root": { position: "absolute" } }}
+            />
+            <IMSButton
+              component="label"
+              variant="contained"
+              sx={{
+                flex: "none",
+                "& input": {
+                  clip: "rect(0 0 0 0)",
+                  clipPath: "inset(50%)",
+                  height: 1,
+                  overflow: "hidden",
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  whiteSpace: "nowrap",
+                  width: 1,
+                },
+              }}
+            >
+              <BrowserUpdatedOutlined sx={{ mr: 1 }} />
+              Import
+              <input
+                type="file"
+                accept=".json"
+                onChange={(e) => handleImport(e)}
+              />
+            </IMSButton>
+          </IMSStack>
         </IMSGrid>
       </IMSGrid>
       <Divider sx={{ mb: 3 }} />
@@ -183,11 +305,35 @@ const Orders = () => {
           <TableHead>
             <TableRow>
               <TableCell />
-              <TableCell>{t("formLabel.invoiceNo")}</TableCell>
-              <TableCell>{t("formLabel.invoiceDate")}</TableCell>
+              <TableCell>
+                <TableSortLabel
+                  active
+                  direction={orderBy === "invoiceNo" ? order : "desc"}
+                  onClick={() => handleRequestSort("invoiceNo", "string")}
+                >
+                  {t("formLabel.invoiceNo")}
+                </TableSortLabel>
+              </TableCell>
+              <TableCell>
+                <TableSortLabel
+                  active
+                  direction={orderBy === "billingDate" ? order : "desc"}
+                  onClick={() => handleRequestSort("billingDate", "date")}
+                >
+                  {t("formLabel.invoiceDate")}
+                </TableSortLabel>
+              </TableCell>
               <TableCell>{t("formLabel.customerName")}</TableCell>
               <TableCell>{t("formLabel.phoneNumber")}</TableCell>
-              <TableCell>{t("formLabel.payment")}</TableCell>
+              <TableCell>
+                <TableSortLabel
+                  active
+                  direction={orderBy === "payment" ? order : "desc"}
+                  onClick={() => handleRequestSort("payment", "string")}
+                >
+                  {t("formLabel.payment")}
+                </TableSortLabel>
+              </TableCell>
               <TableCell>{t("formLabel.GSTNumber")}</TableCell>
               <TableCell>{t("formLabel.totalPrice")}</TableCell>
               <TableCell>{t("description.action")}</TableCell>
@@ -208,7 +354,6 @@ const Orders = () => {
               </TableRow>
             ) : (
               filterOrderList
-                .sort((a, b) => b.id - a.id)
                 ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((data, i) => (
                   <>
@@ -240,6 +385,7 @@ const Orders = () => {
                         <Chip
                           label={data?.payment}
                           size="small"
+                          sx={{ width: 80 }}
                           color={
                             data?.payment === "Pending"
                               ? "warning"

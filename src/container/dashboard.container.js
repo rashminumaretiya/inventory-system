@@ -8,6 +8,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { productData } from "../store/slice/productSlice";
 import { useTranslation } from "react-i18next";
+import { orderData } from "../store/slice/orderSlice";
 
 const DashboardContainer = () => {
   const { apiResponse } = ApiContainer();
@@ -31,6 +32,7 @@ const DashboardContainer = () => {
 
   const newUser = useSelector((state) => state?.customer?.user || []);
   const newProduct = useSelector((state) => state?.product?.product || []);
+  const newOrder = useSelector((state) => state?.order?.order || []);
 
   const getProduct = async () => {
     try {
@@ -54,6 +56,18 @@ const DashboardContainer = () => {
     }
   };
 
+  const getOrder = async () => {
+    try {
+      const response = await apiResponse("/orders", "GET");
+      if (response.success) {
+        setOrders(response.data);
+        dispatch(orderData({ payload: response.data }));
+      }
+    } catch {
+      toast.error("Something went wrong while fetching orders");
+    }
+  };
+
   useEffect(() => {
     if (newProduct) {
       setProductList(newProduct);
@@ -66,17 +80,6 @@ const DashboardContainer = () => {
       setVendersList(newVenderList);
     }
   }, [newUser]);
-
-  const getOrder = async () => {
-    try {
-      const response = await apiResponse("/orders", "GET");
-      if (response.success) {
-        setOrders(response.data);
-      }
-    } catch {
-      toast.error("Something went wrong while fetching orders");
-    }
-  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -307,15 +310,15 @@ const DashboardContainer = () => {
   useEffect(() => {
     const subtotal = addData?.reduce((acc, val) => acc + +val.subtotal, 0);
 
-    const invoice = orders.map((data) => data.invoiceNo);
+    // const invoice = orders.map((data) => data.invoiceNo);
 
     const gstAmount = formData.GST === "yes" ? (subtotal * 18) / 100 : 0;
     setFormData((prev) => ({
       ...prev,
       invoiceNo: isEditMode
         ? formData.invoiceNo
-        : invoice?.length
-        ? `DT_${invoice?.length + 1}`
+        : newOrder?.length
+        ? `DT_${newOrder?.length + 1}`
         : "DT_1",
       billingDate: billDate.$d,
       subtotal: subtotal,
@@ -328,6 +331,7 @@ const DashboardContainer = () => {
   }, [
     addData,
     formData.invoiceNo,
+    newOrder,
     formData.payment,
     formData.GST,
     billDate,
@@ -449,6 +453,7 @@ const DashboardContainer = () => {
                 order: [{}],
               }));
               dispatch(productData({ payload: updatedProductList }));
+              dispatch(orderData({ payload: [...newOrder, order] }));
               setLoading(false);
             }
           }
@@ -459,6 +464,7 @@ const DashboardContainer = () => {
       }
     }
   };
+
   const mappedBillingFields = billingFields.map((billingField) => {
     const updatedFields = billingField.billingFormFields.map((field) => {
       if (field.name === "itemName") {

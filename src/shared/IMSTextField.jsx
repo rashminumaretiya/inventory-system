@@ -1,9 +1,8 @@
 import { FormControl, TextField as TF } from "@mui/material";
-import React from "react";
 import { MUIStyled } from "./MUIStyled";
 import IMSFormLabel from "./IMSFormLabel";
 
-const TextField = MUIStyled(TF)(({ theme, position, bgColor }) => ({
+const TextField = MUIStyled(TF)(({ theme, bgColor }) => ({
   marginTop: 0,
   marginBottom: 0,
   "& .MuiOutlinedInput-root": {
@@ -92,9 +91,7 @@ const IMSTextField = ({ ...props }) => {
       }}
     >
       {props.formLabel && (
-        <IMSFormLabel
-          sx={{ minWidth: 120, mb: !props.row ? 0.5 : 0 }}
-        >
+        <IMSFormLabel sx={{ minWidth: 120, mb: !props.row ? 0.5 : 0 }}>
           {props.formLabel}
         </IMSFormLabel>
       )}

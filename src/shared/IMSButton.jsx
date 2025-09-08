@@ -1,11 +1,15 @@
 import { Button } from "@mui/material";
-import React from "react";
+import { MUIStyled } from "./MUIStyled";
+
+const StyledButton = MUIStyled(Button)(({ theme }) => ({
+  padding: "8px 18px",
+}));
 
 const IMSButton = ({ children, ...props }) => {
   return (
-    <Button disableElevation {...props}>
+    <StyledButton disableElevation {...props}>
       {children}
-    </Button>
+    </StyledButton>
   );
 };
 
