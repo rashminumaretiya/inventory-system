@@ -1,3 +1,5 @@
+import { Edit } from "@mui/icons-material";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import {
   Divider,
   IconButton,
@@ -10,23 +12,27 @@ import {
   TablePagination,
   TableRow,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
-import IMSTypography from "../../shared/IMSTypography";
-import { MUIStyled } from "../../shared/MUIStyled";
-import { ApiContainer } from "../../api";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import IMSTextField from "../../shared/IMSTextField";
-import { Search } from "../../shared/icon";
-import IMSGrid from "../../shared/IMSGrid";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import { Edit } from "@mui/icons-material";
+import { useTranslation } from "react-i18next";
+import { useDispatch, useSelector } from "react-redux";
+
+import { apiResponse } from "../../api";
+import {
+  customerRemoved,
+  selectCustomers,
+  setCustomers,
+} from "../../store/slice/customerSlice";
 import IMSButton from "../../shared/IMSButton";
 import IMSDialog from "../../shared/IMSDialog";
-import { useSelector } from "react-redux";
+import IMSGrid from "../../shared/IMSGrid";
 import IMSStack from "../../shared/IMSStack";
+import IMSTextField from "../../shared/IMSTextField";
+import IMSTypography from "../../shared/IMSTypography";
+import { MUIStyled } from "../../shared/MUIStyled";
+import { Search } from "../../shared/icon";
 import AddCustomer from "../dashboard/addCustomer";
 import EditCustomer from "./editCustomer";
-import { useTranslation } from "react-i18next";
 
 export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
   maxHeight: "calc(100vh - 164px)",
@@ -40,116 +46,74 @@ export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
     },
   },
   "& .MuiTableBody-root": {
-    "& .MuiTableCell-root": {
-      padding: 5,
-      "& .MuiCollapse-wrapper": {
-        backgroundColor: "#f7f7f7",
-        "& .MuiTableHead-root": {
-          "& .MuiTableCell-root": {
-            backgroundColor: "transparent",
-          },
-        },
-      },
-    },
+    "& .MuiTableCell-root": { padding: 5 },
   },
 }));
 
 const Customer = () => {
   const { t } = useTranslation();
-  const { apiResponse } = ApiContainer();
-  const [customerList, setCustomerList] = useState([]);
-  const [filterCustomerList, setFilterCustomerList] = useState([]);
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(20);
+  const dispatch = useDispatch();
+  const customers = useSelector(selectCustomers);
+
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(20);
   const [searchText, setSearchText] = useState("");
   const [show, setShow] = useState(false);
   const [deleteCustomer, setDeleteCustomer] = useState({});
-  const [editData, setEditData] = useState({});
+  const [editData, setEditData] = useState(null);
   const [editCustomerDialog, setEditCustomerDialog] = useState(false);
-  const allCustomer = useSelector((state) => state?.customer?.user || []);
 
-  const getOrders = async () => {
+  const load = useCallback(async () => {
     try {
       const response = await apiResponse("/venders", "GET");
-      if (response.success) {
-        setCustomerList(response.data);
-      }
+      if (response.success) dispatch(setCustomers(response.data));
     } catch {
-      toast.error("Something went wrong");
+      toast.error(t("toast.loadFailed"));
     }
-  };
+  }, [dispatch, t]);
 
   useEffect(() => {
-    getOrders();
-  }, []);
+    load();
+  }, [load]);
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
+  /**
+   * Derived from the store rather than merged with it. The previous version
+   * appended the whole redux slice as a single element, which put a blank row
+   * in the table on first load.
+   */
+  const visibleCustomers = useMemo(() => {
+    const term = searchText.trim().toLowerCase();
+    return customers
+      .filter((customer) => customer?.id)
+      .filter((customer) =>
+        term
+          ? customer.name?.toLowerCase().includes(term) ||
+            customer.phone?.includes(term)
+          : true
+      )
+      .slice()
+      .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+  }, [customers, searchText]);
 
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  };
-  const applyFilters = () => {
-    let searchList = [...customerList];
-    if (searchText) {
-      searchList = searchList.filter((el) =>
-        el?.name.toLowerCase().includes(searchText.toLowerCase())
-      );
-    }
-    setFilterCustomerList(searchList);
-    setPage(0);
-  };
-  const handleChange = (e) => {
-    if (e?.target) {
-      setSearchText(e.target.value);
-    }
-  };
-
-  useEffect(() => {
-    const uniqueProducts = [
-      ...new Map(
-        [...customerList, allCustomer].map((item) => [item.id, item])
-      ).values(),
-    ];
-    setFilterCustomerList(uniqueProducts);
-  }, [customerList, allCustomer]);
-
-  const handleDeteleModal = (id) => {
-    setDeleteCustomer({ show: true, id: id });
-  };
+  useEffect(() => setPage(0), [searchText]);
 
   const handleDeleteCustomer = async (id) => {
-    const filteredData = customerList.filter((item) => item.id === id);
     try {
-      const response = await apiResponse(
-        `/venders/${id}`,
-        "DELETE",
-        filteredData
-      );
+      const response = await apiResponse(`/venders/${id}`, "DELETE");
       if (response.success) {
-        toast.success("Customer deleted successfully");
-        setCustomerList(customerList.filter((item) => item.id !== id));
+        dispatch(customerRemoved(id));
         setDeleteCustomer({ show: false });
+        toast.success(t("toast.customerDeleted"));
       }
     } catch {
-      toast.error("Something went wrong");
+      toast.error(t("toast.saveFailed"));
     }
   };
-  const handleUpdateCustomer = (id) => {
-    const editItem = filterCustomerList.find((item) => item.id === id);
-    setEditData(editItem);
-    setEditCustomerDialog(true);
-  };
 
-  useEffect(() => {
-    applyFilters();
-  }, [searchText, customerList]);
-
-  const handleAddCustomer = () => {
-    setShow(true);
-  };
+  const pageRows = visibleCustomers.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   return (
     <>
@@ -160,7 +124,8 @@ const Customer = () => {
             placeholder={t("description.search")}
             gutterNone
             name="search"
-            onChange={handleChange}
+            value={searchText}
+            onChange={(event) => setSearchText(event.target.value)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -171,7 +136,7 @@ const Customer = () => {
           />
         </IMSGrid>
         <IMSGrid item md={4} textAlign="right">
-          <IMSButton variant="contained" onClick={handleAddCustomer}>
+          <IMSButton variant="contained" onClick={() => setShow(true)}>
             {t("buttonText.addCustomer")}
           </IMSButton>
         </IMSGrid>
@@ -185,13 +150,13 @@ const Customer = () => {
               <TableCell>{t("formLabel.customerName")}</TableCell>
               <TableCell>{t("formLabel.phoneNumber")}</TableCell>
               <TableCell>{t("formLabel.customerAddress")}</TableCell>
-              <TableCell>{t("description.action")}</TableCell>
+              <TableCell align="right">{t("description.action")}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filterCustomerList.length === 0 ? (
+            {pageRows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9}>
+                <TableCell colSpan={5}>
                   <IMSTypography
                     textAlign="center"
                     lineHeight="80px"
@@ -202,33 +167,33 @@ const Customer = () => {
                 </TableCell>
               </TableRow>
             ) : (
-              filterCustomerList
-                .sort((a, b) => a.itemName?.localeCompare(b.itemName))
-                ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((data, i) => (
-                  <>
-                    <TableRow key={i} sx={{ cursor: "pointer" }}>
-                      <TableCell>{i + 1}</TableCell>
-                      <TableCell>{data?.name}</TableCell>
-                      <TableCell>{data?.phone}</TableCell>
-                      <TableCell>{data?.address}</TableCell>
-                      <TableCell>
-                        <IconButton
-                          onClick={() => handleUpdateCustomer(data?.id)}
-                          color="primary"
-                        >
-                          <Edit />
-                        </IconButton>
-                        <IconButton
-                          onClick={() => handleDeteleModal(data?.id)}
-                          color="error"
-                        >
-                          <DeleteOutlineIcon />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  </>
-                ))
+              pageRows.map((data, i) => (
+                <TableRow key={data.id}>
+                  <TableCell>{page * rowsPerPage + i + 1}</TableCell>
+                  <TableCell>{data?.name}</TableCell>
+                  <TableCell>{data?.phone}</TableCell>
+                  <TableCell>{data?.address || "-"}</TableCell>
+                  <TableCell align="right">
+                    <IconButton
+                      onClick={() => {
+                        setEditData(data);
+                        setEditCustomerDialog(true);
+                      }}
+                      color="primary"
+                    >
+                      <Edit />
+                    </IconButton>
+                    <IconButton
+                      onClick={() =>
+                        setDeleteCustomer({ show: true, id: data?.id })
+                      }
+                      color="error"
+                    >
+                      <DeleteOutlineIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))
             )}
           </TableBody>
         </Table>
@@ -237,13 +202,14 @@ const Customer = () => {
         labelRowsPerPage={t("description.rowsPerPage")}
         rowsPerPageOptions={[20, 50, 100]}
         component="div"
-        count={
-          filterCustomerList ? filterCustomerList.length : customerList.length
-        }
+        count={visibleCustomers.length}
         rowsPerPage={rowsPerPage}
         page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
+        onPageChange={(event, next) => setPage(next)}
+        onRowsPerPageChange={(event) => {
+          setRowsPerPage(+event.target.value);
+          setPage(0);
+        }}
       />
       <IMSDialog
         title={t("formLabel.addNewCustomer")}
@@ -251,7 +217,7 @@ const Customer = () => {
         maxWidth="sm"
         handleClose={() => setShow(false)}
       >
-        <AddCustomer />
+        <AddCustomer onSaved={() => setShow(false)} />
       </IMSDialog>
       <IMSDialog
         title={t("formLabel.editCustomer")}
@@ -259,11 +225,14 @@ const Customer = () => {
         maxWidth="sm"
         handleClose={() => setEditCustomerDialog(false)}
       >
-        <EditCustomer editData={editData} />
+        <EditCustomer
+          editData={editData}
+          onSaved={() => setEditCustomerDialog(false)}
+        />
       </IMSDialog>
       <IMSDialog
         title={t("formLabel.areYouSure")}
-        open={deleteCustomer.show}
+        open={Boolean(deleteCustomer.show)}
         maxWidth="xs"
         handleClose={() => setDeleteCustomer({ show: false })}
       >

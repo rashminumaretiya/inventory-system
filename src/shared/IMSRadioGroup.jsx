@@ -1,21 +1,47 @@
 import {
   FormControl,
   FormControlLabel,
+  FormHelperText,
   Radio,
   RadioGroup,
 } from "@mui/material";
 import React from "react";
 import IMSFormLabel from "./IMSFormLabel";
 
-const IMSRadioGroup = ({ list, ...props }) => {
+/**
+ * Controlled when `value` is supplied, so the billing form no longer needs to
+ * remount itself with a `key` to reflect a GST change.
+ */
+const IMSRadioGroup = ({
+  list = [],
+  formLabel,
+  name,
+  value,
+  defaultValue,
+  onChange,
+  error,
+  helperText,
+  // Layout-only props; forwarding these would put them on the DOM node.
+  row,
+  gutterNone,
+  addNew,
+  addClick,
+  multiline,
+  rows,
+  inputProps,
+  ...props
+}) => {
+  const isControlled = value !== undefined;
   return (
-    <FormControl sx={{ mb: 2.5 }}>
-      <IMSFormLabel>{props.formLabel}</IMSFormLabel>
+    <FormControl sx={{ mb: 2.5 }} error={Boolean(error)}>
+      {formLabel && <IMSFormLabel>{formLabel}</IMSFormLabel>}
       <RadioGroup
         sx={{ mt: 0.5 }}
         row
-        defaultValue={props.defaultValue}
-        name={props.name}
+        name={name}
+        onChange={onChange}
+        {...(isControlled ? { value } : { defaultValue })}
+        {...props}
       >
         {list.map((item, i) => (
           <FormControlLabel
@@ -23,10 +49,10 @@ const IMSRadioGroup = ({ list, ...props }) => {
             value={item.value}
             control={<Radio />}
             label={item.label}
-            onChange={props.onChange}
           />
         ))}
       </RadioGroup>
+      {helperText && <FormHelperText>{helperText}</FormHelperText>}
     </FormControl>
   );
 };

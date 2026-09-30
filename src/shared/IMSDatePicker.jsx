@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useId } from "react";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -15,21 +15,42 @@ const DatePickerStyle = MUIStyled(DatePicker)(({ theme }) => ({
     padding: 9,
   },
 }));
-const IMSDatePicker = ({ ...props }) => {
+const IMSDatePicker = ({
+  formLabel,
+  gutterNone,
+  error,
+  helperText,
+  row,
+  addNew,
+  addClick,
+  ...props
+}) => {
+  const generatedId = useId();
+  const inputId = props.id || `${props.name || "date"}-${generatedId}`;
   return (
-    <FormControl
-      sx={{
-        mb: props.gutterNone ? 0 : 2.5,
-      }}
-      fullWidth
-    >
-      {props.formLabel && (
-        <IMSFormLabel sx={{ minWidth: 120, maxWidth: 120, mb: 1 }}>
-          {props.formLabel}
+    <FormControl sx={{ mb: gutterNone ? 0 : 2.5 }} fullWidth>
+      {formLabel && (
+        <IMSFormLabel
+          htmlFor={inputId}
+          sx={{ minWidth: 120, maxWidth: 120, mb: 1 }}
+        >
+          {formLabel}
         </IMSFormLabel>
       )}
       <LocalizationProvider adapterLocale="en-gb" dateAdapter={AdapterDayjs}>
-        <DatePickerStyle {...props} sx={{ width: "100%" }} />
+        <DatePickerStyle
+          {...props}
+          slotProps={{
+            ...props.slotProps,
+            textField: {
+              id: inputId,
+              error: Boolean(error),
+              helperText,
+              ...props.slotProps?.textField,
+            },
+          }}
+          sx={{ width: "100%" }}
+        />
       </LocalizationProvider>
     </FormControl>
   );

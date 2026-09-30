@@ -1,5 +1,5 @@
 import { FormControl, Select } from "@mui/material";
-import React from "react";
+import React, { useId } from "react";
 import IMSFormLabel from "./IMSFormLabel";
 import { MUIStyled } from "./MUIStyled";
 import IMSMenuItem from "./IMSMenuItem";
@@ -12,26 +12,54 @@ const SelectStyle = MUIStyled(Select)(({ theme }) => ({
     borderColor: "#e3e3e3",
   },
 }));
-const IMSSelect = ({ menu, formLabel, ...props }) => {
+const IMSSelect = ({
+  menu,
+  formLabel,
+  helperText,
+  error,
+  // Layout-only props, as above.
+  row,
+  gutterNone,
+  addNew,
+  addClick,
+  ...props
+}) => {
   const resolvedMenu = typeof menu === "function" ? menu(props) : menu;
+  const generatedId = useId();
+  const labelId = `${props.name || "select"}-label-${generatedId}`;
+  const selectId = props.id || `${props.name || "select"}-${generatedId}`;
   return (
     <FormControl
       fullWidth
+      error={Boolean(error)}
       sx={{
         display: "flex",
-        flexDirection: props.row ? "row" : "column",
-        alignItems: props.row ? "center" : "flex-start",
-        mb: props.gutterNone ? 0 : 2.5,
+        flexDirection: row ? "row" : "column",
+        alignItems: row ? "center" : "flex-start",
+        mb: gutterNone ? 0 : 2.5,
       }}
     >
       {formLabel && (
         <IMSFormLabel
-          sx={{ minWidth: 120, maxWidth: 120, mb: !props.row ? 0.5 : 0 }}
+          id={labelId}
+          htmlFor={selectId}
+          sx={{ minWidth: 120, maxWidth: 120, mb: !row ? 0.5 : 0 }}
         >
           {formLabel}
         </IMSFormLabel>
       )}
-      <SelectStyle fullWidth {...props}>
+      <SelectStyle
+        fullWidth
+        {...props}
+        id={selectId}
+        // A select with no visible label still needs a name for assistive
+        // technology; the unit picker beside Item Quantity is one.
+        inputProps={{
+          "aria-label": formLabel ? undefined : props["aria-label"],
+          ...props.inputProps,
+        }}
+        {...(formLabel ? { labelId } : {})}
+      >
         {resolvedMenu?.map((item, i) => (
           <IMSMenuItem
             key={i}

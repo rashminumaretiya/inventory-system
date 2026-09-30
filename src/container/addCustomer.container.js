@@ -1,61 +1,80 @@
 import { useState } from "react";
-import validation from "../utils/validation";
-import { customerFields } from "../description/customerFields.description";
-import toast from "react-hot-toast";
-import { ApiContainer } from "../api";
-import { useDispatch } from "react-redux";
-import { userData } from "../store/slice/customerSlice";
 import { useTranslation } from "react-i18next";
+import { useDispatch, useSelector } from "react-redux";
+import toast from "react-hot-toast";
 
-const AddCustomerContainer = () => {
+import { apiResponse } from "../api";
+import { customerFields } from "../description/customerFields.description";
+import { customerSaved, selectCustomers } from "../store/slice/customerSlice";
+import validation from "../utils/validation";
+
+const AddCustomerContainer = ({ onSaved } = {}) => {
   const { t } = useTranslation();
+  const dispatch = useDispatch();
+  const customers = useSelector(selectCustomers);
   const [error, setError] = useState({});
   const [formData, setFormData] = useState({});
-  const dispatch = useDispatch();
-  const { apiResponse } = ApiContainer();
+  const [saving, setSaving] = useState(false);
 
-  const handleChange = (e, pattern, sName, val, label) => {
-    const { name, value } = e.target;
-    const selectedName = name || sName;
-    const selectedValue = value || val;
+  const handleChange = (event, pattern, sName, val, label) => {
+    const name = event?.target?.name || sName;
+    const value = event?.target ? event.target.value : val;
     setError((prev) => ({
       ...prev,
-      [selectedName]: validation(pattern, selectedValue, label, t),
+      [name]: validation(pattern, value, label, t),
     }));
-    setFormData((prev) => ({ ...prev, [selectedName]: selectedValue }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
-  const handleAddCustomer = async (e) => {
-    e.preventDefault();
-    let newErr = {};
+
+  const handleAddCustomer = async (event) => {
+    event.preventDefault();
+
+    const nextError = {};
     customerFields.forEach((field) => {
-      newErr[field.name] = validation(
+      if (!field.pattern) return;
+      nextError[field.name] = validation(
         field.pattern,
         formData[field.name],
         field.label,
         t
       );
     });
-    setError((prev) => ({
-      ...prev,
-      ...newErr,
-    }));
-    if (Object.values(newErr).every((el) => el === undefined)) {
-      try {
-        const response = await apiResponse("/venders", "POST", null, {
-          ...formData,
-          id: Date.now(),
-        });
-        if (response.success) {
-          toast.success("Added");
-          dispatch(userData({ payload: formData }));
-          setFormData({});
-        }
-      } catch {
-        toast.error("Something went wrong");
-      }
+
+    const phone = formData.phone?.trim();
+    if (!nextError.phone && phone) {
+      const duplicate = customers.some(
+        (customer) => customer.phone?.trim() === phone
+      );
+      if (duplicate) nextError.phone = t("errorMsg.duplicatePhone");
+    }
+
+    setError(nextError);
+    if (!Object.values(nextError).every((message) => !message)) return;
+
+    const payload = {
+      id: String(Date.now()),
+      name: formData.name?.trim(),
+      phone,
+      address: formData.address?.trim() || "",
+    };
+
+    setSaving(true);
+    try {
+      const response = await apiResponse("/venders", "POST", null, payload);
+      if (!response.success) throw new Error("save failed");
+      dispatch(customerSaved(response.data?.id ? response.data : payload));
+      toast.success(t("toast.customerAdded", { name: payload.name }));
+      setFormData({});
+      setError({});
+      onSaved?.();
+    } catch {
+      toast.error(t("toast.saveFailed"));
+    } finally {
+      setSaving(false);
     }
   };
-  return { handleChange, handleAddCustomer, error, formData, t };
+
+  return { handleChange, handleAddCustomer, error, formData, saving, t };
 };
 
 export default AddCustomerContainer;

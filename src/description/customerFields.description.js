@@ -9,18 +9,18 @@ export const customerFields = [
   },
   {
     name: "phone",
-    type: "number",
+    type: "text",
     label: "formLabel.phoneNumber",
     md: 12,
     pattern: "phoneNumber",
   },
   {
+    // Walk-in customers often have no address on file.
     name: "address",
     type: "text",
     label: "formLabel.customerAddress",
     md: 12,
     rows: 2,
     multiline: true,
-    pattern: "notEmpty",
   },
 ];

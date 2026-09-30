@@ -1,26 +1,29 @@
 import React from "react";
+import { CircularProgress } from "@mui/material";
+
+import EditProductContainer from "../../container/editProduct.container";
+import { productFields } from "../../description/productFields.description";
+import IMSButton from "../../shared/IMSButton";
 import IMSForm from "../../shared/IMSForm";
 import IMSFormFields from "../../shared/IMSFormFields";
 import IMSStack from "../../shared/IMSStack";
-import IMSButton from "../../shared/IMSButton";
-import EditProductContainer from "../../container/editProduct.container";
-import { productFields } from "../../description/productFields.description";
 
-const EditProduct = ({ editData }) => {
-  const { handleChange, handleAddProduct, formData, error, t } =
-    EditProductContainer({ editData });
+const EditProduct = ({ editData, onSaved }) => {
+  const { handleChange, handleAddProduct, formData, error, saving, t } =
+    EditProductContainer({ editData, onSaved });
+
   return (
     <IMSForm onSubmit={handleAddProduct}>
       <IMSFormFields
         onChange={handleChange}
         error={error}
-        helperText={error}
         fields={productFields}
         value={formData}
       />
       <IMSStack direction="row" justifyContent="flex-end" spacing={1}>
-        <IMSButton variant="contained" type="submit">
+        <IMSButton variant="contained" type="submit" disabled={saving}>
           {t("buttonText.updateProduct")}
+          {saving && <CircularProgress size={16} sx={{ ml: 1 }} />}
         </IMSButton>
       </IMSStack>
     </IMSForm>

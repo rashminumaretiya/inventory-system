@@ -17,6 +17,7 @@ const IMSAutoComplete = ({
   helperText,
   addNew,
   addClick,
+  gutterNone,
   ...props
 }) => {
   const { t } = useTranslation();

@@ -1,89 +1,83 @@
 import React from "react";
-import IMSGrid from "./IMSGrid";
-import IMSAutoComplete from "./IMSAutoComplete";
-import IMSTextField from "./IMSTextField";
-import IMSRadioGroup from "./IMSRadioGroup";
-import IMSDatePicker from "./IMSDatePicker";
-import IMSSelect from "./IMSSelect";
 import { useTranslation } from "react-i18next";
 
-const IMSFormFields = ({ onChange, error, helperText, value, ...props }) => {
+import IMSAutoComplete from "./IMSAutoComplete";
+import IMSDatePicker from "./IMSDatePicker";
+import IMSGrid from "./IMSGrid";
+import IMSRadioGroup from "./IMSRadioGroup";
+import IMSSelect from "./IMSSelect";
+import IMSTextField from "./IMSTextField";
+
+const IMSFormFields = ({ onChange, error = {}, value = {}, fields = [] }) => {
   const { t } = useTranslation();
+
   return (
     <IMSGrid container columnSpacing={3}>
-      {props.fields.map((field, index) => {
+      {fields.map((field) => {
+        const message = error?.[field?.name];
+        const shared = {
+          formLabel: t(field.label),
+          name: field.name,
+          error: Boolean(message),
+          helperText: message,
+          onChange: (event, val) =>
+            onChange(event, field?.pattern, field?.name, val, field?.label),
+        };
+
         switch (field?.type) {
           case "autoComplete":
             return (
-              <IMSGrid item md={field?.md} key={index}>
+              <IMSGrid item md={field?.md} key={field.name}>
                 <IMSAutoComplete
-                  type={field?.type}
-                  formLabel={t(field.label)}
-                  options={field?.options}
-                  onChange={(e, val) =>
-                    onChange(e, field?.pattern, field?.name, val, field?.label)
-                  }
-                  error={error?.[field?.name]}
-                  helperText={error?.[field?.name]}
+                  {...shared}
+                  options={field?.options || []}
+                  value={value[field?.name] || ""}
                 />
               </IMSGrid>
             );
           case "text":
           case "number":
             return (
-              <IMSGrid item md={field?.md} key={index}>
+              <IMSGrid item md={field?.md} key={field.name}>
                 <IMSTextField
+                  {...shared}
                   type={field?.type}
-                  onChange={(e, val) =>
-                    onChange(e, field?.pattern, field?.name, val, field?.label)
-                  }
-                  error={error?.[field?.name]}
-                  helperText={error?.[field?.name]}
-                  formLabel={t(field.label)}
                   label=""
-                  value={value[field?.name] || ""}
+                  multiline={field?.multiline}
+                  rows={field?.rows}
+                  inputProps={field?.inputProps}
+                  value={value[field?.name] ?? ""}
                 />
               </IMSGrid>
             );
           case "radio":
             return (
-              <IMSGrid item md={field?.md} key={index}>
+              <IMSGrid item md={field?.md} key={field.name}>
                 <IMSRadioGroup
-                  onChange={(e, val) =>
-                    onChange(e, field?.pattern, field?.name, val, field?.label)
-                  }
-                  type={field?.type}
+                  {...shared}
                   list={field?.list}
-                  error={error?.[field?.name]}
-                  helperText={error?.[field?.name]}
+                  value={value[field?.name] ?? field?.defaultValue ?? ""}
                 />
               </IMSGrid>
             );
           case "select":
             return (
-              <IMSGrid item md={field?.md} key={index}>
+              <IMSGrid item md={field?.md} key={field.name}>
                 <IMSSelect
-                  onChange={(e, val) =>
-                    onChange(e, field?.pattern, field?.name, val, field?.label)
-                  }
-                  type={field?.type}
+                  {...shared}
                   menu={field?.menu}
-                  formLabel={t(field.label)}
-                  defaultValue={field?.defaultValue}
-                  error={error?.[field?.name]}
-                  helperText={error?.[field?.name]}
-                  value={value[field?.name] || ""}
+                  // Controlled only: passing defaultValue alongside value made
+                  // MUI warn and could show a stale unit.
+                  value={value[field?.name] ?? field?.defaultValue ?? ""}
                 />
               </IMSGrid>
             );
           case "datePicker":
             return (
-              <IMSGrid item md={field?.md} key={index}>
+              <IMSGrid item md={field?.md} key={field.name}>
                 <IMSDatePicker
-                  type={field?.type}
-                  onChange={onChange}
-                  error={error[field?.name]}
-                  helperText={error[field?.name]}
+                  {...shared}
+                  value={value[field?.name] ?? null}
                 />
               </IMSGrid>
             );

@@ -29,10 +29,11 @@ export const billingFields = [
       },
       {
         name: "vendorPhone",
-        type: "number",
+        type: "text",
         label: "formLabel.phoneNumber",
         md: 12,
         sector: "customerInfo",
+        pattern: "optionalPhone",
       },
       {
         name: "address",
@@ -67,31 +68,21 @@ export const billingFields = [
         md: 4,
         endAdornment: true,
         sector: "order",
-        pattern: "notEmpty",
+        pattern: "positiveNumber",
+        inputProps: { min: 0, step: "any" },
       },
       {
         label: "",
+        ariaLabel: "formLabel.unit",
         name: "quantityCategory",
         type: "select",
         defaultValue: "Kg",
         md: 4,
         sector: "order",
-        menu: (formData, index) => {
-          const current = formData;
-          return [
-            { label: "Kg", value: "Kg", disabled: current.value === "Pcs." },
-            {
-              label: "Grams",
-              value: "Grams",
-              disabled: current.value === "Pcs.",
-            },
-            {
-              label: "Pcs.",
-              value: "Pcs.",
-              disabled: current.value === "Kg" || current.value === "Grams",
-            },
-          ];
-        },
+        // Options are narrowed to the selected product's unit family in
+        // dashboard.container.js, so a piece-counted item can never be
+        // billed in Kg.
+        menu: ["Kg", "Grams", "Pcs."],
       },
       {
         name: "price",
@@ -99,6 +90,8 @@ export const billingFields = [
         label: "description.price",
         md: 4,
         sector: "order",
+        pattern: "positiveNumber",
+        inputProps: { min: 0, step: "any" },
       },
       {
         name: "GST",
@@ -106,7 +99,7 @@ export const billingFields = [
         label: "formLabel.GST",
         md: 6,
         defaultValue: "no",
-        sector: "order",
+        sector: "bill",
         list: [
           { label: "No", value: "no" },
           { label: "Yes", value: "yes" },
@@ -114,12 +107,14 @@ export const billingFields = [
       },
       {
         name: "GSTNumber",
-        type: "number",
+        // GSTINs are alphanumeric (24ABCDE1234F1Z5), so this cannot be a
+        // number input.
+        type: "text",
         label: "formLabel.GSTNumber",
-        sector: "order",
+        sector: "bill",
         disabled: (formData) => formData?.GST !== "yes",
         md: 6,
-        pattern: "notEmpty",
+        pattern: "gstin",
       },
       {
         label: "formLabel.payment",
@@ -128,17 +123,36 @@ export const billingFields = [
         defaultValue: "Cash",
         menu: ["Cash", "Pending", "Online"],
         md: 6,
-        sector: "order",
-        gutterNone: true,
+        sector: "bill",
+      },
+      {
+        label: "formLabel.discount",
+        name: "discount",
+        type: "number",
+        md: 6,
+        sector: "bill",
+        pattern: "nonNegative",
+        inputProps: { min: 0, step: "any" },
       },
       {
         label: "formLabel.amountPay",
         name: "amountPay",
         type: "number",
         md: 6,
-        sector: "order",
+        sector: "bill",
         gutterNone: true,
-        disabled: (formData) => formData?.payment !== "Cash",
+        // Nothing is collected up front on an unpaid bill.
+        disabled: (formData) => formData?.payment === "Pending",
+        inputProps: { min: 0, step: "any" },
+      },
+      {
+        label: "formLabel.changeDue",
+        name: "changeDue",
+        type: "number",
+        md: 6,
+        sector: "bill",
+        gutterNone: true,
+        disabled: true,
       },
     ],
   },
@@ -154,9 +168,25 @@ export const billingFields = [
         disabled: true,
       },
       {
+        name: "discountAmount",
+        type: "number",
+        label: "formLabel.discountApplied",
+        md: 6,
+        row: true,
+        disabled: true,
+      },
+      {
         name: "GSTAmount",
         type: "number",
         label: "formLabel.GSTAmount",
+        md: 6,
+        row: true,
+        disabled: true,
+      },
+      {
+        name: "balanceDue",
+        type: "number",
+        label: "formLabel.balanceDue",
         md: 6,
         row: true,
         disabled: true,

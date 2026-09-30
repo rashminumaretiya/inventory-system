@@ -1,596 +1,676 @@
 import dayjs from "dayjs";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { billingFields } from "../description/billingField.description";
-import validation from "../utils/validation";
-import { ApiContainer } from "../api";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { productData } from "../store/slice/productSlice";
 import { useTranslation } from "react-i18next";
-import { orderData } from "../store/slice/orderSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
+
+import { apiResponse } from "../api";
+import { billingFields } from "../description/billingField.description";
+import { setOrders as setOrdersAction } from "../store/slice/orderSlice";
+import { selectLastSavedCustomer } from "../store/slice/customerSlice";
+import {
+  selectLastSavedProduct,
+  setProducts,
+} from "../store/slice/productSlice";
+import {
+  balanceDue,
+  baseUnitOf,
+  billingUnitsFor,
+  calculateTotals,
+  changeDue,
+  formatMoney,
+  formatQuantity,
+  formatStock,
+  hasEnoughStock,
+  lineBaseQuantity,
+  makeCartLine,
+  mergeCartLine,
+  nextInvoiceNo,
+  num,
+  productStockInBase,
+  stockDeltasBetween,
+  toBaseQuantity,
+} from "../utils/billing";
+import { clearCart, readCart, writeCart } from "../utils/cart";
+import useSettings from "../utils/useSettings";
+import validation from "../utils/validation";
+
+const ORDER_SECTOR = "order";
+const CUSTOMER_SECTOR = "customerInfo";
+
+const flatBillingFields = billingFields.flatMap(
+  (group) => group.billingFormFields
+);
 
 const DashboardContainer = () => {
-  const { apiResponse } = ApiContainer();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const orderParams = useLocation();
+  const { settings } = useSettings();
+
   const [productList, setProductList] = useState([]);
   const [vendersList, setVendersList] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [formData, setFormData] = useState({});
+  const [addData, setAddData] = useState(readCart);
+  const [formData, setFormData] = useState({ order: [{}] });
   const [billDate, setBillDate] = useState(dayjs());
-  const [addData, setAddData] = useState(
-    JSON.parse(localStorage.getItem("formData")) || []
-  );
   const [formError, setFormError] = useState({});
   const [addNewCustomer, setAddNewCustomer] = useState({});
-  const componentRef = useRef(null);
-  const orderParams = useLocation();
   const [isEditMode, setIsEditMode] = useState(false);
-  const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
+  const componentRef = useRef(null);
 
-  const newUser = useSelector((state) => state?.customer?.user || []);
-  const newProduct = useSelector((state) => state?.product?.product || []);
-  const newOrder = useSelector((state) => state?.order?.order || []);
+  const newUser = useSelector(selectLastSavedCustomer);
+  const newProduct = useSelector(selectLastSavedProduct);
 
-  const getProduct = async () => {
-    try {
-      const response = await apiResponse("/product", "GET");
-      if (response.success) {
-        setProductList(response.data);
-        dispatch(productData({ payload: response.data }));
-      }
-    } catch {
-      toast.error("Something went wrong");
-    }
-  };
-  const getVenders = async () => {
-    try {
-      const response = await apiResponse("/venders", "GET");
-      if (response.success) {
-        setVendersList(response.data);
-      }
-    } catch {
-      toast.error("Something went wrong");
-    }
-  };
+  /* ------------------------------------------------------------------ load */
 
-  const getOrder = async () => {
+  const loadAll = useCallback(async () => {
     try {
-      const response = await apiResponse("/orders", "GET");
-      if (response.success) {
-        setOrders(response.data);
-        dispatch(orderData({ payload: response.data }));
-      }
+      const [products, venders, orderRows] = await Promise.all([
+        apiResponse("/product", "GET"),
+        apiResponse("/venders", "GET"),
+        apiResponse("/orders", "GET"),
+      ]);
+      setProductList(products.data || []);
+      dispatch(setProducts(products.data || []));
+      setVendersList(venders.data || []);
+      setOrders(orderRows.data || []);
+      dispatch(setOrdersAction(orderRows.data || []));
     } catch {
-      toast.error("Something went wrong while fetching orders");
+      toast.error(t("toast.loadFailed"));
     }
-  };
+  }, [dispatch, t]);
 
   useEffect(() => {
-    if (newProduct) {
-      setProductList(newProduct);
-    }
+    loadAll();
+  }, [loadAll]);
+
+  // A product added or edited from a dialog lands in redux first.
+  useEffect(() => {
+    if (!newProduct?.id) return;
+    setProductList((prev) => {
+      const index = prev.findIndex((item) => item.id === newProduct.id);
+      if (index < 0) return [...prev, newProduct];
+      const next = [...prev];
+      next[index] = newProduct;
+      return next;
+    });
   }, [newProduct]);
 
+  // Same for a customer. Guarded because an empty slice used to append a
+  // blank entry to the dropdown on every mount.
   useEffect(() => {
-    if (newUser) {
-      const newVenderList = [...vendersList, newUser];
-      setVendersList(newVenderList);
-    }
+    if (!newUser?.id) return;
+    setVendersList((prev) => {
+      const index = prev.findIndex((vendor) => vendor.id === newUser.id);
+      if (index < 0) return [...prev, newUser];
+      const next = [...prev];
+      next[index] = newUser;
+      return next;
+    });
   }, [newUser]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      await Promise.all([getProduct(), getOrder(), getVenders()]);
-    };
-    fetchData();
-  }, []);
+  /* --------------------------------------------------------------- derived */
 
-  const handleChange = (e, pattern, sName, val, label, index) => {
-    if (e.target) {
-      const { name, value } = e.target;
-      const selectedName = name || sName;
-      const selectedValue = value || val;
+  const selectedLine = formData.order?.[0] || {};
 
-      const item = productList?.find((el) => el.itemName === val?.itemName);
-      const vendor = vendersList?.find((el) => el.name === val?.vendorName);
-      const isVendorChange = selectedName === "vendorName";
-      const isItemChange = selectedName === "itemName";
-      const isMethod = ["GST", "GSTNumber", "payment", "amountPay"].includes(
-        selectedName
-      );
+  const selectedProduct = useMemo(
+    () => productList.find((product) => product.id === selectedLine.id),
+    [productList, selectedLine.id]
+  );
 
-      setFormError((prev) => ({
-        ...prev,
-        [selectedName]: validation(pattern, selectedValue, label, t),
-      }));
+  const invoiceNo = isEditMode
+    ? formData.invoiceNo
+    : nextInvoiceNo(orders, settings.invoicePrefix);
 
-      setFormData((prev) => ({
-        ...prev,
-        ...(isMethod && {
-          [selectedName]: selectedValue,
-        }),
-        ...(isVendorChange && {
-          customerInfo: {
-            vendorName: vendor?.name,
-            vendorPhone: vendor?.phone,
-            address: vendor?.address,
-          },
-        }),
-        ...(!isVendorChange &&
-          !isMethod && {
-            order:
-              prev?.order > 0
-                ? prev?.order?.map((data, i) => {
-                    if (i === index) {
-                      return {
-                        ...prev?.order[index],
-                        id: isItemChange ? item?.id : prev?.order?.[index].id,
-                        [selectedName]: isItemChange
-                          ? val?.itemName
-                          : selectedValue,
-                        price: isItemChange
-                          ? item?.price
-                          : prev.order?.[index].price,
-                        quantityCategory: ["Grams", "Kg", "Pcs."].includes(
-                          selectedValue
-                        )
-                          ? selectedValue
-                          : formData.order?.[index]?.quantityCategory || "Kg",
-                      };
-                    }
-                    return data;
-                  })
-                : [
-                    {
-                      ...prev?.order[index],
-                      id: isItemChange ? item?.id : prev?.order?.[index].id,
-                      [selectedName]: isItemChange
-                        ? val?.itemName
-                        : selectedValue,
-                      price: isItemChange
-                        ? item?.price
-                        : prev.order?.[index].price,
-                      quantityCategory: ["Grams", "Kg", "Pcs."].includes(
-                        selectedValue
-                      )
-                        ? selectedValue
-                        : item?.quantityCategory ||
-                          prev.order?.[index].quantityCategory,
-                    },
-                  ],
-          }),
-      }));
-    }
-    if (e?.$d) {
-      setBillDate(dayjs(e.$d));
-    }
-  };
+  const totals = useMemo(
+    () =>
+      calculateTotals({
+        lines: addData,
+        gstEnabled: formData.GST === "yes",
+        gstRate: settings.gstRate,
+        discount: formData.discount,
+      }),
+    [addData, formData.GST, formData.discount, settings.gstRate]
+  );
 
-  const handleAddData = (e) => {
-    e.preventDefault();
-    let error = {};
-    const findProduct = productList.find(
-      (data) => data.id === formData?.order[0].id
-    );
-    billingFields.forEach((fields) => {
-      fields.billingFormFields.forEach((field) => {
-        if (
-          field.pattern &&
-          field.name !== "vendorName" &&
-          field.name !== "GSTNumber"
-        ) {
-          error[field?.name] = validation(
-            field.pattern,
-            field.value || formData.order[0][field.name],
-            field.label,
-            t
-          );
-        }
-        if (field.name === "GSTNumber" && formData.GST === "yes") {
-          error[field?.name] = validation(
-            field.pattern,
-            formData?.GSTNumber,
-            field.label,
-            t
-          );
-        }
-        if (field.name === "itemQuantity") {
-          if (formData?.order[0].itemQuantity <= 0) {
-            error[field?.name] = "Quantity must be 1 or more";
-          }
-          if (formData?.order[0].quantityCategory === "Pcs.") {
-            if (
-              Number(findProduct?.stock) <
-              Number(formData?.order[0].itemQuantity)
-            ) {
-              error[field?.name] = "Stock quantity not available";
-            }
-          } else {
-            if (
-              Number(findProduct?.stock * 1000) <
-              Number(formData?.order[0].itemQuantity)
-            ) {
-              error[field?.name] = "Stock quantity not available";
-            }
-          }
-        }
-      });
+  const amountPaid =
+    formData.payment === "Pending" ? 0 : num(formData.amountPay);
+  const change = changeDue(amountPaid, totals.total);
+  const balance = balanceDue(amountPaid, totals.total);
+
+  /** Base-unit quantity of `productId` already sitting in the cart. */
+  const quantityInCart = useCallback(
+    (productId) =>
+      addData
+        .filter((line) => line.id === productId)
+        .reduce((sum, line) => sum + lineBaseQuantity(line), 0),
+    [addData]
+  );
+
+  const getFieldValue = useCallback(
+    (field, index = 0) => {
+      const { name, sector } = field;
+
+      switch (name) {
+        case "invoiceNo":
+          return invoiceNo || "";
+        case "subtotal":
+          return formatMoney(totals.subtotal);
+        case "discountAmount":
+          return formatMoney(totals.discountAmount);
+        case "GSTAmount":
+          return formatMoney(totals.gstAmount);
+        case "total":
+          return formatMoney(totals.total);
+        case "balanceDue":
+          return formatMoney(balance);
+        case "changeDue":
+          return formatMoney(change);
+        default:
+          break;
+      }
+
+      if (sector === ORDER_SECTOR) return formData.order?.[index]?.[name] ?? "";
+      if (sector === CUSTOMER_SECTOR) return formData.customerInfo?.[name] ?? "";
+      return formData[name] ?? "";
+    },
+    [formData, totals, balance, change, invoiceNo]
+  );
+
+  /* ---------------------------------------------------------------- change */
+
+  const setLineValue = (index, patch) =>
+    setFormData((prev) => {
+      const order = Array.isArray(prev.order) ? [...prev.order] : [{}];
+      order[index] = { ...(order[index] || {}), ...patch };
+      return { ...prev, order };
     });
+
+  const handleChange = (event, selectedOption, field, index = 0) => {
+    // The date picker hands back a dayjs value instead of a DOM event.
+    if (dayjs.isDayjs(event)) {
+      setBillDate(event);
+      return;
+    }
+    if (!field?.name) return;
+
+    const { name, pattern, label, sector, type } = field;
+
+    /* Autocompletes report the chosen option, or a raw string in freeSolo. */
+    if (type === "autoComplete") {
+      if (name === "itemName") {
+        const chosen =
+          typeof selectedOption === "string"
+            ? productList.find(
+                (product) =>
+                  product.itemName?.trim().toLowerCase() ===
+                  selectedOption.trim().toLowerCase()
+              )
+            : productList.find(
+                (product) => product.itemName === selectedOption?.itemName
+              );
+
+        setFormError((prev) => ({
+          ...prev,
+          itemName: validation(
+            pattern,
+            chosen?.itemName ?? selectedOption ?? "",
+            label,
+            t
+          ),
+          itemQuantity: undefined,
+        }));
+
+        if (!chosen) {
+          setLineValue(index, {
+            id: undefined,
+            itemName:
+              typeof selectedOption === "string" ? selectedOption : "",
+            price: "",
+          });
+          return;
+        }
+
+        // Selecting a product carries its price and stocking unit across, so
+        // a piece-counted item can never be billed by weight.
+        setLineValue(index, {
+          id: chosen.id,
+          itemName: chosen.itemName,
+          price: chosen.price,
+          costPrice: chosen.costPrice ?? "",
+          quantityCategory: baseUnitOf(chosen.quantityCategory),
+        });
+        return;
+      }
+
+      if (name === "vendorName") {
+        const vendor =
+          typeof selectedOption === "string"
+            ? vendersList.find(
+                (candidate) =>
+                  candidate.name?.trim().toLowerCase() ===
+                  selectedOption.trim().toLowerCase()
+              )
+            : vendersList.find(
+                (candidate) => candidate.name === selectedOption?.vendorName
+              );
+
+        const vendorName =
+          vendor?.name ??
+          (typeof selectedOption === "string" ? selectedOption : "");
+
+        setFormError((prev) => ({
+          ...prev,
+          vendorName: validation(pattern, vendorName, label, t),
+        }));
+        setFormData((prev) => ({
+          ...prev,
+          customerInfo: {
+            vendorName,
+            vendorPhone: vendor?.phone ?? "",
+            address: vendor?.address ?? "",
+          },
+        }));
+        return;
+      }
+    }
+
+    if (!event?.target) return;
+    const value = event.target.value;
 
     setFormError((prev) => ({
       ...prev,
-      ...error,
+      [name]: validation(pattern, value, label, t),
     }));
-    if (Object.values(error).every((el) => el === undefined)) {
-      const existingData = JSON.parse(localStorage.getItem("formData")) || [];
-      const duplicateData = existingData.find(
-        (el) => el.id === formData.order[0].id
-      );
-      if (duplicateData) {
-        const updatedData = existingData.map((data) => {
-          if (data.id === formData.order[0].id) {
-            let updatedQuantity = null;
-            if (
-              data.quantityCategory === "Grams" &&
-              formData.order[0].quantityCategory === "Kg"
-            ) {
-              updatedQuantity =
-                +data.itemQuantity / 1000 + +formData.order[0].itemQuantity;
-            } else if (
-              data.quantityCategory === "Kg" &&
-              formData.order[0].quantityCategory === "Grams"
-            ) {
-              updatedQuantity =
-                +data.itemQuantity + +formData.order[0].itemQuantity / 1000;
-            } else if (formData.order[0].quantityCategory === "Grams") {
-              updatedQuantity =
-                +data.itemQuantity + +formData.order[0].itemQuantity;
-            } else {
-              updatedQuantity =
-                +data.itemQuantity + +formData.order[0].itemQuantity;
-            }
 
-            return {
-              ...data,
-              itemQuantity: (data.quantityCategory !== "Pcs." &&
-              updatedQuantity >= 1000
-                ? updatedQuantity / 1000
-                : updatedQuantity
-              ).toFixed(2),
-              quantityCategory:
-                data.quantityCategory !== "Pcs." && updatedQuantity >= 1000
-                  ? "Kg"
-                  : data.quantityCategory,
-              subtotal: (data.quantityCategory === "Grams"
-                ? (updatedQuantity / 1000) * formData.order[0].price
-                : updatedQuantity * formData.order[0].price
-              ).toFixed(2),
-            };
-          }
-          return data;
-        });
-        localStorage.setItem("formData", JSON.stringify(updatedData));
-        setAddData(updatedData);
-      } else {
-        existingData?.push({
-          ...formData.order[0],
-          itemQuantity:
-            formData.order[0].quantityCategory !== "Pcs." &&
-            formData.order[0].itemQuantity >= 1000
-              ? formData.order[0].itemQuantity / 1000
-              : formData.order[0].itemQuantity,
-          quantityCategory:
-            formData.order[0].quantityCategory !== "Pcs." &&
-            formData.order[0].itemQuantity >= 1000
-              ? "Kg"
-              : formData.order[0].quantityCategory,
-          subtotal: (formData.order[0].quantityCategory === "Grams"
-            ? (formData.order[0].price / 1000) * formData.order[0].itemQuantity
-            : formData.order[0].itemQuantity * formData.order[0].price
-          ).toFixed(2),
-        });
-        localStorage.setItem("formData", JSON.stringify(existingData));
-        setAddData(existingData);
-      }
+    /* Route by the field's declared sector. Typing a phone number used to
+       land inside the line item because the routing guessed by name. */
+    if (sector === CUSTOMER_SECTOR) {
       setFormData((prev) => ({
         ...prev,
-        invoiceNo: isEditMode ? formData.invoiceNo : "DT_1",
-        billingDate: isEditMode ? formData.billingDate : billDate.$d,
-        order: [{}],
-        subtotal: formData.subtotal,
-        customerInfo: formData.customerInfo,
-        total: formData.total,
+        customerInfo: { ...(prev.customerInfo || {}), [name]: value },
       }));
+      return;
     }
+
+    if (sector === ORDER_SECTOR) {
+      setLineValue(index, { [name]: value });
+      return;
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  useEffect(() => {
-    const subtotal = addData?.reduce((acc, val) => acc + +val.subtotal, 0);
+  /* ------------------------------------------------------------- add a line */
 
-    // const invoice = orders.map((data) => data.invoiceNo);
+  const handleAddData = (event) => {
+    event.preventDefault();
 
-    const gstAmount = formData.GST === "yes" ? (subtotal * 18) / 100 : 0;
-    setFormData((prev) => ({
+    const line = formData.order?.[0] || {};
+    const error = {};
+
+    flatBillingFields
+      .filter((field) => field.sector === ORDER_SECTOR && field.pattern)
+      .forEach((field) => {
+        error[field.name] = validation(
+          field.pattern,
+          line[field.name],
+          field.label,
+          t
+        );
+      });
+
+    const product = productList.find((candidate) => candidate.id === line.id);
+
+    if (!error.itemName && !product) {
+      error.itemName = t("errorMsg.unknownItem");
+    }
+
+    if (!error.itemQuantity && product) {
+      const wanted = toBaseQuantity(line.itemQuantity, line.quantityCategory);
+      const alreadyInCart = quantityInCart(product.id);
+      if (!hasEnoughStock(product, wanted + alreadyInCart)) {
+        const remaining = productStockInBase(product) - alreadyInCart;
+        error.itemQuantity = t("errorMsg.stockShort", {
+          stock: formatQuantity(Math.max(remaining, 0)),
+          unit: baseUnitOf(product.quantityCategory),
+        });
+      }
+    }
+
+    setFormError((prev) => ({ ...prev, ...error }));
+    if (!Object.values(error).every((message) => !message)) return;
+
+    const existingIndex = addData.findIndex(
+      (candidate) => candidate.id === line.id
+    );
+    const nextCart =
+      existingIndex >= 0
+        ? addData.map((candidate, index) =>
+            index === existingIndex ? mergeCartLine(candidate, line) : candidate
+          )
+        : [...addData, makeCartLine(line)];
+
+    writeCart(nextCart);
+    setAddData(nextCart);
+
+    // Clear the line entry row but keep the customer and bill settings.
+    setFormData((prev) => ({ ...prev, order: [{}] }));
+    setFormError((prev) => ({
       ...prev,
-      invoiceNo: isEditMode
-        ? formData.invoiceNo
-        : newOrder?.length
-        ? `DT_${newOrder?.length + 1}`
-        : "DT_1",
-      billingDate: billDate.$d,
-      subtotal: subtotal,
-      order: Array.isArray(prev.order) ? [...prev.order] : [{}],
-      GST: formData.GST || "no",
-      payment: formData.payment || "Cash",
-      GSTAmount: gstAmount,
-      total: (gstAmount !== 0 ? subtotal + gstAmount : subtotal).toFixed(2),
+      itemName: undefined,
+      itemQuantity: undefined,
+      price: undefined,
     }));
-  }, [
-    addData,
-    formData.invoiceNo,
-    newOrder,
-    formData.payment,
-    formData.GST,
-    billDate,
-    orders,
-    isEditMode,
-  ]);
-
-  const handleCancel = () => {
-    setFormData((prev) => ({
-      invoiceNo: prev?.invoiceNo,
-      billingDate: billDate.$d,
-      order: [{}],
-      subtotal: formData.subtotal,
-      total: formData.total,
-      payment: "Cash",
-    }));
-    setAddData([]);
-    localStorage.removeItem("formData");
   };
-  const handleClearAll = () => {
-    localStorage.removeItem("formData");
-    handleCancel();
-    setIsEditMode(false);
+
+  /* ---------------------------------------------------------------- totals */
+
+  const billPayload = () => ({
+    invoiceNo,
+    billingDate: billDate.toDate().toISOString(),
+    customerInfo: formData.customerInfo,
+    order: addData,
+    subtotal: totals.subtotal,
+    discount: num(formData.discount),
+    discountAmount: totals.discountAmount,
+    GST: formData.GST || "no",
+    GSTRate: formData.GST === "yes" ? num(settings.gstRate) : 0,
+    GSTAmount: totals.gstAmount,
+    GSTNumber: formData.GST === "yes" ? formData.GSTNumber || "" : "",
+    payment: formData.payment || "Cash",
+    amountPaid,
+    changeDue: change,
+    balanceDue: balance,
+    total: formatMoney(totals.total),
+  });
+
+  /* ---------------------------------------------------------------- cancel */
+
+  const resetBill = useCallback(() => {
+    clearCart();
     setAddData([]);
+    setFormData({ order: [{}] });
+    setFormError({});
+    setBillDate(dayjs());
+  }, []);
+
+  const handleCancel = () => resetBill();
+
+  const handleClearAll = () => {
+    resetBill();
+    setIsEditMode(false);
     navigate("/");
   };
 
-  const handleSave = async () => {
-    let error = {};
-    billingFields.forEach((fields) => {
-      fields.billingFormFields.forEach((field) => {
-        if (field.pattern && field.name === "vendorName") {
-          error[field?.name] = validation(
-            field.pattern,
-            field.value || formData?.customerInfo?.[field.name],
-            field.label,
-            t
-          );
-        }
-        if (field.name === "GSTNumber" && formData.GST === "yes") {
-          error[field?.name] = validation(
-            field.pattern,
-            field.value || formData?.GSTNumber,
-            field.label,
-            t
-          );
-        }
-        if (addData.length === 0) {
-          error["itemName"] = t("description.addOneProduct");
-        }
-      });
-    });
+  /* ------------------------------------------------------------------ save */
 
-    setFormError((prev) => ({
-      ...prev,
-      ...error,
-    }));
-    if (Object.values(error).every((el) => el === undefined)) {
-      setLoading(true);
-      const updatedRecords = productList
-        .filter((el) => addData.some((item) => item.id === el.id))
-        .map((el) => {
-          const matchedItem = addData.find((item) => item.id === el.id);
-          return {
-            ...el,
-            stock: (matchedItem.quantityCategory === "Kg"
-              ? (+el.stock * 1000 - matchedItem.itemQuantity * 1000) / 1000
-              : matchedItem.quantityCategory === "Grams"
-              ? (+el.stock * 1000 - matchedItem.itemQuantity) / 1000
-              : +el.stock - matchedItem.itemQuantity
-            ).toFixed(3),
-          };
-        });
-      const updatedProductList = productList.map((el) => {
-        const matchedRecord = updatedRecords.find(
-          (record) => record.id === el.id
+  /** Apply base-unit deltas to products and persist each change. */
+  const applyStockDeltas = async (deltas) => {
+    const updated = [];
+    for (const [productId, delta] of deltas.entries()) {
+      if (!productId || Math.abs(delta) < 1e-9) continue;
+      const product = productList.find(
+        (candidate) => candidate.id === productId
+      );
+      if (!product) continue;
+      const stock = formatStock(
+        Math.max(productStockInBase(product) + delta, 0)
+      );
+      await apiResponse(`/product/${productId}`, "PATCH", null, { stock });
+      updated.push({ ...product, stock });
+    }
+    if (updated.length) {
+      const merged = productList.map(
+        (product) =>
+          updated.find((candidate) => candidate.id === product.id) || product
+      );
+      setProductList(merged);
+      dispatch(setProducts(merged));
+    }
+    return updated;
+  };
+
+  const validateBill = () => {
+    const error = {};
+
+    if (addData.length === 0) {
+      error.itemName = t("description.addOneProduct");
+    }
+
+    const customerField = flatBillingFields.find(
+      (field) => field.name === "vendorName"
+    );
+    error.vendorName = validation(
+      customerField.pattern,
+      formData.customerInfo?.vendorName,
+      customerField.label,
+      t
+    );
+
+    const phoneField = flatBillingFields.find(
+      (field) => field.name === "vendorPhone"
+    );
+    error.vendorPhone = validation(
+      phoneField.pattern,
+      formData.customerInfo?.vendorPhone,
+      phoneField.label,
+      t
+    );
+
+    if (formData.GST === "yes") {
+      const gstField = flatBillingFields.find(
+        (field) => field.name === "GSTNumber"
+      );
+      error.GSTNumber = validation(
+        gstField.pattern,
+        formData.GSTNumber,
+        gstField.label,
+        t
+      );
+    }
+
+    // Over- and underpayment are both allowed: the first becomes change, the
+    // second is recorded as a balance due, so neither blocks the sale.
+
+    setFormError((prev) => ({ ...prev, ...error }));
+    return Object.values(error).every((message) => !message);
+  };
+
+  const handleSave = async () => {
+    if (!validateBill()) return;
+
+    // Re-check stock against the live product list before taking the money.
+    const shortages = [];
+    const wanted = new Map();
+    addData.forEach((line) => {
+      wanted.set(line.id, (wanted.get(line.id) || 0) + lineBaseQuantity(line));
+    });
+    wanted.forEach((quantity, productId) => {
+      const product = productList.find(
+        (candidate) => candidate.id === productId
+      );
+      if (!product || !hasEnoughStock(product, quantity)) {
+        shortages.push(
+          t("errorMsg.stockShortNamed", {
+            item: product?.itemName || productId,
+            stock: formatQuantity(productStockInBase(product)),
+            unit: baseUnitOf(product?.quantityCategory),
+          })
         );
-        return matchedRecord ? { ...matchedRecord } : el;
-      });
-      const order = { ...formData, order: addData };
-      const matchedRecord = productList.filter((data) => {
-        return addData.some((record) => record.id === data.id);
-      });
-      let isStockValid = true;
-      matchedRecord.forEach((record) => {
-        const stockInfo = addData.find((data) => data.id === record.id);
-        const quantityCategoryMultiplier =
-          stockInfo.quantityCategory === "Pcs." ? 1 : 1000;
-        const requiredStock =
-          (+stockInfo.itemQuantity * quantityCategoryMultiplier) /
-          (stockInfo.quantityCategory === "Grams" ? 1000 : 1);
-        const availableStock = record.stock * quantityCategoryMultiplier;
-        if (requiredStock > availableStock) {
-          isStockValid = false;
-          toast.error(
-            `${stockInfo.itemName} quantity must be less than ${record.stock}`
-          );
-          setLoading(false);
-        }
-      });
-      if (isStockValid) {
-        try {
-          const response = await apiResponse("/orders", "POST", null, {
-            ...order,
-            id: Date.now(),
-          });
-          if (response.success) {
-            const updatePromises = updatedRecords.map((record) => {
-              return apiResponse(`/product/${record.id}`, "PATCH", null, {
-                stock: record.stock,
-              });
-            });
-            const updateResponses = await Promise.all(updatePromises);
-            if (updateResponses.every((res) => res)) {
-              toast.success("Order saved successfully");
-              localStorage.removeItem("formData");
-              setAddData([]);
-              setFormData(() => ({
-                order: [{}],
-              }));
-              dispatch(productData({ payload: updatedProductList }));
-              dispatch(orderData({ payload: [...newOrder, order] }));
-              setLoading(false);
-            }
-          }
-        } catch {
-          toast.error("Something went wrong");
-          setLoading(false);
-        }
       }
+    });
+    if (shortages.length) {
+      shortages.forEach((message) => toast.error(message));
+      return;
+    }
+
+    setLoading(true);
+    const order = { ...billPayload(), id: String(Date.now()) };
+    try {
+      const response = await apiResponse("/orders", "POST", null, order);
+      if (!response.success) throw new Error("save failed");
+
+      await applyStockDeltas(stockDeltasBetween([], addData));
+
+      const nextOrders = [...orders, order];
+      setOrders(nextOrders);
+      dispatch(setOrdersAction(nextOrders));
+      resetBill();
+      toast.success(t("toast.orderSaved", { invoice: order.invoiceNo }));
+    } catch {
+      toast.error(t("toast.saveFailed"));
+    } finally {
+      setLoading(false);
     }
   };
 
-  const mappedBillingFields = billingFields.map((billingField) => {
-    const updatedFields = billingField.billingFormFields.map((field) => {
-      if (field.name === "itemName") {
-        return {
-          ...field,
-          options: productList?.map((product) => ({
-            itemName: product.itemName,
-            stock: product.stock,
-            quantityCategory: product.quantityCategory,
-          })),
-        };
-      } else if (field.name === "vendorName") {
-        return {
-          ...field,
-          options: vendersList?.map((vendor) => ({
-            vendorName: vendor?.name,
-            vendorPhone: vendor?.phone,
-            address: vendor?.address,
-          })),
-        };
-      }
-      return field;
-    });
+  /* ------------------------------------------------------------------ edit */
 
-    return {
-      ...billingField,
-      billingFormFields: updatedFields,
-    };
-  });
+  const editingOrderId = orderParams?.search.replace("?order/", "");
 
-  const handleAddNew = (sector) => {
-    setAddNewCustomer({ show: true, option: sector });
-  };
-  const closeNewCustomer = () => {
-    setAddNewCustomer({ show: false });
-  };
   const editOrder = useCallback(
     (orderID) => {
+      const record = orders.find(
+        (item) => String(item.id) === String(orderID)
+      );
+      if (!record) return;
+
       setIsEditMode(true);
-      if (orders.length > 0 && Number(orderID)) {
-        const editOrderRecord = orders.find(
-          (item) => Number(item.id) === Number(orderID)
-        );
-        if (!editOrderRecord) {
-          toast.error("Order not found");
-          return;
-        }
-        localStorage.setItem(
-          "formData",
-          JSON.stringify(editOrderRecord?.order)
-        );
-        setFormData({ ...editOrderRecord, order: [] });
-        setBillDate(dayjs(editOrderRecord?.billingDate));
-        setAddData(editOrderRecord?.order);
-      }
+      writeCart(record.order || []);
+      setAddData(record.order || []);
+      setBillDate(dayjs(record.billingDate));
+      setFormData({
+        order: [{}],
+        invoiceNo: record.invoiceNo,
+        customerInfo: record.customerInfo,
+        GST: record.GST || "no",
+        GSTNumber: record.GSTNumber || "",
+        payment: record.payment || "Cash",
+        discount: record.discount ?? "",
+        amountPay: record.amountPaid ?? "",
+      });
     },
     [orders]
   );
 
   useEffect(() => {
-    const orderID = orderParams?.search.replace("?order/", "");
-    if (orderID) {
-      editOrder(orderID);
-    }
-  }, [orders, orderParams, editOrder]);
+    if (editingOrderId && orders.length) editOrder(editingOrderId);
+  }, [editingOrderId, orders, editOrder]);
 
   const handleUpdate = async () => {
-    const orderID = orderParams?.search.replace("?order/", "");
-    if (!orderID || isNaN(orderID)) {
-      toast.error("Invalid order ID");
+    if (!editingOrderId) {
+      toast.error(t("toast.invalidOrder"));
       return;
     }
-    const updateRecord = { ...formData, order: addData };
-    const editOrderRecord = orders.find(
-      (item) => Number(item.id) === Number(orderID)
+    const record = orders.find(
+      (item) => String(item.id) === String(editingOrderId)
     );
-    if (!editOrderRecord) {
-      toast.error("Order not found");
+    if (!record) {
+      toast.error(t("toast.orderNotFound"));
       return;
     }
-    const matchRecord = editOrderRecord?.order
-      .filter((el) => addData.some((item) => Number(item.id) === Number(el.id)))
-      .map((data) => {
-        const matched = addData.find((item) => item.id === data.id);
-        if (matched.itemQuantity !== data.itemQuantity) {
-          const product = productList.find(
-            (product) => Number(product.id) === Number(matched.id)
-          );
-          if (product) {
-            const updatedStock = (
-              product.stock -
-              (matched.itemQuantity - data.itemQuantity)
-            ).toFixed(3);
-            return { id: matched.id, stock: updatedStock };
-          }
-        }
-        return null;
-      })
-      .filter(Boolean);
+    if (!validateBill()) return;
+
+    setLoading(true);
+    const updated = { ...billPayload(), id: record.id };
     try {
-      const response = await apiResponse(`/orders/${orderID}`, "PATCH", null, {
-        ...updateRecord,
-        invoiceNo: updateRecord.invoiceNo,
-        id: editOrderRecord.id,
-      });
-      if (response.success) {
-        const updatePromises = matchRecord?.map((record) => {
-          return apiResponse(`/product/${record.id}`, "PATCH", null, {
-            stock: record.stock,
-          });
-        });
-        const updateResponses = await Promise.all(updatePromises);
-        if (updateResponses.every((res) => res)) {
-          toast.success("Updated order successfully");
-          localStorage.removeItem("formData");
-          setIsEditMode(false);
-          navigate("/orders");
-        }
-      }
+      const response = await apiResponse(
+        `/orders/${record.id}`,
+        "PATCH",
+        null,
+        updated
+      );
+      if (!response.success) throw new Error("update failed");
+
+      // Return what the old bill took, then take what the new one needs. This
+      // covers lines that were removed or added, which the previous version
+      // silently skipped.
+      await applyStockDeltas(stockDeltasBetween(record.order || [], addData));
+
+      const nextOrders = orders.map((item) =>
+        String(item.id) === String(record.id) ? updated : item
+      );
+      setOrders(nextOrders);
+      dispatch(setOrdersAction(nextOrders));
+      resetBill();
+      setIsEditMode(false);
+      toast.success(t("toast.orderUpdated"));
+      navigate("/orders");
     } catch {
-      toast.error("Something went wrong");
+      toast.error(t("toast.saveFailed"));
+    } finally {
+      setLoading(false);
     }
   };
 
+  /* --------------------------------------------------------------- options */
+
+  const mappedBillingFields = useMemo(
+    () =>
+      billingFields.map((group) => ({
+        ...group,
+        billingFormFields: group.billingFormFields.map((field) => {
+          if (field.name === "itemName") {
+            return {
+              ...field,
+              options: productList.map((product) => ({
+                itemName: product.itemName,
+                stock: formatStock(productStockInBase(product)),
+                quantityCategory: baseUnitOf(product.quantityCategory),
+              })),
+            };
+          }
+          if (field.name === "vendorName") {
+            return {
+              ...field,
+              options: vendersList
+                .filter((vendor) => vendor?.name)
+                .map((vendor) => ({
+                  vendorName: vendor.name,
+                  vendorPhone: vendor.phone,
+                  address: vendor.address,
+                })),
+            };
+          }
+          if (field.name === "quantityCategory") {
+            return {
+              ...field,
+              menu: billingUnitsFor(
+                selectedProduct?.quantityCategory ||
+                  selectedLine.quantityCategory
+              ),
+            };
+          }
+          if (field.name === "GST") {
+            return { ...field, label: field.label, gstRate: settings.gstRate };
+          }
+          return field;
+        }),
+      })),
+    [
+      productList,
+      vendersList,
+      selectedProduct,
+      selectedLine.quantityCategory,
+      settings.gstRate,
+    ]
+  );
+
+  const handleAddNew = (sector) =>
+    setAddNewCustomer({ show: true, option: sector });
+  const closeNewCustomer = () => setAddNewCustomer({ show: false });
+
+  /** Everything the receipt needs, whether or not the bill is saved yet. */
+  const receiptData = { ...billPayload(), order: addData };
+
   return {
     mappedBillingFields,
+    getFieldValue,
     handleSave,
     handleAddData,
     handleCancel,
@@ -608,6 +688,9 @@ const DashboardContainer = () => {
     handleUpdate,
     handleClearAll,
     loading,
+    totals,
+    receiptData,
+    settings,
   };
 };
 

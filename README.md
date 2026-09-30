@@ -1,70 +1,123 @@
-# Getting Started with Create React App
+# Inventory & Billing System
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A single-till billing and stock system for a small store: ring up a bill, print
+a thermal receipt, track stock, keep customers, and see daily/monthly sales.
+React + MUI on the front, a JSON API behind it, English and Gujarati throughout.
 
-## Available Scripts
+## Running it
 
-In the project directory, you can run:
+```bash
+npm install
+npm start           # http://localhost:3000
+```
 
-### `npm start`
+By default the app talks to the hosted JSON API. To work against the bundled
+local server instead, create `.env.local`:
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+```
+REACT_APP_API_BASE_URL=http://localhost:8000
+```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+and run the API alongside the app:
 
-### `npm test`
+```bash
+npm run server      # json-server on :8000, backed by database.json
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Other scripts:
 
-### `npm run build`
+```bash
+npm test            # unit + integration tests
+npm run build       # production bundle in build/
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## How the data is shaped
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Three collections: `product`, `venders` (customers) and `orders`.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+**Units.** A product is stocked and priced in exactly one base unit:
 
-### `npm run eject`
+| Product unit | Stock held in | Price is |
+| ------------ | ------------- | -------- |
+| `Kg`         | kilograms     | per Kg   |
+| `Pcs.`       | pieces        | per piece |
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+While billing, a weight item may be entered in grams for convenience; the value
+is converted to Kg before it touches stock or money. Products saved earlier with
+`quantityCategory: "Grams"` already held their stock in Kg, so they are read as
+Kg and rewritten as Kg the next time they are edited.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+All of this lives in [`src/utils/billing.js`](src/utils/billing.js) — line
+subtotals, bill totals, GST, discount, change, stock deltas and invoice
+numbering. Prefer it over doing arithmetic inline; it is covered by tests.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+**Bill totals** are calculated as:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```
+subtotal   = sum of line subtotals
+taxable    = subtotal - discount        (discount is clamped to the subtotal)
+GST        = taxable x GST rate         (rounded to paise)
+total      = taxable + GST
+```
 
-## Learn More
+## Shop settings
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Shop name, address, phone, GSTIN, invoice prefix, GST rate, low-stock threshold,
+receipt footer and the daily backup hour are all editable under **Settings** and
+stored in `localStorage`. They drive the printed receipt, the GST applied to
+every bill and the low-stock warnings, so none of it is hard-coded.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Daily backup
 
-### Code Splitting
+[`src/utils/backup.js`](src/utils/backup.js) downloads a full JSON export of all
+three collections once a day:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+- on first load if that day's backup has not been taken yet, then at the hour
+  set in Settings;
+- guarded by `lastBackupDate` in `localStorage`, so it runs once per day even if
+  the app stays open or is reopened many times;
+- guarded by a short-lived lock, so two open tabs do not both download;
+- the file is `YYYY-MM-DD_backup.json` and carries `backupVersion`, `exportedAt`
+  and row counts, so a restore can check what it is looking at.
 
-### Analyzing the Bundle Size
+**Restore** from the Orders screen's *Import* button. It accepts a backup file
+and adds any products, customers and orders it does not already have, matching on
+id and invoice number, so importing the same file twice is safe.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Because a browser will not always download a file without a click, take a manual
+backup from **Settings → Backup Now** (or **Reports → Download**) if the
+automatic one is ever blocked.
 
-### Making a Progressive Web App
+## Layout
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+```
+src/
+  api/            axios wrapper; base URL from REACT_APP_API_BASE_URL
+  container/      screen logic (hooks) — no JSX
+  description/    form field definitions, incl. validation pattern + sector
+  presentation/   screens and dialogs
+  shared/         IMS* wrappers around MUI
+  store/slice/    redux slices
+  utils/          billing, reporting, backup, settings, validation
+  i18n/locals/    en.json and gu.json (kept at matching keys)
+```
 
-### Advanced Configuration
+A form field's `sector` says where its value belongs — `customerInfo`, `order`
+(the line being entered) or `bill` (the bill as a whole). The billing container
+routes edits by that field, so adding a field means declaring its sector rather
+than special-casing its name.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## Tests
 
-### Deployment
+```bash
+npm test
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- `src/utils/*.test.js` — billing maths, validation, reporting, backup schedule.
+  The billing tests assert against the real rows in `database.json`, so a change
+  that would reprice historical orders fails.
+- `src/presentation/dashboard/__tests__/billingFlow.test.jsx` — drives the real
+  billing screen: add and merge lines, unit handling, stock limits, GST,
+  discount, change, validation and save.
+- `src/__tests__/screens.test.jsx` — product, customer, orders, reports and
+  settings screens.

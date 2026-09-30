@@ -1,76 +1,96 @@
 import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import validation from "../utils/validation";
-import { ApiContainer } from "../api";
-import { productData } from "../store/slice/productSlice";
-import toast from "react-hot-toast";
-import { productFields } from "../description/productFields.description";
 import { useTranslation } from "react-i18next";
+import { useDispatch, useSelector } from "react-redux";
+import toast from "react-hot-toast";
 
-const EditProductContainer = ({ editData }) => {
+import { apiResponse } from "../api";
+import { productFields } from "../description/productFields.description";
+import { productSaved, selectProducts } from "../store/slice/productSlice";
+import { baseUnitOf, formatStock, num } from "../utils/billing";
+import validation from "../utils/validation";
+
+const EditProductContainer = ({ editData, onSaved } = {}) => {
   const { t } = useTranslation();
-  const [error, setError] = useState({});
-  const [formData, setFormData] = useState(editData);
-  const { apiResponse } = ApiContainer();
   const dispatch = useDispatch();
+  const products = useSelector(selectProducts);
+  const [error, setError] = useState({});
+  const [formData, setFormData] = useState(editData || {});
+  const [saving, setSaving] = useState(false);
 
-  const handleChange = (e, pattern, sName, val, label) => {
-    const { name, value } = e.target;
-    const selectedName = name || sName;
-    const selectedValue = value || val;
+  useEffect(() => {
+    setFormData(editData || {});
+    setError({});
+  }, [editData]);
+
+  const handleChange = (event, pattern, sName, val, label) => {
+    const name = event?.target?.name || sName;
+    const value = event?.target ? event.target.value : val;
     setError((prev) => ({
       ...prev,
-      [selectedName]: validation(pattern, selectedValue, label, t),
+      [name]: validation(pattern, value, label, t),
     }));
-    setFormData((prev) => ({ ...prev, [selectedName]: selectedValue }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleAddProduct = async (e) => {
-    e.preventDefault();
-    let newErr = {};
+  const handleAddProduct = async (event) => {
+    event.preventDefault();
+
+    const nextError = {};
     productFields.forEach((field) => {
-      newErr[field.name] = validation(
+      if (!field.pattern) return;
+      nextError[field.name] = validation(
         field.pattern,
         formData[field.name],
         field.label,
         t
       );
     });
-    setError((prev) => ({
-      ...prev,
-      ...newErr,
-    }));
-    if (Object.values(newErr).every((el) => el === undefined || el === "")) {
-      try {
-        const response = await apiResponse(
-          `/product/${editData.id}`,
-          "PATCH",
-          null,
-          {
-            ...formData,
-            id: Date.now(),
-          }
-        );
-        if (response.success) {
-          toast.success("Updated product successfully");
-          dispatch(productData({ payload: [response?.data] }));
-          setFormData({});
-        }
-      } catch {
-        toast.error("Something went wrong");
-      }
+
+    const name = formData.itemName?.trim();
+    if (!nextError.itemName && name) {
+      const duplicate = products.some(
+        (product) =>
+          product.id !== editData?.id &&
+          product.itemName?.trim().toLowerCase() === name.toLowerCase()
+      );
+      if (duplicate) nextError.itemName = t("errorMsg.duplicateProduct");
+    }
+
+    setError(nextError);
+    if (!Object.values(nextError).every((message) => !message)) return;
+
+    // The id is deliberately left untouched. It used to be replaced with
+    // Date.now() on every edit, which orphaned the product from every order
+    // that referenced it.
+    const payload = {
+      itemName: name,
+      price: String(num(formData.price)),
+      costPrice: formData.costPrice ? String(num(formData.costPrice)) : "",
+      quantityCategory: baseUnitOf(formData.quantityCategory),
+      stock: formatStock(formData.stock),
+      lowStockAt: formData.lowStockAt ? String(num(formData.lowStockAt)) : "",
+    };
+
+    setSaving(true);
+    try {
+      const response = await apiResponse(
+        `/product/${editData.id}`,
+        "PATCH",
+        null,
+        payload
+      );
+      if (!response.success) throw new Error("update failed");
+      dispatch(productSaved({ ...editData, ...payload }));
+      toast.success(t("toast.productUpdated", { name: payload.itemName }));
+      onSaved?.();
+    } catch {
+      toast.error(t("toast.saveFailed"));
+    } finally {
+      setSaving(false);
     }
   };
-  useEffect(() => {
-    setFormData((prev) => editData);
-  }, [editData]);
-  return {
-    handleChange,
-    handleAddProduct,
-    error,
-    formData,
-    t,
-  };
+
+  return { handleChange, handleAddProduct, error, formData, saving, t };
 };
 
 export default EditProductContainer;

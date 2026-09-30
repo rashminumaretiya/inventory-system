@@ -1,4 +1,5 @@
 import { FormControl, TextField as TF } from "@mui/material";
+import { useId } from "react";
 import { MUIStyled } from "./MUIStyled";
 import IMSFormLabel from "./IMSFormLabel";
 
@@ -79,23 +80,43 @@ const TextField = MUIStyled(TF)(({ theme, bgColor }) => ({
   },
 }));
 
-const IMSTextField = ({ ...props }) => {
+const IMSTextField = ({
+  // Layout-only props: these must not reach the DOM input.
+  formLabel,
+  row,
+  gutterNone,
+  addNew,
+  addClick,
+  ...props
+}) => {
+  const generatedId = useId();
+  // Linking label to input gives the field an accessible name, so screen
+  // readers announce it and clicking the label focuses the input.
+  const inputId = props.id || `${props.name || "field"}-${generatedId}`;
   return (
     <FormControl
       fullWidth
       sx={{
         display: "flex",
-        flexDirection: props.row ? "row" : "column",
-        alignItems: props.row ? "center" : "flex-start",
-        mb: props.gutterNone ? 0 : 2.5,
+        flexDirection: row ? "row" : "column",
+        alignItems: row ? "center" : "flex-start",
+        mb: gutterNone ? 0 : 2.5,
       }}
     >
-      {props.formLabel && (
-        <IMSFormLabel sx={{ minWidth: 120, mb: !props.row ? 0.5 : 0 }}>
-          {props.formLabel}
+      {formLabel && (
+        <IMSFormLabel
+          htmlFor={inputId}
+          sx={{ minWidth: 120, mb: !row ? 0.5 : 0 }}
+        >
+          {formLabel}
         </IMSFormLabel>
       )}
-      <TextField fullWidth sx={{ flex: 1, ml: props.row ? 2 : 0 }} {...props} />
+      <TextField
+        fullWidth
+        sx={{ flex: 1, ml: row ? 2 : 0 }}
+        {...props}
+        id={inputId}
+      />
     </FormControl>
   );
 };

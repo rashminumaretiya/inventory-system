@@ -1,76 +1,89 @@
 import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import validation from "../utils/validation";
-import { ApiContainer } from "../api";
-import toast from "react-hot-toast";
-import { customerFields } from "../description/customerFields.description";
-import { userData } from "../store/slice/customerSlice";
 import { useTranslation } from "react-i18next";
+import { useDispatch, useSelector } from "react-redux";
+import toast from "react-hot-toast";
 
-const EditCustomerContainer = ({ editData }) => {
+import { apiResponse } from "../api";
+import { customerFields } from "../description/customerFields.description";
+import { customerSaved, selectCustomers } from "../store/slice/customerSlice";
+import validation from "../utils/validation";
+
+const EditCustomerContainer = ({ editData, onSaved } = {}) => {
   const { t } = useTranslation();
-  const [error, setError] = useState({});
-  const [formData, setFormData] = useState(editData);
-  const { apiResponse } = ApiContainer();
   const dispatch = useDispatch();
+  const customers = useSelector(selectCustomers);
+  const [error, setError] = useState({});
+  const [formData, setFormData] = useState(editData || {});
+  const [saving, setSaving] = useState(false);
 
-  const handleChange = (e, pattern, sName, val, label) => {
-    const { name, value } = e.target;
-    const selectedName = name || sName;
-    const selectedValue = value || val;
+  useEffect(() => {
+    setFormData(editData || {});
+    setError({});
+  }, [editData]);
+
+  const handleChange = (event, pattern, sName, val, label) => {
+    const name = event?.target?.name || sName;
+    const value = event?.target ? event.target.value : val;
     setError((prev) => ({
       ...prev,
-      [selectedName]: validation(pattern, selectedValue, label, t),
+      [name]: validation(pattern, value, label, t),
     }));
-    setFormData((prev) => ({ ...prev, [selectedName]: selectedValue }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleEditCustomer = async (e) => {
-    e.preventDefault();
-    let newErr = {};
+  const handleEditCustomer = async (event) => {
+    event.preventDefault();
+
+    const nextError = {};
     customerFields.forEach((field) => {
-      newErr[field.name] = validation(
+      if (!field.pattern) return;
+      nextError[field.name] = validation(
         field.pattern,
         formData[field.name],
         field.label,
         t
       );
     });
-    setError((prev) => ({
-      ...prev,
-      ...newErr,
-    }));
-    if (Object.values(newErr).every((el) => el === undefined || el === "")) {
-      try {
-        const response = await apiResponse(
-          `/venders/${editData.id}`,
-          "PATCH",
-          null,
-          {
-            ...formData,
-            id: Date.now(),
-          }
-        );
-        if (response.success) {
-          toast.success("Updated Customer successfully");
-          dispatch(userData({ payload: response?.data }));
-          setFormData({});
-        }
-      } catch {
-        toast.error("Something went wrong");
-      }
+
+    const phone = formData.phone?.trim();
+    if (!nextError.phone && phone) {
+      const duplicate = customers.some(
+        (customer) =>
+          customer.id !== editData?.id && customer.phone?.trim() === phone
+      );
+      if (duplicate) nextError.phone = t("errorMsg.duplicatePhone");
+    }
+
+    setError(nextError);
+    if (!Object.values(nextError).every((message) => !message)) return;
+
+    // As with products, the id must survive an edit.
+    const payload = {
+      name: formData.name?.trim(),
+      phone,
+      address: formData.address?.trim() || "",
+    };
+
+    setSaving(true);
+    try {
+      const response = await apiResponse(
+        `/venders/${editData.id}`,
+        "PATCH",
+        null,
+        payload
+      );
+      if (!response.success) throw new Error("update failed");
+      dispatch(customerSaved({ ...editData, ...payload }));
+      toast.success(t("toast.customerUpdated", { name: payload.name }));
+      onSaved?.();
+    } catch {
+      toast.error(t("toast.saveFailed"));
+    } finally {
+      setSaving(false);
     }
   };
-  useEffect(() => {
-    setFormData((prev) => editData);
-  }, [editData]);
-  return {
-    handleChange,
-    handleEditCustomer,
-    error,
-    formData,
-    t,
-  };
+
+  return { handleChange, handleEditCustomer, error, formData, saving, t };
 };
 
 export default EditCustomerContainer;

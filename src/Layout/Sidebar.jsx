@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import IMSList from "../shared/IMSList";
 import IMSListItem from "../shared/IMSListItem";
 import { Link, useLocation } from "react-router-dom";
+import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import {
   Dashboard,
   Inventory,
@@ -56,6 +57,11 @@ const Sidebar = () => {
       menu: t("menu.orders"),
       icon: <Orders />,
       link: "/orders",
+    },
+    {
+      menu: t("menu.settings"),
+      icon: <SettingsOutlinedIcon />,
+      link: "/settings",
     },
   ];
 
