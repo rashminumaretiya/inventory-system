@@ -1,4 +1,11 @@
-import { Card, Chip, Divider, LinearProgress } from "@mui/material";
+import {
+  Card,
+  Chip,
+  Divider,
+  LinearProgress,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import dayjs from "dayjs";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
@@ -30,6 +37,7 @@ import {
   sumTotals,
   topProducts,
 } from "../../utils/reporting";
+import PageHeader from "../../shared/PageHeader";
 import useSettings from "../../utils/useSettings";
 
 const cardSx = {
@@ -55,6 +63,9 @@ const StatCard = ({ label, value, color = "primary", caption }) => (
 
 const Reports = () => {
   const { t } = useTranslation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const chartHeight = isMobile ? 260 : 350;
   const { settings } = useSettings();
   const currency = settings.currencySymbol;
 
@@ -169,9 +180,14 @@ const Reports = () => {
 
   return (
     <>
+      <PageHeader
+        title={t("menu.reports")}
+        subtitle={t("pageSubtitle.reports")}
+        divider={false}
+      />
       {loading && <LinearProgress sx={{ mb: 2 }} />}
-      <IMSGrid container spacing={3}>
-        <IMSGrid item md={8}>
+      <IMSGrid container spacing={{ xs: 2, md: 3 }}>
+        <IMSGrid item xs={12} md={8}>
           <Card elevation={0} sx={cardSx}>
             <IMSDatePicker
               views={["year", "month"]}
@@ -183,16 +199,20 @@ const Reports = () => {
               options={chartOptions}
               series={chartSeries}
               type="area"
-              height={350}
+              height={chartHeight}
             />
           </Card>
         </IMSGrid>
 
-        <IMSGrid item md={4}>
-          <IMSGrid container spacing={3}>
-            <IMSGrid item md={12}>
+        <IMSGrid item xs={12} md={4}>
+          <IMSGrid container spacing={{ xs: 2, md: 3 }}>
+            <IMSGrid item xs={12}>
               <Card elevation={0} sx={cardSx}>
-                <IMSStack direction="row" spacing={2} alignItems="flex-end">
+                <IMSStack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={{ xs: 1.5, sm: 2 }}
+                  alignItems={{ xs: "stretch", sm: "flex-end" }}
+                >
                   <IMSSelect
                     onChange={(event) => setDownloadOption(event.target.value)}
                     value={downloadOption}
@@ -209,6 +229,7 @@ const Reports = () => {
                     sx={{ flex: "none" }}
                     onClick={handleDownload}
                     disabled={busy}
+                    fullWidth={isMobile}
                   >
                     {t("buttonText.download")}
                   </IMSButton>
@@ -221,7 +242,7 @@ const Reports = () => {
               </Card>
             </IMSGrid>
 
-            <IMSGrid item md={12}>
+            <IMSGrid item xs={12}>
               <StatCard
                 label={
                   month
@@ -232,14 +253,14 @@ const Reports = () => {
                 caption={t("description.billCount", { count: monthOrders.length })}
               />
             </IMSGrid>
-            <IMSGrid item md={6}>
+            <IMSGrid item xs={6} md={6}>
               <StatCard
                 label={t("description.totalSale")}
                 value={`${currency}${formatMoney(totalSale)}`}
                 color="orange.main"
               />
             </IMSGrid>
-            <IMSGrid item md={6}>
+            <IMSGrid item xs={6} md={6}>
               <StatCard
                 label={t("description.todaySale")}
                 value={`${currency}${formatMoney(todaySale)}`}
@@ -249,7 +270,7 @@ const Reports = () => {
           </IMSGrid>
         </IMSGrid>
 
-        <IMSGrid item md={3}>
+        <IMSGrid item xs={6} md={3}>
           <StatCard
             label={t("description.grossProfit")}
             value={`${currency}${formatMoney(profit.profit)}`}
@@ -259,7 +280,7 @@ const Reports = () => {
             })}
           />
         </IMSGrid>
-        <IMSGrid item md={3}>
+        <IMSGrid item xs={6} md={3}>
           <StatCard
             label={t("description.outstanding")}
             value={`${currency}${formatMoney(split.outstanding)}`}
@@ -267,13 +288,13 @@ const Reports = () => {
             caption={t("description.pendingBills")}
           />
         </IMSGrid>
-        <IMSGrid item md={3}>
+        <IMSGrid item xs={6} md={3}>
           <StatCard
             label={t("description.stockValueRetail")}
             value={`${currency}${formatMoney(stockValue.retail)}`}
           />
         </IMSGrid>
-        <IMSGrid item md={3}>
+        <IMSGrid item xs={6} md={3}>
           <StatCard
             label={t("description.stockValueCost")}
             value={`${currency}${formatMoney(stockValue.cost)}`}
@@ -281,7 +302,7 @@ const Reports = () => {
           />
         </IMSGrid>
 
-        <IMSGrid item md={4}>
+        <IMSGrid item xs={12} md={4}>
           <Card elevation={0} sx={cardSx}>
             <IMSTypography fontWeight={600} mb={1}>
               {t("description.paymentSplit")}
@@ -304,7 +325,7 @@ const Reports = () => {
           </Card>
         </IMSGrid>
 
-        <IMSGrid item md={4}>
+        <IMSGrid item xs={12} md={4}>
           <Card elevation={0} sx={cardSx}>
             <IMSTypography fontWeight={600} mb={1}>
               {t("description.topProducts")}
@@ -342,7 +363,7 @@ const Reports = () => {
           </Card>
         </IMSGrid>
 
-        <IMSGrid item md={4}>
+        <IMSGrid item xs={12} md={4}>
           <Card elevation={0} sx={cardSx}>
             <IMSStack direction="row" alignItems="center" mb={1} gap={1}>
               <IMSTypography fontWeight={600}>

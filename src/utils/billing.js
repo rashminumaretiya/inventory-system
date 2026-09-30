@@ -210,3 +210,35 @@ export const stockDeltasBetween = (before = [], after = []) => {
 
   return deltas;
 };
+
+/**
+ * Receiving stock. The shopkeeper types what arrived; this adds it to what is
+ * already on the shelf rather than replacing the figure, so nobody has to do
+ * the sum in their head.
+ */
+export const addStock = (product, quantity, unit) =>
+  formatStock(
+    productStockInBase(product) + toBaseQuantity(quantity, unit || baseUnitOf(product?.quantityCategory))
+  );
+
+/** Step sizes that match how a shop counts: pieces one at a time, weight in 250 g. */
+export const stepFor = (unit) => (baseUnitOf(unit) === PCS ? 1 : 0.25);
+
+/**
+ * Nudge a cart line up or down without retyping it.
+ * Returns null when the line would drop to zero, which the caller reads as
+ * "remove this row".
+ */
+export const stepCartLine = (line, direction) => {
+  const step = stepFor(line?.quantityCategory);
+  const next = round(lineBaseQuantity(line) + direction * step, 4);
+  if (next <= 0) return null;
+  return makeCartLine(line, next);
+};
+
+/** Set a cart line to an exact base-unit quantity, or null to drop it. */
+export const setCartLineQuantity = (line, baseQuantity) => {
+  const next = round(num(baseQuantity), 4);
+  if (next <= 0) return null;
+  return makeCartLine(line, next);
+};

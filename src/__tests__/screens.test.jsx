@@ -230,8 +230,12 @@ describe("Reports screen", () => {
 });
 
 describe("Settings screen", () => {
+  const openTab = (name) =>
+    fireEvent.click(screen.getByRole("tab", { name }));
+
   it("persists the GST rate and low stock threshold", async () => {
     mount(<Settings />);
+    openTab(/billing/i);
 
     fireEvent.change(screen.getByRole("spinbutton", { name: /gst rate/i }), {
       target: { value: "5" },
@@ -251,10 +255,56 @@ describe("Settings screen", () => {
 
   it("rejects a GST rate above 100", async () => {
     mount(<Settings />);
+    openTab(/billing/i);
+
     fireEvent.change(screen.getByRole("spinbutton", { name: /gst rate/i }), {
       target: { value: "180" },
     });
     expect(await screen.findByText(/cannot be more than 100/i)).toBeInTheDocument();
+  });
+
+  it("shows the shop tab first and switches between tabs", async () => {
+    mount(<Settings />);
+    // Shop fields are visible, billing fields are not.
+    expect(screen.getByRole("textbox", { name: /shop name/i })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("spinbutton", { name: /gst rate/i })
+    ).not.toBeInTheDocument();
+
+    openTab(/billing/i);
+    expect(screen.getByRole("spinbutton", { name: /gst rate/i })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("textbox", { name: /shop name/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it("jumps to the tab holding an invalid value when saving", async () => {
+    mount(<Settings />);
+    openTab(/billing/i);
+    fireEvent.change(screen.getByRole("spinbutton", { name: /gst rate/i }), {
+      target: { value: "180" },
+    });
+
+    // Move away, then save: the bad field must be brought back into view.
+    openTab(/shop details/i);
+    fireEvent.click(screen.getByRole("button", { name: /^Save$/ }));
+
+    await waitFor(() =>
+      expect(screen.getByRole("spinbutton", { name: /gst rate/i })).toBeInTheDocument()
+    );
+    expect(localStorage.getItem("shopSettings")).toBeNull();
+  });
+
+  it("toggles a notification type and saves it immediately", async () => {
+    mount(<Settings />);
+    openTab(/notifications/i);
+
+    fireEvent.click(screen.getByRole("checkbox", { name: /pending payments/i }));
+
+    await waitFor(() => {
+      const stored = JSON.parse(localStorage.getItem("shopSettings"));
+      expect(stored.notifyPendingPayments).toBe(false);
+    });
   });
 
   it("rejects a malformed shop GSTIN but allows it to be empty", async () => {

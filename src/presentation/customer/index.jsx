@@ -1,9 +1,8 @@
 import { Edit } from "@mui/icons-material";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import PhoneIcon from "@mui/icons-material/PhoneOutlined";
 import {
-  Divider,
   IconButton,
-  InputAdornment,
   Table,
   TableBody,
   TableCell,
@@ -11,6 +10,8 @@ import {
   TableHead,
   TablePagination,
   TableRow,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
@@ -18,40 +19,43 @@ import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 
 import { apiResponse } from "../../api";
+import IMSButton from "../../shared/IMSButton";
+import IMSDialog from "../../shared/IMSDialog";
+import IMSRecordCard from "../../shared/IMSRecordCard";
+import IMSStack from "../../shared/IMSStack";
+import IMSTypography from "../../shared/IMSTypography";
+import PageHeader from "../../shared/PageHeader";
+import PageToolbar from "../../shared/PageToolbar";
+import { MUIStyled } from "../../shared/MUIStyled";
 import {
   customerRemoved,
   selectCustomers,
   setCustomers,
 } from "../../store/slice/customerSlice";
-import IMSButton from "../../shared/IMSButton";
-import IMSDialog from "../../shared/IMSDialog";
-import IMSGrid from "../../shared/IMSGrid";
-import IMSStack from "../../shared/IMSStack";
-import IMSTextField from "../../shared/IMSTextField";
-import IMSTypography from "../../shared/IMSTypography";
-import { MUIStyled } from "../../shared/MUIStyled";
-import { Search } from "../../shared/icon";
 import AddCustomer from "../dashboard/addCustomer";
 import EditCustomer from "./editCustomer";
 
 export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
-  maxHeight: "calc(100vh - 164px)",
+  maxHeight: "calc(100vh - 240px)",
   "& .MuiTableHead-root": {
     "& .MuiTableCell-root": {
-      padding: 5,
+      padding: "8px 10px",
       position: "sticky",
       top: 0,
       backgroundColor: theme.palette.white.main,
       zIndex: 9,
+      fontWeight: 600,
     },
   },
   "& .MuiTableBody-root": {
-    "& .MuiTableCell-root": { padding: 5 },
+    "& .MuiTableCell-root": { padding: "8px 10px" },
   },
 }));
 
 const Customer = () => {
   const { t } = useTranslation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const dispatch = useDispatch();
   const customers = useSelector(selectCustomers);
 
@@ -110,6 +114,38 @@ const Customer = () => {
     }
   };
 
+  const openEdit = (data) => {
+    setEditData(data);
+    setEditCustomerDialog(true);
+  };
+
+  const rowActions = (data) => (
+    <>
+      {data?.phone && (
+        // On a phone this dials; on desktop it is harmless.
+        <IconButton
+          component="a"
+          href={`tel:${data.phone}`}
+          color="primary"
+          size="small"
+          aria-label={t("formLabel.phoneNumber")}
+        >
+          <PhoneIcon fontSize="small" />
+        </IconButton>
+      )}
+      <IconButton onClick={() => openEdit(data)} color="primary" size="small">
+        <Edit fontSize="small" />
+      </IconButton>
+      <IconButton
+        onClick={() => setDeleteCustomer({ show: true, id: data?.id })}
+        color="error"
+        size="small"
+      >
+        <DeleteOutlineIcon fontSize="small" />
+      </IconButton>
+    </>
+  );
+
   const pageRows = visibleCustomers.slice(
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
@@ -117,87 +153,75 @@ const Customer = () => {
 
   return (
     <>
-      <IMSGrid container justifyContent="space-between" spacing={3} mb={2}>
-        <IMSGrid item md={4}>
-          <IMSTextField
-            variant="outlined"
-            placeholder={t("description.search")}
-            gutterNone
-            name="search"
-            value={searchText}
-            onChange={(event) => setSearchText(event.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </IMSGrid>
-        <IMSGrid item md={4} textAlign="right">
+      <PageHeader
+        title={t("menu.customer")}
+        subtitle={t("pageSubtitle.customer")}
+        divider={false}
+        actions={
           <IMSButton variant="contained" onClick={() => setShow(true)}>
             {t("buttonText.addCustomer")}
           </IMSButton>
-        </IMSGrid>
-      </IMSGrid>
-      <Divider sx={{ mb: 3 }} />
-      <TableContainerStyle>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>#</TableCell>
-              <TableCell>{t("formLabel.customerName")}</TableCell>
-              <TableCell>{t("formLabel.phoneNumber")}</TableCell>
-              <TableCell>{t("formLabel.customerAddress")}</TableCell>
-              <TableCell align="right">{t("description.action")}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {pageRows.length === 0 ? (
+        }
+      />
+      <PageToolbar
+        search={{
+          value: searchText,
+          onChange: (event) => setSearchText(event.target.value),
+          placeholder: t("description.searchCustomers"),
+        }}
+      />
+
+      {pageRows.length === 0 ? (
+        <IMSTypography textAlign="center" color="natural.main" sx={{ py: 6 }}>
+          {t("description.noDataFound")}
+        </IMSTypography>
+      ) : isMobile ? (
+        <IMSStack>
+          {pageRows.map((data) => (
+            <IMSRecordCard
+              key={data.id}
+              title={data?.name}
+              subtitle={data?.phone}
+              rows={
+                data?.address
+                  ? [{ label: t("formLabel.customerAddress"), value: data.address }]
+                  : []
+              }
+              actions={rowActions(data)}
+            />
+          ))}
+        </IMSStack>
+      ) : (
+        <TableContainerStyle>
+          <Table>
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={5}>
-                  <IMSTypography
-                    textAlign="center"
-                    lineHeight="80px"
-                    color="natural.main"
-                  >
-                    {t("description.noDataFound")}
-                  </IMSTypography>
+                <TableCell>#</TableCell>
+                <TableCell>{t("formLabel.customerName")}</TableCell>
+                <TableCell>{t("formLabel.phoneNumber")}</TableCell>
+                <TableCell sx={{ whiteSpace: "normal" }}>
+                  {t("formLabel.customerAddress")}
                 </TableCell>
+                <TableCell align="right">{t("description.action")}</TableCell>
               </TableRow>
-            ) : (
-              pageRows.map((data, i) => (
-                <TableRow key={data.id}>
+            </TableHead>
+            <TableBody>
+              {pageRows.map((data, i) => (
+                <TableRow key={data.id} hover>
                   <TableCell>{page * rowsPerPage + i + 1}</TableCell>
                   <TableCell>{data?.name}</TableCell>
                   <TableCell>{data?.phone}</TableCell>
-                  <TableCell>{data?.address || "-"}</TableCell>
-                  <TableCell align="right">
-                    <IconButton
-                      onClick={() => {
-                        setEditData(data);
-                        setEditCustomerDialog(true);
-                      }}
-                      color="primary"
-                    >
-                      <Edit />
-                    </IconButton>
-                    <IconButton
-                      onClick={() =>
-                        setDeleteCustomer({ show: true, id: data?.id })
-                      }
-                      color="error"
-                    >
-                      <DeleteOutlineIcon />
-                    </IconButton>
+                  <TableCell sx={{ whiteSpace: "normal" }}>
+                    {data?.address || "-"}
                   </TableCell>
+                  <TableCell align="right">{rowActions(data)}</TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainerStyle>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainerStyle>
+      )}
+
       <TablePagination
         labelRowsPerPage={t("description.rowsPerPage")}
         rowsPerPageOptions={[20, 50, 100]}
@@ -210,7 +234,11 @@ const Customer = () => {
           setRowsPerPage(+event.target.value);
           setPage(0);
         }}
+        sx={{
+          "& .MuiTablePagination-toolbar": { flexWrap: "wrap", rowGap: 0.5 },
+        }}
       />
+
       <IMSDialog
         title={t("formLabel.addNewCustomer")}
         open={show}
@@ -239,7 +267,7 @@ const Customer = () => {
         <IMSTypography mb={2} color="natural.main">
           {t("description.deleteNote")}
         </IMSTypography>
-        <IMSStack direction="row" spacing={2}>
+        <IMSStack direction={{ xs: "column-reverse", sm: "row" }} spacing={1.5}>
           <IMSButton
             variant="outlined"
             color="black"

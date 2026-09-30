@@ -12,7 +12,7 @@ const IMSFormFields = ({ onChange, error = {}, value = {}, fields = [] }) => {
   const { t } = useTranslation();
 
   return (
-    <IMSGrid container columnSpacing={3}>
+    <IMSGrid container columnSpacing={{ xs: 2, md: 3 }}>
       {fields.map((field) => {
         const message = error?.[field?.name];
         const shared = {
@@ -27,7 +27,7 @@ const IMSFormFields = ({ onChange, error = {}, value = {}, fields = [] }) => {
         switch (field?.type) {
           case "autoComplete":
             return (
-              <IMSGrid item md={field?.md} key={field.name}>
+              <IMSGrid item xs={field?.xs ?? 12} md={field?.md} key={field.name}>
                 <IMSAutoComplete
                   {...shared}
                   options={field?.options || []}
@@ -38,7 +38,7 @@ const IMSFormFields = ({ onChange, error = {}, value = {}, fields = [] }) => {
           case "text":
           case "number":
             return (
-              <IMSGrid item md={field?.md} key={field.name}>
+              <IMSGrid item xs={field?.xs ?? 12} md={field?.md} key={field.name}>
                 <IMSTextField
                   {...shared}
                   type={field?.type}
@@ -52,7 +52,7 @@ const IMSFormFields = ({ onChange, error = {}, value = {}, fields = [] }) => {
             );
           case "radio":
             return (
-              <IMSGrid item md={field?.md} key={field.name}>
+              <IMSGrid item xs={field?.xs ?? 12} md={field?.md} key={field.name}>
                 <IMSRadioGroup
                   {...shared}
                   list={field?.list}
@@ -62,7 +62,7 @@ const IMSFormFields = ({ onChange, error = {}, value = {}, fields = [] }) => {
             );
           case "select":
             return (
-              <IMSGrid item md={field?.md} key={field.name}>
+              <IMSGrid item xs={field?.xs ?? 12} md={field?.md} key={field.name}>
                 <IMSSelect
                   {...shared}
                   menu={field?.menu}
@@ -74,7 +74,7 @@ const IMSFormFields = ({ onChange, error = {}, value = {}, fields = [] }) => {
             );
           case "datePicker":
             return (
-              <IMSGrid item md={field?.md} key={field.name}>
+              <IMSGrid item xs={field?.xs ?? 12} md={field?.md} key={field.name}>
                 <IMSDatePicker
                   {...shared}
                   value={value[field?.name] ?? null}

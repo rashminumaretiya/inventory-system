@@ -403,3 +403,69 @@ describe("cart persistence", () => {
     await waitFor(() => expect(field(/subtotal/i)).toHaveValue(22));
   });
 });
+
+describe("adjusting a line without retyping it", () => {
+  const stepper = (label) => screen.getByRole("button", { name: label });
+
+  it("steps pieces one at a time", async () => {
+    renderDashboard();
+    await ready();
+
+    await addLine("Waffer", 3, "Pcs.");
+    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(30));
+
+    fireEvent.click(stepper(/increase quantity/i));
+    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(40));
+
+    fireEvent.click(stepper(/decrease quantity/i));
+    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(30));
+  });
+
+  it("steps weight in 250 g", async () => {
+    renderDashboard();
+    await ready();
+
+    await addLine("Potato", 2);
+    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(22));
+
+    fireEvent.click(stepper(/increase quantity/i));
+    // 2.25 Kg at Rs 11
+    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(24.75));
+  });
+
+  it("removes the row when it is stepped down to nothing", async () => {
+    renderDashboard();
+    await ready();
+
+    await addLine("Waffer", 1, "Pcs.");
+    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(10));
+
+    fireEvent.click(stepper(/decrease quantity/i));
+    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(0));
+    expect(screen.getByText(/no data found/i)).toBeInTheDocument();
+  });
+
+  it("will not step past the stock on hand", async () => {
+    renderDashboard();
+    await ready();
+
+    // Potato has 9 Kg; take all of it, then try to add another 250 g.
+    await addLine("Potato", 9);
+    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(99));
+
+    fireEvent.click(stepper(/increase quantity/i));
+    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(99));
+  });
+
+  it("keeps the adjusted line after a reload", async () => {
+    renderDashboard();
+    await ready();
+
+    await addLine("Waffer", 2, "Pcs.");
+    fireEvent.click(stepper(/increase quantity/i));
+    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(30));
+
+    const stored = JSON.parse(localStorage.getItem("formData"));
+    expect(stored[0]).toMatchObject({ itemQuantity: "3", subtotal: "30.00" });
+  });
+});

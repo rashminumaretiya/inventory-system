@@ -38,16 +38,44 @@
     "noBackupYet": "No backup taken yet",
     "backupTitle": "Daily Backup",
     "backupHelp": "A full JSON backup downloads automatically once a day at the hour set on the left. You can also take one now.",
-    "pageNotFound": "That page does not exist."
+    "pageNotFound": "That page does not exist.",
+    "more": "More",
+    "openMenu": "Open menu",
+    "searchCustomers": "Search name or phone...",
+    "shopDetails": "Shop Details",
+    "appTagline": "Billing & Inventory",
+    "newBill": "New Bill",
+    "editBill": "Edit Bill",
+    "billingSection": "Billing",
+    "shopIdentity": "Shop identity",
+    "shopIdentityHelp": "Shown at the top of every printed receipt.",
+    "taxIdentity": "Tax & address",
+    "taxIdentityHelp": "Your GSTIN and address, printed on the receipt.",
+    "invoiceSection": "Invoice & tax",
+    "invoiceSectionHelp": "The prefix for new invoice numbers and the GST rate applied when GST is switched on.",
+    "lowStockHelp": "Items at or below this level are flagged. A product can override it with its own limit.",
+    "receiptFooterHelp": "The thank-you line at the bottom of the receipt.",
+    "backupNowHelp": "Download a full backup right now, without waiting.",
+    "billDetails": "Bill Details",
+    "currentStock": "On the shelf now: {{stock}} {{unit}}",
+    "newStock": "New stock",
+    "stockInNote": "This is added to the current stock, not replacing it.",
+    "willSettle": "This clears",
+    "settled": "Settled",
+    "stillDue": "{{amount}} still due",
+    "unpaidFilter": "Unpaid {{count}} · {{amount}}"
   },
   "menu": {
-    "dashboard": "Dashboard",
-    "product": "Product",
+    "dashboard": "Billing",
+    "product": "Products",
     "reports": "Reports",
-    "customer": "Customer",
+    "customer": "Customers",
     "orders": "Orders",
     "settings": "Settings",
-    "all": "All"
+    "all": "All",
+    "groupSell": "Sell",
+    "groupStock": "Stock",
+    "groupManage": "Manage"
   },
   "formLabel": {
     "invoiceNo": "Invoice No.",
@@ -93,7 +121,11 @@
     "backupHour": "Backup Hour (0-23)",
     "autoBackup": "Automatic daily backup",
     "unit": "Unit",
-    "discountApplied": "Discount Applied"
+    "discountApplied": "Discount Applied",
+    "language": "Language",
+    "received": "Received Quantity",
+    "costPriceOptional": "Cost Price (optional)",
+    "amountReceived": "Amount Received"
   },
   "errorMsg": {
     "pleaseEnter": "Please enter {{field}}",
@@ -107,7 +139,8 @@
     "duplicatePhone": "A customer with this phone number already exists",
     "unknownItem": "Pick an item from the list, or add it first",
     "stockShort": "Only {{stock}} {{unit}} left in stock",
-    "stockShortNamed": "{{item}}: only {{stock}} {{unit}} left in stock"
+    "stockShortNamed": "{{item}}: only {{stock}} {{unit}} left in stock",
+    "moreThanOwed": "That is more than the {{owed}} owed"
   },
   "toast": {
     "loadFailed": "Could not load data. Check your connection.",
@@ -132,7 +165,9 @@
     "downloadFailed": "Download failed: {{message}}",
     "imported": "Imported ({{summary}})",
     "importFailed": "Could not read that backup file",
-    "importNoCollections": "That file has no product, customer or order data"
+    "importNoCollections": "That file has no product, customer or order data",
+    "stockAdded": "Added {{quantity}} {{unit}} to {{name}}",
+    "paymentRecorded": "Recorded {{amount}} against {{count}} bill(s)"
   },
   "buttonText": {
     "addNew": "Add New",
@@ -150,6 +185,40 @@
     "delete": "Delete",
     "updateProduct": "Update Product",
     "resetDefaults": "Reset Defaults",
-    "backupNow": "Backup Now"
+    "backupNow": "Backup Now",
+    "done": "Done",
+    "addStock": "Add Stock",
+    "collect": "Collect Payment",
+    "recordPayment": "Record Payment",
+    "increase": "Increase quantity",
+    "decrease": "Decrease quantity"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "Nothing needs your attention",
+    "clearAll": "Clear all",
+    "dismiss": "Dismiss",
+    "viewReports": "Open reports",
+    "today": "today",
+    "yesterday": "yesterday",
+    "daysAgo": "{{days}} days ago",
+    "settingsHelp": "Choose what the bell should warn you about.",
+    "pendingSwitch": "Pending payments",
+    "lowStockSwitch": "Low stock",
+    "pendingTitle": "{{name}} owes money",
+    "pendingBody": "{{amount}} outstanding across {{count}} bill(s), oldest {{days}} days ago",
+    "lowStockTitle": "{{name}} is running low",
+    "lowStockBody": "{{stock}} {{unit}} left (limit {{limit}})",
+    "outOfStockTitle": "{{name}} is out of stock",
+    "outOfStockBody": "Nothing left to sell — restock to keep billing it",
+    "pendingSwitchHelp": "Warn when a customer still owes money.",
+    "lowStockSwitchHelp": "Warn when an item runs low or sells out."
+  },
+  "pageSubtitle": {
+    "orders": "Every bill you have raised, with what is still owed.",
+    "product": "What you stock, what it costs and what is running low.",
+    "customer": "The people you bill and how to reach them.",
+    "reports": "Sales, profit and stock at a glance.",
+    "settings": "Manage your shop settings and preferences."
   }
 }

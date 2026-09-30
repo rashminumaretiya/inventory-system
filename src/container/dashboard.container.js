@@ -29,10 +29,12 @@ import {
   nextInvoiceNo,
   num,
   productStockInBase,
+  stepCartLine,
   stockDeltasBetween,
   toBaseQuantity,
 } from "../utils/billing";
 import { clearCart, readCart, writeCart } from "../utils/cart";
+import { notifyDataChanged } from "../utils/dataEvents";
 import useSettings from "../utils/useSettings";
 import validation from "../utils/validation";
 
@@ -368,6 +370,67 @@ const DashboardContainer = () => {
     }));
   };
 
+  /** Base-unit quantity of `productId` in the cart, ignoring one row. */
+  const quantityInCartExcept = useCallback(
+    (productId, skipIndex) =>
+      addData.reduce(
+        (sum, line, index) =>
+          index === skipIndex || line.id !== productId
+            ? sum
+            : sum + lineBaseQuantity(line),
+        0
+      ),
+    [addData]
+  );
+
+  const commitCart = useCallback((lines) => {
+    writeCart(lines);
+    setAddData(lines);
+  }, []);
+
+  const removeLine = useCallback(
+    (index) => commitCart(addData.filter((_, i) => i !== index)),
+    [addData, commitCart]
+  );
+
+  /**
+   * Nudge a row up or down instead of deleting and retyping it. Stepping past
+   * zero removes the row; stepping up is still bound by stock.
+   */
+  const stepLine = useCallback(
+    (index, direction) => {
+      const line = addData[index];
+      if (!line) return;
+
+      const next = stepCartLine(line, direction);
+      if (!next) {
+        removeLine(index);
+        return;
+      }
+
+      if (direction > 0) {
+        const product = productList.find(
+          (candidate) => candidate.id === line.id
+        );
+        const wanted =
+          lineBaseQuantity(next) + quantityInCartExcept(line.id, index);
+        if (product && !hasEnoughStock(product, wanted)) {
+          toast.error(
+            t("errorMsg.stockShortNamed", {
+              item: product.itemName,
+              stock: formatQuantity(productStockInBase(product)),
+              unit: baseUnitOf(product.quantityCategory),
+            })
+          );
+          return;
+        }
+      }
+
+      commitCart(addData.map((row, i) => (i === index ? next : row)));
+    },
+    [addData, commitCart, productList, quantityInCartExcept, removeLine, t]
+  );
+
   /* ---------------------------------------------------------------- totals */
 
   const billPayload = () => ({
@@ -521,6 +584,7 @@ const DashboardContainer = () => {
       setOrders(nextOrders);
       dispatch(setOrdersAction(nextOrders));
       resetBill();
+      notifyDataChanged();
       toast.success(t("toast.orderSaved", { invoice: order.invoiceNo }));
     } catch {
       toast.error(t("toast.saveFailed"));
@@ -599,6 +663,7 @@ const DashboardContainer = () => {
       dispatch(setOrdersAction(nextOrders));
       resetBill();
       setIsEditMode(false);
+      notifyDataChanged();
       toast.success(t("toast.orderUpdated"));
       navigate("/orders");
     } catch {
@@ -676,6 +741,8 @@ const DashboardContainer = () => {
     handleCancel,
     addData,
     setAddData,
+    stepLine,
+    removeLine,
     formData,
     formError,
     billDate,

@@ -9,6 +9,9 @@ import {
   makeCartLine,
   mergeCartLine,
   nextInvoiceNo,
+  addStock,
+  setCartLineQuantity,
+  stepCartLine,
   stockDeltasBetween,
   toBaseQuantity,
 } from "./billing";
@@ -240,5 +243,68 @@ describe("stockDeltasBetween", () => {
       [line("p1", "1", "Kg")]
     );
     expect(deltas.get("p1")).toBe(-0.5);
+  });
+});
+
+describe("addStock", () => {
+  it("adds received goods to what is on the shelf", () => {
+    expect(addStock({ stock: "9.000", quantityCategory: "Kg" }, "5", "Kg")).toBe("14.000");
+    expect(addStock({ stock: "120.000", quantityCategory: "Pcs." }, "24", "Pcs.")).toBe("144.000");
+  });
+
+  it("converts grams before adding", () => {
+    expect(addStock({ stock: "1.860", quantityCategory: "Kg" }, "500", "Grams")).toBe("2.360");
+  });
+
+  it("falls back to the product's own unit", () => {
+    expect(addStock({ stock: "2.000", quantityCategory: "Kg" }, "3")).toBe("5.000");
+  });
+
+  it("treats a legacy Grams product as stocked in Kg", () => {
+    expect(addStock({ stock: "1.860", quantityCategory: "Grams" }, "1", "Kg")).toBe("2.860");
+  });
+});
+
+describe("cart quantity stepping", () => {
+  const pcs = makeCartLine({
+    id: "p",
+    itemName: "Waffer",
+    price: "10",
+    itemQuantity: "3",
+    quantityCategory: "Pcs.",
+  });
+  const weight = makeCartLine({
+    id: "w",
+    itemName: "Potato",
+    price: "11",
+    itemQuantity: "2",
+    quantityCategory: "Kg",
+  });
+
+  it("steps pieces one at a time", () => {
+    expect(stepCartLine(pcs, 1)).toMatchObject({ itemQuantity: "4", subtotal: "40.00" });
+    expect(stepCartLine(pcs, -1)).toMatchObject({ itemQuantity: "2", subtotal: "20.00" });
+  });
+
+  it("steps weight in 250 g", () => {
+    expect(stepCartLine(weight, 1)).toMatchObject({ itemQuantity: "2.25", subtotal: "24.75" });
+    expect(stepCartLine(weight, -1)).toMatchObject({ itemQuantity: "1.75", subtotal: "19.25" });
+  });
+
+  it("drops below a kilo into grams", () => {
+    let line = weight;
+    for (let i = 0; i < 7; i += 1) line = stepCartLine(line, -1);
+    expect(line).toMatchObject({ itemQuantity: "250", quantityCategory: "Grams" });
+  });
+
+  it("returns null instead of a zero line", () => {
+    const one = makeCartLine({ ...pcs, itemQuantity: "1", quantityCategory: "Pcs." });
+    expect(stepCartLine(one, -1)).toBeNull();
+  });
+
+  it("sets an exact quantity", () => {
+    expect(setCartLineQuantity(pcs, 10)).toMatchObject({ itemQuantity: "10", subtotal: "100.00" });
+    expect(setCartLineQuantity(pcs, 0)).toBeNull();
+    expect(setCartLineQuantity(pcs, -3)).toBeNull();
   });
 });

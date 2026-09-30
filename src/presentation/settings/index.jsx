@@ -1,4 +1,4 @@
-import { Card, Divider, FormControlLabel, Switch } from "@mui/material";
+import { FormControlLabel, Switch } from "@mui/material";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
@@ -6,25 +6,33 @@ import { useTranslation } from "react-i18next";
 import IMSButton from "../../shared/IMSButton";
 import IMSForm from "../../shared/IMSForm";
 import IMSFormFields from "../../shared/IMSFormFields";
-import IMSGrid from "../../shared/IMSGrid";
 import IMSStack from "../../shared/IMSStack";
+import IMSTabs from "../../shared/IMSTabs";
 import IMSTypography from "../../shared/IMSTypography";
-import { runBackup } from "../../utils/backup";
+import PageHeader from "../../shared/PageHeader";
+import SettingsSection from "../../shared/SettingsSection";
+import { lastBackupDate, runBackup } from "../../utils/backup";
 import { defaultSettings, settingsFields } from "../../utils/settings";
 import useSettings from "../../utils/useSettings";
 import validation from "../../utils/validation";
 
-/**
- * Shop-wide settings. These drive the GST rate used on every bill, the
- * low-stock warnings, the invoice prefix and what the printed receipt says,
- * all of which used to be hard-coded.
- */
+/** Which settings field belongs on which tab. */
+const TAB_FIELDS = {
+  shop: ["shopName", "shopPhone", "shopGSTIN", "shopAddress"],
+  billing: ["invoicePrefix", "gstRate", "lowStockThreshold", "receiptFooter"],
+};
+
+const fieldsFor = (names) =>
+  names.map((name) => settingsFields.find((field) => field.name === name));
+
 const Settings = () => {
   const { t } = useTranslation();
   const { settings, updateSettings } = useSettings();
+  const [tab, setTab] = useState("shop");
   const [formData, setFormData] = useState(settings);
   const [error, setError] = useState({});
   const [backingUp, setBackingUp] = useState(false);
+  const [lastBackup, setLastBackup] = useState(lastBackupDate());
 
   const handleChange = (event, pattern, sName, val, label) => {
     const name = event?.target?.name || sName;
@@ -50,7 +58,16 @@ const Settings = () => {
       );
     });
     setError(nextError);
-    if (!Object.values(nextError).every((message) => !message)) return;
+
+    const firstBad = settingsFields.find((field) => nextError[field.name]);
+    if (firstBad) {
+      // Send them to the tab holding the problem rather than failing silently.
+      const owner = Object.entries(TAB_FIELDS).find(([, names]) =>
+        names.includes(firstBad.name)
+      );
+      if (owner) setTab(owner[0]);
+      return;
+    }
 
     updateSettings({
       ...formData,
@@ -73,6 +90,7 @@ const Settings = () => {
     setBackingUp(true);
     try {
       await runBackup({ force: true });
+      setLastBackup(lastBackupDate());
       toast.success(t("toast.backupDownloaded"));
     } catch (error_) {
       toast.error(t("toast.backupFailed", { message: error_.message }));
@@ -81,74 +99,178 @@ const Settings = () => {
     }
   };
 
-  const toggleAutoBackup = (event) => {
-    const autoBackup = event.target.checked;
-    setFormData((prev) => ({ ...prev, autoBackup }));
-    updateSettings({ autoBackup });
+  /** Switches save straight away; there is nothing to validate. */
+  const toggle = (name) => (event) => {
+    const checked = event.target.checked;
+    setFormData((prev) => ({ ...prev, [name]: checked }));
+    updateSettings({ [name]: checked });
   };
 
-  return (
-    <IMSGrid container spacing={3}>
-      <IMSGrid item md={8}>
-        <Card
-          elevation={0}
-          sx={{ p: 3, borderRadius: 2, boxShadow: "0 0 10px rgba(0,0,0,0.2)" }}
-        >
-          <IMSTypography variant="h6" fontWeight={600} mb={2}>
-            {t("menu.settings")}
-          </IMSTypography>
-          <Divider sx={{ mb: 3 }} />
-          <IMSForm onSubmit={handleSave}>
-            <IMSFormFields
-              onChange={handleChange}
-              error={error}
-              fields={settingsFields}
-              value={formData}
-            />
-            <IMSStack direction="row" justifyContent="flex-end" spacing={1}>
-              <IMSButton variant="outlined" color="black" onClick={handleReset}>
-                {t("buttonText.resetDefaults")}
-              </IMSButton>
-              <IMSButton variant="contained" type="submit">
-                {t("buttonText.save")}
-              </IMSButton>
-            </IMSStack>
-          </IMSForm>
-        </Card>
-      </IMSGrid>
+  const fieldGroup = (names) => (
+    <IMSFormFields
+      onChange={handleChange}
+      error={error}
+      fields={fieldsFor(names)}
+      value={formData}
+    />
+  );
 
-      <IMSGrid item md={4}>
-        <Card
-          elevation={0}
-          sx={{ p: 3, borderRadius: 2, boxShadow: "0 0 10px rgba(0,0,0,0.2)" }}
-        >
-          <IMSTypography variant="h6" fontWeight={600} mb={1}>
-            {t("description.backupTitle")}
-          </IMSTypography>
-          <IMSTypography variant="body2" color="natural.main" mb={2}>
-            {t("description.backupHelp")}
-          </IMSTypography>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={Boolean(formData.autoBackup)}
-                onChange={toggleAutoBackup}
-              />
-            }
-            label={t("formLabel.autoBackup")}
-          />
-          <IMSStack mt={2}>
-            <IMSButton
-              variant="contained"
-              onClick={handleBackupNow}
-              disabled={backingUp}
+  return (
+    <>
+      <PageHeader
+        title={t("menu.settings")}
+        subtitle={t("pageSubtitle.settings")}
+        divider={false}
+      />
+
+      <IMSTabs
+        value={tab}
+        onChange={setTab}
+        tabs={[
+          { value: "shop", label: t("description.shopDetails") },
+          { value: "billing", label: t("description.billingSection") },
+          { value: "notifications", label: t("notifications.title") },
+          { value: "backup", label: t("description.backupTitle") },
+        ]}
+      />
+
+      <IMSForm onSubmit={handleSave}>
+        {tab === "shop" && (
+          <>
+            <SettingsSection
+              title={t("description.shopIdentity")}
+              description={t("description.shopIdentityHelp")}
             >
-              {t("buttonText.backupNow")}
-            </IMSButton>
-          </IMSStack>
-        </Card>
-      </IMSGrid>
-    </IMSGrid>
+              {fieldGroup(["shopName", "shopPhone"])}
+            </SettingsSection>
+            <SettingsSection
+              title={t("description.taxIdentity")}
+              description={t("description.taxIdentityHelp")}
+            >
+              {fieldGroup(["shopGSTIN", "shopAddress"])}
+            </SettingsSection>
+          </>
+        )}
+
+        {tab === "billing" && (
+          <>
+            <SettingsSection
+              title={t("description.invoiceSection")}
+              description={t("description.invoiceSectionHelp")}
+            >
+              {fieldGroup(["invoicePrefix", "gstRate"])}
+            </SettingsSection>
+            <SettingsSection
+              title={t("formLabel.lowStockThreshold")}
+              description={t("description.lowStockHelp")}
+            >
+              {fieldGroup(["lowStockThreshold"])}
+            </SettingsSection>
+            <SettingsSection
+              title={t("formLabel.receiptFooter")}
+              description={t("description.receiptFooterHelp")}
+            >
+              {fieldGroup(["receiptFooter"])}
+            </SettingsSection>
+          </>
+        )}
+
+        {tab === "notifications" && (
+          <SettingsSection
+            title={t("notifications.title")}
+            description={t("notifications.settingsHelp")}
+          >
+            <IMSStack>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.notifyPendingPayments !== false}
+                    onChange={toggle("notifyPendingPayments")}
+                  />
+                }
+                label={t("notifications.pendingSwitch")}
+              />
+              <IMSTypography
+                variant="body2"
+                color="text.secondary"
+                sx={{ ml: 6, mt: -0.5, mb: 1 }}
+              >
+                {t("notifications.pendingSwitchHelp")}
+              </IMSTypography>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.notifyLowStock !== false}
+                    onChange={toggle("notifyLowStock")}
+                  />
+                }
+                label={t("notifications.lowStockSwitch")}
+              />
+              <IMSTypography
+                variant="body2"
+                color="text.secondary"
+                sx={{ ml: 6, mt: -0.5 }}
+              >
+                {t("notifications.lowStockSwitchHelp")}
+              </IMSTypography>
+            </IMSStack>
+          </SettingsSection>
+        )}
+
+        {tab === "backup" && (
+          <>
+            <SettingsSection
+              title={t("formLabel.autoBackup")}
+              description={t("description.backupHelp")}
+            >
+              <IMSStack spacing={1.5} alignItems="flex-start">
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={Boolean(formData.autoBackup)}
+                      onChange={toggle("autoBackup")}
+                    />
+                  }
+                  label={t("formLabel.autoBackup")}
+                />
+                {fieldGroup(["backupHour"])}
+                <IMSTypography variant="body2" color="text.secondary">
+                  {lastBackup
+                    ? t("description.lastBackup", { date: lastBackup })
+                    : t("description.noBackupYet")}
+                </IMSTypography>
+              </IMSStack>
+            </SettingsSection>
+            <SettingsSection
+              title={t("buttonText.backupNow")}
+              description={t("description.backupNowHelp")}
+            >
+              <IMSButton
+                variant="outlined"
+                onClick={handleBackupNow}
+                disabled={backingUp}
+              >
+                {t("buttonText.backupNow")}
+              </IMSButton>
+            </SettingsSection>
+          </>
+        )}
+
+        <IMSStack
+          direction={{ xs: "column-reverse", sm: "row" }}
+          justifyContent="flex-end"
+          spacing={1.5}
+          sx={{ py: 3 }}
+        >
+          <IMSButton variant="outlined" color="black" onClick={handleReset}>
+            {t("buttonText.resetDefaults")}
+          </IMSButton>
+          <IMSButton variant="contained" type="submit">
+            {t("buttonText.save")}
+          </IMSButton>
+        </IMSStack>
+      </IMSForm>
+    </>
   );
 };
 

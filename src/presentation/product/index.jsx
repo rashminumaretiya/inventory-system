@@ -1,10 +1,9 @@
 import { Edit } from "@mui/icons-material";
+import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import {
   Chip,
-  Divider,
   IconButton,
-  InputAdornment,
   Table,
   TableBody,
   TableCell,
@@ -14,26 +13,30 @@ import {
   TableRow,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
+import { useLocation } from "react-router-dom";
 
 import { apiResponse } from "../../api";
+import IMSButton from "../../shared/IMSButton";
+import IMSDialog from "../../shared/IMSDialog";
+import IMSRecordCard from "../../shared/IMSRecordCard";
+import IMSStack from "../../shared/IMSStack";
+import IMSTypography from "../../shared/IMSTypography";
+import PageHeader from "../../shared/PageHeader";
+import PageToolbar from "../../shared/PageToolbar";
+import { MUIStyled } from "../../shared/MUIStyled";
 import {
   productRemoved,
   selectProducts,
   setProducts,
 } from "../../store/slice/productSlice";
-import IMSButton from "../../shared/IMSButton";
-import IMSDialog from "../../shared/IMSDialog";
-import IMSGrid from "../../shared/IMSGrid";
-import IMSStack from "../../shared/IMSStack";
-import IMSTextField from "../../shared/IMSTextField";
-import IMSTypography from "../../shared/IMSTypography";
-import { MUIStyled } from "../../shared/MUIStyled";
-import { Search } from "../../shared/icon";
 import {
   baseUnitOf,
   formatMoney,
@@ -41,27 +44,30 @@ import {
   num,
   productStockInBase,
 } from "../../utils/billing";
+import { notifyDataChanged } from "../../utils/dataEvents";
 import useSettings from "../../utils/useSettings";
 import AddProduct from "../dashboard/addProduct";
 import EditProduct from "./editProduct";
+import StockIn from "./stockIn";
 
 export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
-  maxHeight: "calc(100vh - 220px)",
+  maxHeight: "calc(100vh - 260px)",
   "& .MuiTableHead-root": {
     "& .MuiTableCell-root": {
-      padding: 5,
+      padding: "8px 10px",
       position: "sticky",
       top: 0,
       backgroundColor: theme.palette.white.main,
       zIndex: 9,
+      fontWeight: 600,
     },
   },
   "& .MuiTableBody-root": {
-    "& .MuiTableCell-root": { padding: 5 },
+    "& .MuiTableCell-root": { padding: "8px 10px" },
   },
 }));
 
-/** out-of-stock | low | ok — drives the status chip and the filter. */
+/** out | low | ok — drives the status chip and the filter. */
 export const stockStatus = (product, threshold) => {
   const stock = productStockInBase(product);
   const limit = product?.lowStockAt ? num(product.lowStockAt) : num(threshold);
@@ -72,9 +78,12 @@ export const stockStatus = (product, threshold) => {
 
 const Product = () => {
   const { t } = useTranslation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const dispatch = useDispatch();
   const products = useSelector(selectProducts);
   const { settings } = useSettings();
+  const location = useLocation();
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
@@ -84,6 +93,12 @@ const Product = () => {
   const [deleteProduct, setDeleteProduct] = useState({});
   const [editData, setEditData] = useState(null);
   const [editProductDialog, setEditProductDialog] = useState(false);
+  const [stockInProduct, setStockInProduct] = useState(null);
+
+  // Arriving from a low-stock notification pre-fills the search.
+  useEffect(() => {
+    if (location.state?.search) setSearchText(location.state.search);
+  }, [location.state]);
 
   const load = useCallback(async () => {
     try {
@@ -132,6 +147,7 @@ const Product = () => {
       if (response.success) {
         dispatch(productRemoved(id));
         setDeleteProduct({ show: false });
+        notifyDataChanged();
         toast.success(t("toast.productDeleted"));
       }
     } catch {
@@ -149,85 +165,136 @@ const Product = () => {
     return <Chip color={config.color} size="small" label={config.label} />;
   };
 
+  const openEdit = (data) => {
+    setEditData(data);
+    setEditProductDialog(true);
+  };
+
+  const rowActions = (data) => (
+    <>
+      <Tooltip title={t("buttonText.addStock")}>
+        <IconButton
+          onClick={() => setStockInProduct(data)}
+          color="primary"
+          size="small"
+        >
+          <AddBoxOutlinedIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
+      <IconButton onClick={() => openEdit(data)} color="primary" size="small">
+        <Edit fontSize="small" />
+      </IconButton>
+      <IconButton
+        onClick={() => setDeleteProduct({ show: true, id: data?.id })}
+        color="error"
+        size="small"
+      >
+        <DeleteOutlineIcon fontSize="small" />
+      </IconButton>
+    </>
+  );
+
   const pageRows = visibleProducts.slice(
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
   );
 
+  const emptyState = (
+    <IMSTypography
+      textAlign="center"
+      color="natural.main"
+      sx={{ py: 6 }}
+    >
+      {t("description.noDataFound")}
+    </IMSTypography>
+  );
+
   return (
     <>
-      <IMSGrid container justifyContent="space-between" spacing={3} mb={2}>
-        <IMSGrid item md={4}>
-          <IMSTextField
-            variant="outlined"
-            placeholder={t("description.search")}
-            gutterNone
-            name="search"
-            value={searchText}
-            onChange={(event) => setSearchText(event.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </IMSGrid>
-        <IMSGrid item md={5}>
+      <PageHeader
+        title={t("menu.product")}
+        subtitle={t("pageSubtitle.product")}
+        divider={false}
+        actions={
+          <IMSButton variant="contained" onClick={() => setShow(true)}>
+            {t("buttonText.addProduct")}
+          </IMSButton>
+        }
+      />
+      <PageToolbar
+        search={{
+          value: searchText,
+          onChange: (event) => setSearchText(event.target.value),
+        }}
+        filters={
           <ToggleButtonGroup
             size="small"
             exclusive
             value={statusFilter}
             onChange={(event, next) => next && setStatusFilter(next)}
+            sx={{ flexShrink: 0 }}
           >
             <ToggleButton value="all">
               {t("menu.all")} ({counts.all})
             </ToggleButton>
-            <ToggleButton value="low" color="warning">
+            <ToggleButton value="low">
               {t("description.lowStock")} ({counts.low})
             </ToggleButton>
-            <ToggleButton value="out" color="error">
+            <ToggleButton value="out">
               {t("description.outOfStock")} ({counts.out})
             </ToggleButton>
           </ToggleButtonGroup>
-        </IMSGrid>
-        <IMSGrid item md={3} textAlign="right">
-          <IMSButton variant="contained" onClick={() => setShow(true)}>
-            {t("buttonText.addProduct")}
-          </IMSButton>
-        </IMSGrid>
-      </IMSGrid>
-      <Divider sx={{ mb: 3 }} />
-      <TableContainerStyle>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>#</TableCell>
-              <TableCell>{t("formLabel.productName")}</TableCell>
-              <TableCell align="right">{t("description.price")}</TableCell>
-              <TableCell align="right">{t("formLabel.costPrice")}</TableCell>
-              <TableCell align="right">{t("formLabel.stock")}</TableCell>
-              <TableCell>{t("formLabel.status")}</TableCell>
-              <TableCell align="right">{t("description.action")}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {pageRows.length === 0 ? (
+        }
+      />
+
+      {pageRows.length === 0 ? (
+        emptyState
+      ) : isMobile ? (
+        <IMSStack>
+          {pageRows.map((data) => (
+            <IMSRecordCard
+              key={data.id}
+              title={data?.itemName}
+              titleAdornment={statusChip(data)}
+              subtitle={`${settings.currencySymbol}${formatMoney(
+                data?.price
+              )} / ${baseUnitOf(data?.quantityCategory)}`}
+              rows={[
+                {
+                  label: t("formLabel.stock"),
+                  value: `${formatQuantity(
+                    productStockInBase(data)
+                  )} ${baseUnitOf(data?.quantityCategory)}`,
+                  strong: true,
+                },
+                {
+                  label: t("formLabel.costPrice"),
+                  value: data?.costPrice
+                    ? `${settings.currencySymbol}${formatMoney(data.costPrice)}`
+                    : "-",
+                },
+              ]}
+              actions={rowActions(data)}
+            />
+          ))}
+        </IMSStack>
+      ) : (
+        <TableContainerStyle>
+          <Table>
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={7}>
-                  <IMSTypography
-                    textAlign="center"
-                    lineHeight="80px"
-                    color="natural.main"
-                  >
-                    {t("description.noDataFound")}
-                  </IMSTypography>
-                </TableCell>
+                <TableCell>#</TableCell>
+                <TableCell>{t("formLabel.productName")}</TableCell>
+                <TableCell align="right">{t("description.price")}</TableCell>
+                <TableCell align="right">{t("formLabel.costPrice")}</TableCell>
+                <TableCell align="right">{t("formLabel.stock")}</TableCell>
+                <TableCell>{t("formLabel.status")}</TableCell>
+                <TableCell align="right">{t("description.action")}</TableCell>
               </TableRow>
-            ) : (
-              pageRows.map((data, i) => (
-                <TableRow key={data.id}>
+            </TableHead>
+            <TableBody>
+              {pageRows.map((data, i) => (
+                <TableRow key={data.id} hover>
                   {/* Numbering continues across pages. */}
                   <TableCell>{page * rowsPerPage + i + 1}</TableCell>
                   <TableCell>{data?.itemName}</TableCell>
@@ -251,31 +318,14 @@ const Product = () => {
                     </IMSTypography>
                   </TableCell>
                   <TableCell>{statusChip(data)}</TableCell>
-                  <TableCell align="right">
-                    <IconButton
-                      onClick={() => {
-                        setEditData(data);
-                        setEditProductDialog(true);
-                      }}
-                      color="primary"
-                    >
-                      <Edit />
-                    </IconButton>
-                    <IconButton
-                      onClick={() =>
-                        setDeleteProduct({ show: true, id: data?.id })
-                      }
-                      color="error"
-                    >
-                      <DeleteOutlineIcon />
-                    </IconButton>
-                  </TableCell>
+                  <TableCell align="right">{rowActions(data)}</TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainerStyle>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainerStyle>
+      )}
+
       <TablePagination
         rowsPerPageOptions={[20, 50, 100]}
         component="div"
@@ -288,14 +338,34 @@ const Product = () => {
           setRowsPerPage(+event.target.value);
           setPage(0);
         }}
+        sx={{
+          "& .MuiTablePagination-toolbar": { flexWrap: "wrap", rowGap: 0.5 },
+        }}
       />
+
       <IMSDialog
         title={t("formLabel.addNewProduct")}
         open={show}
         maxWidth="sm"
         handleClose={() => setShow(false)}
       >
-        <AddProduct onSaved={() => setShow(false)} />
+        <AddProduct
+          onSaved={() => {
+            setShow(false);
+            notifyDataChanged();
+          }}
+        />
+      </IMSDialog>
+      <IMSDialog
+        title={t("buttonText.addStock")}
+        open={Boolean(stockInProduct)}
+        maxWidth="xs"
+        handleClose={() => setStockInProduct(null)}
+      >
+        <StockIn
+          product={stockInProduct}
+          onSaved={() => setStockInProduct(null)}
+        />
       </IMSDialog>
       <IMSDialog
         title={t("formLabel.editProduct")}
@@ -305,7 +375,10 @@ const Product = () => {
       >
         <EditProduct
           editData={editData}
-          onSaved={() => setEditProductDialog(false)}
+          onSaved={() => {
+            setEditProductDialog(false);
+            notifyDataChanged();
+          }}
         />
       </IMSDialog>
       <IMSDialog
@@ -317,7 +390,7 @@ const Product = () => {
         <IMSTypography mb={2} color="natural.main">
           {t("description.deleteNote")}
         </IMSTypography>
-        <IMSStack direction="row" spacing={2}>
+        <IMSStack direction={{ xs: "column-reverse", sm: "row" }} spacing={1.5}>
           <IMSButton
             variant="outlined"
             color="black"

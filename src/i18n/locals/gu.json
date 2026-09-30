@@ -38,16 +38,44 @@
     "noBackupYet": "હજુ કોઈ બેકઅપ લેવાયો નથી",
     "backupTitle": "રોજનો બેકઅપ",
     "backupHelp": "દરરોજ નિયત સમયે આખો JSON બેકઅપ આપોઆપ ડાઉનલોડ થાય છે. તમે હમણાં પણ લઈ શકો છો.",
-    "pageNotFound": "આ પેજ અસ્તિત્વમાં નથી."
+    "pageNotFound": "આ પેજ અસ્તિત્વમાં નથી.",
+    "more": "વધુ",
+    "openMenu": "મેનુ ખોલો",
+    "searchCustomers": "નામ કે ફોન શોધો...",
+    "shopDetails": "દુકાનની વિગતો",
+    "appTagline": "બિલિંગ અને ઇન્વેન્ટરી",
+    "newBill": "નવું બિલ",
+    "editBill": "બિલમાં ફેરફાર",
+    "billingSection": "બિલિંગ",
+    "shopIdentity": "દુકાનની ઓળખ",
+    "shopIdentityHelp": "દરેક રસીદની ઉપર છપાય છે.",
+    "taxIdentity": "ટેક્સ અને સરનામું",
+    "taxIdentityHelp": "તમારો GSTIN અને સરનામું, રસીદ પર છપાય છે.",
+    "invoiceSection": "ઇન્વોઇસ અને ટેક્સ",
+    "invoiceSectionHelp": "નવા બિલ નંબરનો પ્રીફિક્સ અને જી.એસ.ટી. ચાલુ હોય ત્યારે લાગુ થતો દર.",
+    "lowStockHelp": "આ મર્યાદા કે તેથી ઓછા સ્ટોકવાળી વસ્તુઓ દર્શાવાય છે. દરેક પ્રોડક્ટ પોતાની મર્યાદા રાખી શકે.",
+    "receiptFooterHelp": "રસીદના તળિયે છપાતો આભાર સંદેશ.",
+    "backupNowHelp": "રાહ જોયા વગર હમણાં જ આખો બેકઅપ ડાઉનલોડ કરો.",
+    "billDetails": "બિલની વિગતો",
+    "currentStock": "અત્યારે સ્ટોકમાં: {{stock}} {{unit}}",
+    "newStock": "નવો સ્ટોક",
+    "stockInNote": "આ રકમ હાલના સ્ટોકમાં ઉમેરાશે, બદલાશે નહીં.",
+    "willSettle": "આનાથી ચૂકતે થશે",
+    "settled": "ચૂકતે",
+    "stillDue": "{{amount}} હજુ બાકી",
+    "unpaidFilter": "બાકી {{count}} · {{amount}}"
   },
   "menu": {
-    "dashboard": "ડૅશબોર્ડ",
-    "product": "પ્રોડક્ટ",
+    "dashboard": "બિલિંગ",
+    "product": "પ્રોડક્ટ્સ",
     "reports": "અહેવાલ",
-    "customer": "ગ્રાહક",
+    "customer": "ગ્રાહકો",
     "orders": "ઓર્ડર",
     "settings": "સેટિંગ્સ",
-    "all": "બધા"
+    "all": "બધા",
+    "groupSell": "વેચાણ",
+    "groupStock": "સ્ટોક",
+    "groupManage": "વ્યવસ્થા"
   },
   "formLabel": {
     "invoiceNo": "ઇન્વોઇસ નં.",
@@ -93,7 +121,11 @@
     "backupHour": "બેકઅપ સમય (0-23)",
     "autoBackup": "રોજનો આપોઆપ બેકઅપ",
     "unit": "યુનિટ",
-    "discountApplied": "લાગુ ડિસ્કાઉન્ટ"
+    "discountApplied": "લાગુ ડિસ્કાઉન્ટ",
+    "language": "ભાષા",
+    "received": "આવેલો જથ્થો",
+    "costPriceOptional": "ખરીદ ભાવ (વૈકલ્પિક)",
+    "amountReceived": "મળેલી રકમ"
   },
   "errorMsg": {
     "pleaseEnter": "{{field}} નાખો",
@@ -107,7 +139,8 @@
     "duplicatePhone": "આ ફોન નંબરનો ગ્રાહક પહેલેથી છે",
     "unknownItem": "લિસ્ટમાંથી આઇટમ પસંદ કરો, અથવા પહેલા ઉમેરો",
     "stockShort": "સ્ટોકમાં ફક્ત {{stock}} {{unit}} બાકી છે",
-    "stockShortNamed": "{{item}}: સ્ટોકમાં ફક્ત {{stock}} {{unit}} બાકી છે"
+    "stockShortNamed": "{{item}}: સ્ટોકમાં ફક્ત {{stock}} {{unit}} બાકી છે",
+    "moreThanOwed": "બાકી રકમ {{owed}} કરતાં આ વધારે છે"
   },
   "toast": {
     "loadFailed": "ડેટા લોડ થઈ શક્યો નથી. કનેક્શન ચેક કરો.",
@@ -132,7 +165,9 @@
     "downloadFailed": "ડાઉનલોડ નિષ્ફળ: {{message}}",
     "imported": "ઇમ્પોર્ટ થયું ({{summary}})",
     "importFailed": "આ બેકઅપ ફાઇલ વાંચી શકાઈ નથી",
-    "importNoCollections": "આ ફાઇલમાં પ્રોડક્ટ, ગ્રાહક કે ઓર્ડરનો ડેટા નથી"
+    "importNoCollections": "આ ફાઇલમાં પ્રોડક્ટ, ગ્રાહક કે ઓર્ડરનો ડેટા નથી",
+    "stockAdded": "{{name}} માં {{quantity}} {{unit}} ઉમેરાયું",
+    "paymentRecorded": "{{count}} બિલ સામે {{amount}} નોંધાયું"
   },
   "buttonText": {
     "addNew": "એડ કરો",
@@ -150,6 +185,40 @@
     "delete": "કાઢી નાખો",
     "updateProduct": "પ્રોડક્ટ અપડેટ કરો",
     "resetDefaults": "ડિફોલ્ટ પર રીસેટ",
-    "backupNow": "હમણાં બેકઅપ લો"
+    "backupNow": "હમણાં બેકઅપ લો",
+    "done": "થઈ ગયું",
+    "addStock": "સ્ટોક ઉમેરો",
+    "collect": "પેમેન્ટ લો",
+    "recordPayment": "પેમેન્ટ નોંધો",
+    "increase": "જથ્થો વધારો",
+    "decrease": "જથ્થો ઘટાડો"
+  },
+  "notifications": {
+    "title": "સૂચનાઓ",
+    "empty": "હાલ કોઈ ધ્યાન આપવા જેવું નથી",
+    "clearAll": "બધું સાફ કરો",
+    "dismiss": "દૂર કરો",
+    "viewReports": "અહેવાલ ખોલો",
+    "today": "આજે",
+    "yesterday": "ગઈકાલે",
+    "daysAgo": "{{days}} દિવસ પહેલાં",
+    "settingsHelp": "ઘંટડી કઈ બાબતે ચેતવણી આપે તે પસંદ કરો.",
+    "pendingSwitch": "બાકી પેમેન્ટ",
+    "lowStockSwitch": "ઓછો સ્ટોક",
+    "pendingTitle": "{{name}} પાસે બાકી રકમ છે",
+    "pendingBody": "{{count}} બિલમાં {{amount}} બાકી, સૌથી જૂનું {{days}} દિવસ પહેલાં",
+    "lowStockTitle": "{{name}} નો સ્ટોક ઘટી રહ્યો છે",
+    "lowStockBody": "{{stock}} {{unit}} બાકી (મર્યાદા {{limit}})",
+    "outOfStockTitle": "{{name}} સ્ટોકમાં નથી",
+    "outOfStockBody": "વેચવા માટે કંઈ બાકી નથી — સ્ટોક ભરો",
+    "pendingSwitchHelp": "ગ્રાહકની રકમ બાકી હોય ત્યારે ચેતવો.",
+    "lowStockSwitchHelp": "વસ્તુ ઘટે કે ખતમ થાય ત્યારે ચેતવો."
+  },
+  "pageSubtitle": {
+    "orders": "તમે બનાવેલાં બધાં બિલ અને બાકી રકમ.",
+    "product": "તમારો સ્ટોક, ભાવ અને શું ઘટી રહ્યું છે.",
+    "customer": "તમારા ગ્રાહકો અને તેમનો સંપર્ક.",
+    "reports": "વેચાણ, નફો અને સ્ટોક એક નજરમાં.",
+    "settings": "તમારી દુકાનની સેટિંગ્સ સંભાળો."
   }
 }

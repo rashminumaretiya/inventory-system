@@ -1,115 +1,151 @@
+import { Chip, Divider } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Link, useLocation } from "react-router-dom";
+
+import { ReactComponent as Logo } from "../assets/logo.svg";
+import i18n from "../i18n/i18n";
+import IMSBox from "../shared/IMSBox";
 import IMSList from "../shared/IMSList";
 import IMSListItem from "../shared/IMSListItem";
-import { Link, useLocation } from "react-router-dom";
-import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
-import {
-  Dashboard,
-  Inventory,
-  Orders,
-  Reports,
-  Suppliers,
-} from "../shared/icon";
-import { SidebarWrapper } from "./Layout.style";
-import IMSTypography from "../shared/IMSTypography";
-import IMSStack from "../shared/IMSStack";
 import IMSSelect from "../shared/IMSSelect";
-import i18n from "../i18n/i18n";
-import { useTranslation } from "react-i18next";
-import { ReactComponent as Logo } from "../assets/logo.svg";
+import IMSStack from "../shared/IMSStack";
+import IMSTypography from "../shared/IMSTypography";
+import { surface } from "../shared/theme";
+import { useAlertCounts } from "../utils/NotificationsContext";
+import useSettings from "../utils/useSettings";
+import { SidebarWrapper } from "./Layout.style";
+import NotificationBell from "./NotificationBell";
+import { itemsInGroup, navGroups } from "./navigation";
 
-const Sidebar = () => {
+/** "en-GB" and "en-US" both mean English as far as the picker is concerned. */
+const baseLanguage = (tag) => (String(tag || "").startsWith("gu") ? "gu" : "en");
+
+const Sidebar = ({ onNavigate, showBell }) => {
   const location = useLocation();
   const { t } = useTranslation();
-  const [language, setLanguage] = useState("");
+  const { settings } = useSettings();
+  const counts = useAlertCounts();
+  const [language, setLanguage] = useState(() => baseLanguage(i18n.language));
+
   const handleChangeLanguage = (event) => {
-    const selectedLanguage = event.target.value;
-    i18n.changeLanguage(selectedLanguage);
-    setLanguage(selectedLanguage);
+    const selected = event.target.value;
+    i18n.changeLanguage(selected);
+    setLanguage(selected);
   };
 
   useEffect(() => {
-    setLanguage(localStorage.getItem("i18nextLng"));
-  }, [language]);
-
-  const menuList = [
-    {
-      menu: t("menu.dashboard"),
-      icon: <Dashboard />,
-      link: "/",
-    },
-    {
-      menu: t("menu.product"),
-      icon: <Inventory />,
-      link: "/product",
-    },
-    {
-      menu: t("menu.reports"),
-      icon: <Reports />,
-      link: "/reports",
-    },
-    {
-      menu: t("menu.customer"),
-      icon: <Suppliers />,
-      link: "/customer",
-    },
-    {
-      menu: t("menu.orders"),
-      icon: <Orders />,
-      link: "/orders",
-    },
-    {
-      menu: t("menu.settings"),
-      icon: <SettingsOutlinedIcon />,
-      link: "/settings",
-    },
-  ];
+    const sync = (lng) => setLanguage(baseLanguage(lng));
+    i18n.on("languageChanged", sync);
+    return () => i18n.off("languageChanged", sync);
+  }, []);
 
   return (
     <SidebarWrapper>
+      {/* Workspace header: shop identity rather than a generic logo block. */}
       <IMSStack
         direction="row"
         alignItems="center"
-        p={2}
-        color="white.main"
-        sx={{ "& svg": { width: 160, height: 62 } }}
+        spacing={1.25}
+        sx={{ px: 2, py: 2 }}
       >
-        <Logo />
+        <IMSBox
+          sx={{
+            width: 38,
+            height: 38,
+            borderRadius: 2,
+            bgcolor: "primary.main",
+            display: "grid",
+            placeItems: "center",
+            flexShrink: 0,
+            "& svg": { width: 26, height: 26 },
+          }}
+        >
+          <Logo />
+        </IMSBox>
+        <IMSStack sx={{ minWidth: 0, flex: 1 }}>
+          <IMSTypography fontWeight={700} noWrap lineHeight={1.2}>
+            {settings.shopName}
+          </IMSTypography>
+          <IMSTypography variant="caption" color="natural.main" noWrap>
+            {t("description.appTagline")}
+          </IMSTypography>
+        </IMSStack>
+        {/* On desktop there is no top bar, so the bell lives here. */}
+        {showBell && <NotificationBell />}
       </IMSStack>
-      <IMSList>
-        {menuList.map((item, i) => {
-          return (
-            <IMSListItem key={i}>
-              <Link
-                to={item.link}
-                className={location.pathname === item.link ? "active" : ""}
-              >
-                {item.icon}
-                <IMSTypography component="span">{item.menu}</IMSTypography>
-              </Link>
-            </IMSListItem>
-          );
-        })}
-      </IMSList>
-      <IMSStack mt="auto" px={2}>
+      <Divider />
+
+      <IMSBox sx={{ overflowY: "auto", flex: 1, py: 1 }}>
+        {navGroups.map((group) => (
+          <IMSBox key={group.key}>
+            <IMSTypography
+              variant="caption"
+              sx={{
+                display: "block",
+                px: 3,
+                pt: 1.5,
+                pb: 0.5,
+                color: "natural.main",
+                fontWeight: 600,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+              }}
+            >
+              {t(group.titleKey)}
+            </IMSTypography>
+            <IMSList>
+              {itemsInGroup(group.key).map((item) => {
+                const badge = item.badge ? counts[item.badge] : 0;
+                return (
+                  <IMSListItem key={item.key}>
+                    <Link
+                      to={item.link}
+                      className={
+                        location.pathname === item.link ? "active" : ""
+                      }
+                      // On a phone the sidebar is a drawer, so it should close
+                      // once a destination is chosen.
+                      onClick={onNavigate}
+                    >
+                      <item.Icon />
+                      <IMSTypography component="span">
+                        {t(item.labelKey)}
+                      </IMSTypography>
+                      {badge > 0 && (
+                        <Chip
+                          size="small"
+                          label={badge}
+                          color={item.badge === "orders" ? "error" : "warning"}
+                          sx={{
+                            ml: "auto",
+                            height: 20,
+                            minWidth: 20,
+                            "& .MuiChip-label": { px: 0.75, fontSize: 11 },
+                          }}
+                        />
+                      )}
+                    </Link>
+                  </IMSListItem>
+                );
+              })}
+            </IMSList>
+          </IMSBox>
+        ))}
+      </IMSBox>
+
+      <IMSBox sx={{ borderTop: `1px solid ${surface.border}`, p: 2 }}>
         <IMSSelect
-          defaultValue={language}
+          gutterNone
           onChange={handleChangeLanguage}
           value={language}
+          aria-label={t("formLabel.language")}
           menu={[
-            { label: "English", value: "en-GB" },
+            { label: "English", value: "en" },
             { label: "ગુજરાતી", value: "gu" },
           ]}
-          sx={{
-            "& .MuiSelect-select, & .MuiSvgIcon-root ": {
-              color: "white.main",
-            },
-            "& .MuiOutlinedInput-notchedOutline": {
-              borderColor: "rgba(255, 255, 255, 0.5) !important",
-            },
-          }}
         />
-      </IMSStack>
+      </IMSBox>
     </SidebarWrapper>
   );
 };

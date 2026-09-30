@@ -3,15 +3,14 @@ import {
   Edit,
   PrintOutlined,
 } from "@mui/icons-material";
+import CurrencyRupeeIcon from "@mui/icons-material/CurrencyRupee";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import {
   Chip,
   Collapse,
-  Divider,
   IconButton,
-  InputAdornment,
   Table,
   TableBody,
   TableCell,
@@ -20,24 +19,28 @@ import {
   TablePagination,
   TableRow,
   TableSortLabel,
+  ToggleButton,
+  ToggleButtonGroup,
   Tooltip,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import dayjs from "dayjs";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { apiResponse } from "../../api";
 import IMSButton from "../../shared/IMSButton";
 import IMSDatePicker from "../../shared/IMSDatePicker";
 import IMSDialog from "../../shared/IMSDialog";
-import IMSGrid from "../../shared/IMSGrid";
+import IMSRecordCard from "../../shared/IMSRecordCard";
 import IMSStack from "../../shared/IMSStack";
-import IMSTextField from "../../shared/IMSTextField";
 import IMSTypography from "../../shared/IMSTypography";
+import PageHeader from "../../shared/PageHeader";
+import PageToolbar from "../../shared/PageToolbar";
 import { MUIStyled } from "../../shared/MUIStyled";
-import { Search } from "../../shared/icon";
 import {
   formatMoney,
   formatStock,
@@ -45,25 +48,34 @@ import {
   num,
   productStockInBase,
 } from "../../utils/billing";
+import { notifyDataChanged } from "../../utils/dataEvents";
 import useSettings from "../../utils/useSettings";
+import {
+  customerKeyOf,
+  orderOutstanding,
+  ordersForCustomer,
+  totalOutstanding,
+} from "../../utils/payments";
+import CollectPayment from "./collectPayment";
 import { Print } from "../dashboard/print";
 
 export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
-  maxHeight: "calc(100vh - 220px)",
+  maxHeight: "calc(100vh - 260px)",
   "& .MuiTableHead-root": {
     "& .MuiTableCell-root": {
-      padding: 5,
+      padding: "8px 10px",
       position: "sticky",
       top: 0,
       backgroundColor: theme.palette.white.main,
       zIndex: 9,
+      fontWeight: 600,
     },
   },
   "& .MuiTableBody-root": {
     "& .MuiTableCell-root": {
-      padding: 5,
+      padding: "8px 10px",
       "& .MuiCollapse-wrapper": {
-        backgroundColor: "#f7f7f7",
+        backgroundColor: "#f7f9f9",
         "& .MuiTableHead-root": {
           "& .MuiTableCell-root": { backgroundColor: "transparent" },
         },
@@ -90,7 +102,10 @@ const compare = (a, b, property, type) => {
 
 const Orders = () => {
   const { t } = useTranslation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const navigate = useNavigate();
+  const location = useLocation();
   const { settings } = useSettings();
   const { generateReceipt, downloadReceipt } = Print();
 
@@ -103,7 +118,14 @@ const Orders = () => {
   const [direction, setDirection] = useState("desc");
   const [orderBy, setOrderBy] = useState("billingDate");
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [collectFrom, setCollectFrom] = useState(null);
+  const [unpaidOnly, setUnpaidOnly] = useState(false);
   const [importing, setImporting] = useState(false);
+
+  // Arriving from a pending-payment notification pre-fills the search.
+  useEffect(() => {
+    if (location.state?.search) setSearchText(location.state.search);
+  }, [location.state]);
 
   const load = useCallback(async () => {
     try {
@@ -134,15 +156,16 @@ const Orders = () => {
           ? dayjs(order?.billingDate).isSame(dayjs(billDate), "day")
           : true
       )
+      .filter((order) => (unpaidOnly ? orderOutstanding(order) > 0 : true))
       .slice()
       .sort((a, b) =>
         direction === "asc"
           ? compare(a, b, orderBy, type)
           : compare(b, a, orderBy, type)
       );
-  }, [orderList, searchText, billDate, orderBy, direction]);
+  }, [orderList, searchText, billDate, orderBy, direction, unpaidOnly]);
 
-  useEffect(() => setPage(0), [searchText, billDate]);
+  useEffect(() => setPage(0), [searchText, billDate, unpaidOnly]);
 
   const handleSort = (property) => {
     const isSame = orderBy === property;
@@ -179,6 +202,7 @@ const Orders = () => {
 
       setOrderList((prev) => prev.filter((item) => item.id !== order.id));
       setConfirmDelete(null);
+      notifyDataChanged();
       toast.success(t("toast.orderDeletedStockRestored"));
     } catch {
       toast.error(t("toast.saveFailed"));
@@ -232,6 +256,7 @@ const Orders = () => {
       }
 
       await load();
+      notifyDataChanged();
       toast.success(t("toast.imported", { summary: summary.join(", ") }));
     } catch {
       toast.error(t("toast.importFailed"));
@@ -240,8 +265,19 @@ const Orders = () => {
     }
   };
 
+  /** How much money is still out there, across every bill. */
+  const owed = useMemo(() => totalOutstanding(orderList), [orderList]);
+  const unpaidCount = useMemo(
+    () => orderList.filter((order) => orderOutstanding(order) > 0).length,
+    [orderList]
+  );
+
   const paymentColor = (payment) =>
-    payment === "Pending" ? "warning" : payment === "Online" ? "primary" : "success";
+    payment === "Pending"
+      ? "warning"
+      : payment === "Online"
+      ? "primary"
+      : "success";
 
   const pageRows = visibleOrders.slice(
     page * rowsPerPage,
@@ -258,101 +294,237 @@ const Orders = () => {
     </TableSortLabel>
   );
 
+  const rowActions = (data) => (
+    <>
+      {num(data?.balanceDue) > 0 && (
+        <Tooltip title={t("buttonText.collect")}>
+          <IconButton
+            onClick={() =>
+              setCollectFrom({
+                key: customerKeyOf(data),
+                name: data?.customerInfo?.vendorName || "",
+              })
+            }
+            color="success"
+            size="small"
+          >
+            <CurrencyRupeeIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      )}
+      <Tooltip title={t("buttonText.update")}>
+        <IconButton
+          onClick={() => navigate(`/?order/${data.id}`)}
+          color="primary"
+          size="small"
+        >
+          <Edit fontSize="small" />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title={t("buttonText.delete")}>
+        <IconButton
+          onClick={() => setConfirmDelete(data)}
+          color="error"
+          size="small"
+        >
+          <DeleteOutlineIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title={t("buttonText.print")}>
+        <IconButton
+          color="primary"
+          size="small"
+          onClick={() => generateReceipt(data)}
+        >
+          <PrintOutlined fontSize="small" />
+        </IconButton>
+      </Tooltip>
+    </>
+  );
+
+  const lineItems = (data) => (
+    <IMSStack sx={{ mt: 1, pt: 1, borderTop: "1px dashed #e0e5e5" }}>
+      {data?.order?.map((item, index) => (
+        <IMSStack
+          key={`${item.id}-${index}`}
+          direction="row"
+          justifyContent="space-between"
+          sx={{ py: 0.25 }}
+        >
+          <IMSTypography variant="body2" sx={{ minWidth: 0 }} noWrap>
+            {item?.itemName}{" "}
+            <IMSTypography component="span" variant="body2" color="natural.main">
+              {item?.itemQuantity} {item?.quantityCategory}
+            </IMSTypography>
+          </IMSTypography>
+          <IMSTypography variant="body2" fontWeight={600}>
+            {settings.currencySymbol}
+            {formatMoney(item?.subtotal)}
+          </IMSTypography>
+        </IMSStack>
+      ))}
+      <IMSButton
+        size="small"
+        variant="outlined"
+        sx={{ mt: 1 }}
+        onClick={() => downloadReceipt(data)}
+      >
+        {t("buttonText.download")}
+      </IMSButton>
+    </IMSStack>
+  );
+
   return (
     <>
-      <IMSGrid container justifyContent="space-between" spacing={3}>
-        <IMSGrid item md={4}>
-          <IMSTextField
+      <PageHeader
+        title={t("menu.orders")}
+        subtitle={t("pageSubtitle.orders")}
+        divider={false}
+        actions={
+          <IMSButton
+            component="label"
             variant="outlined"
-            placeholder={t("description.searchOrders")}
-            gutterNone
-            name="search"
-            value={searchText}
-            onChange={(event) => setSearchText(event.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search />
-                </InputAdornment>
-              ),
+            disabled={importing}
+            sx={{
+              "& input": {
+                clip: "rect(0 0 0 0)",
+                clipPath: "inset(50%)",
+                height: 1,
+                overflow: "hidden",
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                whiteSpace: "nowrap",
+                width: 1,
+              },
             }}
-          />
-        </IMSGrid>
-        <IMSGrid item md={5}>
-          <IMSStack direction="row" alignItems="flex-start" gap={2}>
+          >
+            <BrowserUpdatedOutlined sx={{ mr: 1 }} />
+            {t("buttonText.import")}
+            <input type="file" accept=".json" onChange={handleImport} />
+          </IMSButton>
+        }
+      />
+      <PageToolbar
+        search={{
+          value: searchText,
+          onChange: (event) => setSearchText(event.target.value),
+          placeholder: t("description.searchOrders"),
+        }}
+        filters={
+          <>
             <IMSDatePicker
+              gutterNone
               value={billDate}
               onChange={(value) => setBillDate(value)}
               slotProps={{ field: { clearable: true } }}
-              sx={{ "& .MuiButtonBase-root": { position: "absolute" } }}
+              sx={{ minWidth: 190 }}
             />
-            <IMSButton
-              component="label"
-              variant="contained"
-              disabled={importing}
-              sx={{
-                flex: "none",
-                "& input": {
-                  clip: "rect(0 0 0 0)",
-                  clipPath: "inset(50%)",
-                  height: 1,
-                  overflow: "hidden",
-                  position: "absolute",
-                  bottom: 0,
-                  left: 0,
-                  whiteSpace: "nowrap",
-                  width: 1,
-                },
-              }}
+            <ToggleButtonGroup
+              size="small"
+              exclusive
+              value={unpaidOnly}
+              onChange={(event, next) =>
+                next !== null && setUnpaidOnly(next)
+              }
+              sx={{ flexShrink: 0 }}
             >
-              <BrowserUpdatedOutlined sx={{ mr: 1 }} />
-              {t("buttonText.import")}
-              <input type="file" accept=".json" onChange={handleImport} />
-            </IMSButton>
-          </IMSStack>
-        </IMSGrid>
-      </IMSGrid>
-      <Divider sx={{ mb: 3 }} />
-      <TableContainerStyle>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell />
-              <TableCell>{sortLabel("invoiceNo", t("formLabel.invoiceNo"))}</TableCell>
-              <TableCell>
-                {sortLabel("billingDate", t("formLabel.invoiceDate"))}
-              </TableCell>
-              <TableCell>{t("formLabel.customerName")}</TableCell>
-              <TableCell>{t("formLabel.phoneNumber")}</TableCell>
-              <TableCell>{sortLabel("payment", t("formLabel.payment"))}</TableCell>
-              <TableCell>{t("formLabel.GSTNumber")}</TableCell>
-              <TableCell align="right">
-                {sortLabel("total", t("formLabel.totalPrice"))}
-              </TableCell>
-              <TableCell align="right">{t("formLabel.balanceDue")}</TableCell>
-              <TableCell align="right">{t("description.action")}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {pageRows.length === 0 ? (
+              <ToggleButton value={false}>{t("menu.all")}</ToggleButton>
+              <ToggleButton value={true}>
+                {t("description.unpaidFilter", {
+                  count: unpaidCount,
+                  amount: `${settings.currencySymbol}${formatMoney(owed)}`,
+                })}
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </>
+        }
+      />
+
+      {pageRows.length === 0 ? (
+        <IMSTypography textAlign="center" color="natural.main" sx={{ py: 6 }}>
+          {t("description.noDataFound")}
+        </IMSTypography>
+      ) : isMobile ? (
+        <IMSStack>
+          {pageRows.map((data) => {
+            const expanded = open === data.id;
+            const balance = num(data?.balanceDue);
+            return (
+              <IMSRecordCard
+                key={data.id}
+                title={data?.invoiceNo}
+                titleAdornment={
+                  <Chip
+                    label={data?.payment}
+                    size="small"
+                    color={paymentColor(data?.payment)}
+                  />
+                }
+                subtitle={`${data?.customerInfo?.vendorName || "—"} · ${dayjs(
+                  data?.billingDate
+                ).format("DD/MM/YYYY")}`}
+                rows={[
+                  {
+                    label: t("formLabel.totalPrice"),
+                    value: `${settings.currencySymbol}${formatMoney(data?.total)}`,
+                    strong: true,
+                  },
+                  ...(balance > 0
+                    ? [
+                        {
+                          label: t("formLabel.balanceDue"),
+                          value: `${settings.currencySymbol}${formatMoney(balance)}`,
+                          strong: true,
+                          color: "error",
+                        },
+                      ]
+                    : []),
+                ]}
+                actions={rowActions(data)}
+                onClick={() => setOpen(expanded ? null : data.id)}
+                footer={
+                  <Collapse in={expanded} timeout="auto" unmountOnExit>
+                    {lineItems(data)}
+                  </Collapse>
+                }
+              />
+            );
+          })}
+        </IMSStack>
+      ) : (
+        <TableContainerStyle>
+          <Table>
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={10}>
-                  <IMSTypography
-                    textAlign="center"
-                    lineHeight="80px"
-                    color="natural.main"
-                  >
-                    {t("description.noDataFound")}
-                  </IMSTypography>
+                <TableCell />
+                <TableCell>
+                  {sortLabel("invoiceNo", t("formLabel.invoiceNo"))}
                 </TableCell>
+                <TableCell>
+                  {sortLabel("billingDate", t("formLabel.invoiceDate"))}
+                </TableCell>
+                <TableCell>{t("formLabel.customerName")}</TableCell>
+                <TableCell>{t("formLabel.phoneNumber")}</TableCell>
+                <TableCell>
+                  {sortLabel("payment", t("formLabel.payment"))}
+                </TableCell>
+                <TableCell>{t("formLabel.GSTNumber")}</TableCell>
+                <TableCell align="right">
+                  {sortLabel("total", t("formLabel.totalPrice"))}
+                </TableCell>
+                <TableCell align="right">{t("formLabel.balanceDue")}</TableCell>
+                <TableCell align="right">{t("description.action")}</TableCell>
               </TableRow>
-            ) : (
-              pageRows.map((data) => {
+            </TableHead>
+            <TableBody>
+              {pageRows.map((data) => {
                 const expanded = open === data.id;
                 const balance = num(data?.balanceDue);
                 return (
                   <React.Fragment key={data.id}>
                     <TableRow
+                      hover
                       onClick={() => setOpen(expanded ? null : data.id)}
                       sx={{ cursor: "pointer" }}
                     >
@@ -402,30 +574,7 @@ const Orders = () => {
                         align="right"
                         onClick={(event) => event.stopPropagation()}
                       >
-                        <Tooltip title={t("buttonText.update")}>
-                          <IconButton
-                            onClick={() => navigate(`/?order/${data.id}`)}
-                            color="primary"
-                          >
-                            <Edit />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title={t("buttonText.delete")}>
-                          <IconButton
-                            onClick={() => setConfirmDelete(data)}
-                            color="error"
-                          >
-                            <DeleteOutlineIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title={t("buttonText.print")}>
-                          <IconButton
-                            color="primary"
-                            onClick={() => generateReceipt(data)}
-                          >
-                            <PrintOutlined />
-                          </IconButton>
-                        </Tooltip>
+                        {rowActions(data)}
                       </TableCell>
                     </TableRow>
                     <TableRow>
@@ -434,8 +583,12 @@ const Orders = () => {
                           <Table size="small">
                             <TableHead>
                               <TableRow>
-                                <TableCell>{t("description.item_name")}</TableCell>
-                                <TableCell>{t("description.item_qty")}</TableCell>
+                                <TableCell>
+                                  {t("description.item_name")}
+                                </TableCell>
+                                <TableCell>
+                                  {t("description.item_qty")}
+                                </TableCell>
                                 <TableCell align="right">
                                   {t("description.price")}
                                 </TableCell>
@@ -471,29 +624,34 @@ const Orders = () => {
                           <IMSStack
                             direction="row"
                             spacing={3}
+                            flexWrap="wrap"
                             justifyContent="flex-end"
-                            sx={{ py: 1, pr: 1 }}
+                            alignItems="center"
+                            sx={{ py: 1, pr: 1, rowGap: 1 }}
                           >
                             <IMSTypography variant="body2">
-                              {t("formLabel.subtotal")}: {settings.currencySymbol}
+                              {t("formLabel.subtotal")}:{" "}
+                              {settings.currencySymbol}
                               {formatMoney(data?.subtotal)}
                             </IMSTypography>
                             {num(data?.discountAmount) > 0 && (
                               <IMSTypography variant="body2">
-                                {t("formLabel.discountAmount")}: -
+                                {t("formLabel.discountApplied")}: -
                                 {settings.currencySymbol}
                                 {formatMoney(data.discountAmount)}
                               </IMSTypography>
                             )}
                             {num(data?.GSTAmount) > 0 && (
                               <IMSTypography variant="body2">
-                                {t("formLabel.GSTAmount")}: {settings.currencySymbol}
+                                {t("formLabel.GSTAmount")}:{" "}
+                                {settings.currencySymbol}
                                 {formatMoney(data.GSTAmount)}
                               </IMSTypography>
                             )}
                             {num(data?.amountPaid) > 0 && (
                               <IMSTypography variant="body2">
-                                {t("formLabel.amountPay")}: {settings.currencySymbol}
+                                {t("formLabel.amountPay")}:{" "}
+                                {settings.currencySymbol}
                                 {formatMoney(data.amountPaid)}
                               </IMSTypography>
                             )}
@@ -510,11 +668,12 @@ const Orders = () => {
                     </TableRow>
                   </React.Fragment>
                 );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </TableContainerStyle>
+              })}
+            </TableBody>
+          </Table>
+        </TableContainerStyle>
+      )}
+
       <TablePagination
         labelRowsPerPage={t("description.rowsPerPage")}
         rowsPerPageOptions={[20, 50, 100]}
@@ -527,7 +686,26 @@ const Orders = () => {
           setRowsPerPage(+event.target.value);
           setPage(0);
         }}
+        sx={{
+          "& .MuiTablePagination-toolbar": { flexWrap: "wrap", rowGap: 0.5 },
+        }}
       />
+
+      <IMSDialog
+        title={t("buttonText.collect")}
+        open={Boolean(collectFrom)}
+        maxWidth="xs"
+        handleClose={() => setCollectFrom(null)}
+      >
+        <CollectPayment
+          customerName={collectFrom?.name}
+          orders={ordersForCustomer(orderList, collectFrom?.key)}
+          onSaved={() => {
+            setCollectFrom(null);
+            load();
+          }}
+        />
+      </IMSDialog>
       <IMSDialog
         title={t("formLabel.areYouSure")}
         open={Boolean(confirmDelete)}
@@ -539,7 +717,7 @@ const Orders = () => {
             invoice: confirmDelete?.invoiceNo || "",
           })}
         </IMSTypography>
-        <IMSStack direction="row" spacing={2}>
+        <IMSStack direction={{ xs: "column-reverse", sm: "row" }} spacing={1.5}>
           <IMSButton
             variant="outlined"
             color="black"

@@ -1,67 +1,37 @@
-import { Avatar, Box, IconButton, InputAdornment } from "@mui/material";
-import React, { useState } from "react";
-import IMSMenu from "../shared/IMSMenu";
-import IMSMenuItem from "../shared/IMSMenuItem";
+import MenuIcon from "@mui/icons-material/Menu";
+import { IconButton, Toolbar } from "@mui/material";
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
+
+import IMSBox from "../shared/IMSBox";
 import IMSTypography from "../shared/IMSTypography";
 import { HeaderWrapper } from "./Layout.style";
-import IMSTextField from "../shared/IMSTextField";
-import { Search } from "../shared/icon";
-import { NotificationsOutlined } from "@mui/icons-material";
+import NotificationBell from "./NotificationBell";
+import { activeNavItem } from "./navigation";
 
-const settings = ["Profile", "Account", "Dashboard", "Logout"];
-const Header = () => {
-  const [anchorElUser, setAnchorElUser] = useState(null);
+/** Phone-only top bar: menu, where you are, and the bell. */
+const Header = ({ onMenuClick }) => {
+  const { t } = useTranslation();
+  const { pathname } = useLocation();
+  const current = activeNavItem(pathname);
 
-  const handleOpenUserMenu = (event) => {
-    setAnchorElUser(event.currentTarget);
-  };
-
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null);
-  };
   return (
-    <HeaderWrapper position="fixed" color="white" elevation={0}>
-      <IMSTextField
-        variant="outlined"
-        placeholder="Search product, supplier, order"
-        gutterNone
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <Search />
-            </InputAdornment>
-          ),
-        }}
-      />
-      <Box sx={{ ml: "auto" }}>
-        <IconButton>
-          <NotificationsOutlined />
-        </IconButton>
-        <IconButton onClick={handleOpenUserMenu} sx={{ p: 0, ml: 2 }}>
-          <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
-        </IconButton>
-        <IMSMenu
-          sx={{ mt: "45px" }}
-          anchorEl={anchorElUser}
-          anchorOrigin={{
-            vertical: "top",
-            horizontal: "right",
-          }}
-          keepMounted
-          transformOrigin={{
-            vertical: "top",
-            horizontal: "right",
-          }}
-          open={Boolean(anchorElUser)}
-          onClose={handleCloseUserMenu}
+    <HeaderWrapper position="fixed" elevation={0}>
+      <Toolbar disableGutters sx={{ minHeight: 56, px: 1, gap: 0.5 }}>
+        <IconButton
+          edge="start"
+          onClick={onMenuClick}
+          aria-label={t("description.openMenu")}
         >
-          {settings.map((setting) => (
-            <IMSMenuItem key={setting} onClick={handleCloseUserMenu}>
-              <IMSTypography>{setting}</IMSTypography>
-            </IMSMenuItem>
-          ))}
-        </IMSMenu>
-      </Box>
+          <MenuIcon />
+        </IconButton>
+        <IMSTypography variant="h6" noWrap sx={{ fontSize: "1.05rem" }}>
+          {current ? t(current.labelKey) : t("menu.dashboard")}
+        </IMSTypography>
+        <IMSBox sx={{ ml: "auto" }} />
+        <NotificationBell />
+      </Toolbar>
     </HeaderWrapper>
   );
 };
