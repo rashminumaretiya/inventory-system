@@ -68,6 +68,35 @@ editable under **Settings** and stored in `localStorage`. They drive the printed
 receipt, the GST applied to every bill and the low-stock warnings, so none of it
 is hard-coded.
 
+## PIN lock
+
+The till opens behind a 4-digit PIN. On first run it asks the shopkeeper to
+choose one (entered twice); after that it asks for it. The screen shows the shop
+logo and name and nothing else — there is no keypad on screen: the hidden field
+is `inputMode="numeric"`, so a phone raises its own number pad and a counter
+keyboard just types.
+
+- The PIN is stored as a salted SHA-256 hash in `localStorage`, never in clear.
+- Unlocking lasts for the browser session: a refresh keeps you in, closing the
+  app locks it.
+- Five wrong tries hold the field for 30 seconds. The count survives a reload.
+- **Auto lock** — Settings → Security sets how many idle minutes before the till
+  locks itself (default 10; 0 turns it off). Returning to a backgrounded tab is
+  checked against the real time away.
+- **Lock Now** in the sidebar and in Settings; **Change PIN** asks for the
+  current PIN first.
+- Nothing behind the lock — the notification poller, the daily backup — runs
+  while it is locked.
+
+What it is and is not: this keeps a passer-by at the counter out of the app. It
+is not account security — the data sits behind a public API and the browser
+holds the hash, so anyone with the device and devtools can get past it.
+
+**Forgotten PIN.** There is deliberately no bypass on the lock screen. Clear the
+site's data in the browser (or remove the `pinAuth` key from `localStorage`) and
+the app will ask for a new PIN. Products, customers and orders live on the API,
+so nothing is lost — only local settings reset to their defaults.
+
 ## Credit (khata) and stock movement
 
 Two things a shop does every day that the bill screen alone cannot express:

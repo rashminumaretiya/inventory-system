@@ -20,6 +20,8 @@ export const defaultSettings = {
   backupHour: 10,
   notifyPendingPayments: true,
   notifyLowStock: true,
+  /** Minutes of inactivity before the till locks itself; 0 means never. */
+  autoLockMinutes: 10,
 };
 
 export const getSettings = () => {
@@ -106,6 +108,15 @@ export const settingsFields = [
     label: "formLabel.receiptFooter",
     xs: 12,
     md: 12,
+  },
+  {
+    name: "autoLockMinutes",
+    type: "number",
+    label: "formLabel.autoLockMinutes",
+    xs: 6,
+    md: 4,
+    pattern: "nonNegative",
+    inputProps: { min: 0, step: 1 },
   },
   {
     name: "backupHour",

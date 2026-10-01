@@ -1,3 +1,4 @@
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { Chip, Divider } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -6,6 +7,7 @@ import { Link, useLocation } from "react-router-dom";
 import { ReactComponent as Logo } from "../assets/logo.svg";
 import i18n from "../i18n/i18n";
 import IMSBox from "../shared/IMSBox";
+import IMSButton from "../shared/IMSButton";
 import IMSList from "../shared/IMSList";
 import IMSListItem from "../shared/IMSListItem";
 import IMSSelect from "../shared/IMSSelect";
@@ -13,6 +15,7 @@ import IMSStack from "../shared/IMSStack";
 import IMSTypography from "../shared/IMSTypography";
 import { surface } from "../shared/theme";
 import { useAlertCounts } from "../utils/NotificationsContext";
+import { useAuth } from "../utils/AuthContext";
 import useSettings from "../utils/useSettings";
 import { SidebarWrapper } from "./Layout.style";
 import NotificationBell from "./NotificationBell";
@@ -26,6 +29,7 @@ const Sidebar = ({ onNavigate, showBell }) => {
   const { t } = useTranslation();
   const { settings } = useSettings();
   const counts = useAlertCounts();
+  const { lock } = useAuth();
   const [language, setLanguage] = useState(() => baseLanguage(i18n.language));
 
   const handleChangeLanguage = (event) => {
@@ -135,6 +139,16 @@ const Sidebar = ({ onNavigate, showBell }) => {
       </IMSBox>
 
       <IMSBox sx={{ borderTop: `1px solid ${surface.border}`, p: 2 }}>
+        <IMSButton
+          fullWidth
+          variant="outlined"
+          color="black"
+          startIcon={<LockOutlinedIcon />}
+          onClick={lock}
+          sx={{ mb: 1.5 }}
+        >
+          {t("buttonText.lockNow")}
+        </IMSButton>
         <IMSSelect
           gutterNone
           onChange={handleChangeLanguage}

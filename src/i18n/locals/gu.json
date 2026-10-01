@@ -63,7 +63,13 @@
     "willSettle": "આનાથી ચૂકતે થશે",
     "settled": "ચૂકતે",
     "stillDue": "{{amount}} હજુ બાકી",
-    "unpaidFilter": "બાકી {{count}} · {{amount}}"
+    "unpaidFilter": "બાકી {{count}} · {{amount}}",
+    "securityTitle": "સુરક્ષા",
+    "pinTitle": "પિન",
+    "pinHelp": "આ પિનથી ટિલ ખૂલે છે. તે ગુપ્ત રાખો.",
+    "autoLockHelp": "આટલી મિનિટ વપરાશ ન થાય તો ટિલ લોક થઈ જશે. 0 એટલે બંધ.",
+    "autoLockOn": "{{minutes}} મિનિટ નિષ્ક્રિય રહ્યા પછી લોક થશે.",
+    "autoLockOff": "તમે જાતે લોક ન કરો ત્યાં સુધી ખુલ્લું રહેશે."
   },
   "menu": {
     "dashboard": "બિલિંગ",
@@ -125,7 +131,8 @@
     "language": "ભાષા",
     "received": "આવેલો જથ્થો",
     "costPriceOptional": "ખરીદ ભાવ (વૈકલ્પિક)",
-    "amountReceived": "મળેલી રકમ"
+    "amountReceived": "મળેલી રકમ",
+    "autoLockMinutes": "ઓટો લોક (મિનિટ)"
   },
   "errorMsg": {
     "pleaseEnter": "{{field}} નાખો",
@@ -167,7 +174,8 @@
     "importFailed": "આ બેકઅપ ફાઇલ વાંચી શકાઈ નથી",
     "importNoCollections": "આ ફાઇલમાં પ્રોડક્ટ, ગ્રાહક કે ઓર્ડરનો ડેટા નથી",
     "stockAdded": "{{name}} માં {{quantity}} {{unit}} ઉમેરાયું",
-    "paymentRecorded": "{{count}} બિલ સામે {{amount}} નોંધાયું"
+    "paymentRecorded": "{{count}} બિલ સામે {{amount}} નોંધાયું",
+    "pinChanged": "પિન બદલાઈ ગયો"
   },
   "buttonText": {
     "addNew": "એડ કરો",
@@ -191,7 +199,9 @@
     "collect": "પેમેન્ટ લો",
     "recordPayment": "પેમેન્ટ નોંધો",
     "increase": "જથ્થો વધારો",
-    "decrease": "જથ્થો ઘટાડો"
+    "decrease": "જથ્થો ઘટાડો",
+    "changePin": "પિન બદલો",
+    "lockNow": "હમણાં લોક કરો"
   },
   "notifications": {
     "title": "સૂચનાઓ",
@@ -220,5 +230,16 @@
     "customer": "તમારા ગ્રાહકો અને તેમનો સંપર્ક.",
     "reports": "વેચાણ, નફો અને સ્ટોક એક નજરમાં.",
     "settings": "તમારી દુકાનની સેટિંગ્સ સંભાળો."
+  },
+  "lock": {
+    "enterPin": "પિન નાખો",
+    "createPin": "પિન બનાવો",
+    "confirmPin": "પિન ફરી નાખો",
+    "wrongPin": "ખોટો પિન — {{count}} પ્રયાસ બાકી",
+    "pinMismatch": "બંને પિન મળતા નથી, ફરી શરૂ કરો",
+    "tooManyTries": "ઘણા ખોટા પ્રયાસ થયા",
+    "tryAgainIn": "{{seconds}} સેકન્ડ પછી ફરી પ્રયાસ કરો",
+    "backspace": "ભૂંસો",
+    "digit": "અંક {{digit}}"
   }
 }

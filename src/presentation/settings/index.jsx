@@ -1,9 +1,11 @@
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { FormControlLabel, Switch } from "@mui/material";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 
 import IMSButton from "../../shared/IMSButton";
+import IMSDialog from "../../shared/IMSDialog";
 import IMSForm from "../../shared/IMSForm";
 import IMSFormFields from "../../shared/IMSFormFields";
 import IMSStack from "../../shared/IMSStack";
@@ -13,13 +15,16 @@ import PageHeader from "../../shared/PageHeader";
 import SettingsSection from "../../shared/SettingsSection";
 import { lastBackupDate, runBackup } from "../../utils/backup";
 import { defaultSettings, settingsFields } from "../../utils/settings";
+import { useAuth } from "../../utils/AuthContext";
 import useSettings from "../../utils/useSettings";
+import ChangePin from "../lock/ChangePin";
 import validation from "../../utils/validation";
 
 /** Which settings field belongs on which tab. */
 const TAB_FIELDS = {
   shop: ["shopName", "shopPhone", "shopGSTIN", "shopAddress"],
   billing: ["invoicePrefix", "gstRate", "lowStockThreshold", "receiptFooter"],
+  security: ["autoLockMinutes"],
 };
 
 const fieldsFor = (names) =>
@@ -28,10 +33,12 @@ const fieldsFor = (names) =>
 const Settings = () => {
   const { t } = useTranslation();
   const { settings, updateSettings } = useSettings();
+  const { lock } = useAuth();
   const [tab, setTab] = useState("shop");
   const [formData, setFormData] = useState(settings);
   const [error, setError] = useState({});
   const [backingUp, setBackingUp] = useState(false);
+  const [changingPin, setChangingPin] = useState(false);
   const [lastBackup, setLastBackup] = useState(lastBackupDate());
 
   const handleChange = (event, pattern, sName, val, label) => {
@@ -74,6 +81,7 @@ const Settings = () => {
       gstRate: Number(formData.gstRate),
       lowStockThreshold: Number(formData.lowStockThreshold),
       backupHour: Number(formData.backupHour),
+      autoLockMinutes: Number(formData.autoLockMinutes),
       shopGSTIN: formData.shopGSTIN?.trim().toUpperCase() || "",
     });
     toast.success(t("toast.settingsSaved"));
@@ -130,6 +138,7 @@ const Settings = () => {
           { value: "shop", label: t("description.shopDetails") },
           { value: "billing", label: t("description.billingSection") },
           { value: "notifications", label: t("notifications.title") },
+          { value: "security", label: t("description.securityTitle") },
           { value: "backup", label: t("description.backupTitle") },
         ]}
       />
@@ -217,6 +226,52 @@ const Settings = () => {
           </SettingsSection>
         )}
 
+        {tab === "security" && (
+          <>
+            <SettingsSection
+              title={t("formLabel.autoLockMinutes")}
+              description={t("description.autoLockHelp")}
+            >
+              <IMSStack spacing={1} alignItems="flex-start">
+                {fieldGroup(["autoLockMinutes"])}
+                {/* Matches the grid gutter so it lines up under the field. */}
+                <IMSTypography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ pl: { xs: 2, md: 3 }, mt: -1 }}
+                >
+                  {Number(formData.autoLockMinutes) > 0
+                    ? t("description.autoLockOn", {
+                        minutes: Number(formData.autoLockMinutes),
+                      })
+                    : t("description.autoLockOff")}
+                </IMSTypography>
+              </IMSStack>
+            </SettingsSection>
+            <SettingsSection
+              title={t("description.pinTitle")}
+              description={t("description.pinHelp")}
+            >
+              <IMSStack direction="row" spacing={1.5} flexWrap="wrap" rowGap={1.5}>
+                <IMSButton
+                  variant="outlined"
+                  onClick={() => setChangingPin(true)}
+                >
+                  {t("buttonText.changePin")}
+                </IMSButton>
+                <IMSButton
+                  variant="outlined"
+                  color="black"
+                  startIcon={<LockOutlinedIcon />}
+                  onClick={lock}
+                >
+                  {t("buttonText.lockNow")}
+                </IMSButton>
+              </IMSStack>
+            </SettingsSection>
+          </>
+        )}
+
         {tab === "backup" && (
           <>
             <SettingsSection
@@ -270,6 +325,15 @@ const Settings = () => {
           </IMSButton>
         </IMSStack>
       </IMSForm>
+
+      <IMSDialog
+        title={t("buttonText.changePin")}
+        open={changingPin}
+        maxWidth="xs"
+        handleClose={() => setChangingPin(false)}
+      >
+        <ChangePin onDone={() => setChangingPin(false)} />
+      </IMSDialog>
     </>
   );
 };

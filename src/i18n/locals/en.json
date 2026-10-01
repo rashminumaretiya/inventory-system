@@ -63,7 +63,13 @@
     "willSettle": "This clears",
     "settled": "Settled",
     "stillDue": "{{amount}} still due",
-    "unpaidFilter": "Unpaid {{count}} · {{amount}}"
+    "unpaidFilter": "Unpaid {{count}} · {{amount}}",
+    "securityTitle": "Security",
+    "pinTitle": "PIN",
+    "pinHelp": "The PIN that opens the till. Keep it to yourself.",
+    "autoLockHelp": "Lock the till after this many minutes without use. 0 turns it off.",
+    "autoLockOn": "Locks after {{minutes}} minutes idle.",
+    "autoLockOff": "The till stays open until you lock it."
   },
   "menu": {
     "dashboard": "Billing",
@@ -125,7 +131,8 @@
     "language": "Language",
     "received": "Received Quantity",
     "costPriceOptional": "Cost Price (optional)",
-    "amountReceived": "Amount Received"
+    "amountReceived": "Amount Received",
+    "autoLockMinutes": "Auto Lock (minutes)"
   },
   "errorMsg": {
     "pleaseEnter": "Please enter {{field}}",
@@ -167,7 +174,8 @@
     "importFailed": "Could not read that backup file",
     "importNoCollections": "That file has no product, customer or order data",
     "stockAdded": "Added {{quantity}} {{unit}} to {{name}}",
-    "paymentRecorded": "Recorded {{amount}} against {{count}} bill(s)"
+    "paymentRecorded": "Recorded {{amount}} against {{count}} bill(s)",
+    "pinChanged": "PIN changed"
   },
   "buttonText": {
     "addNew": "Add New",
@@ -191,7 +199,9 @@
     "collect": "Collect Payment",
     "recordPayment": "Record Payment",
     "increase": "Increase quantity",
-    "decrease": "Decrease quantity"
+    "decrease": "Decrease quantity",
+    "changePin": "Change PIN",
+    "lockNow": "Lock Now"
   },
   "notifications": {
     "title": "Notifications",
@@ -220,5 +230,16 @@
     "customer": "The people you bill and how to reach them.",
     "reports": "Sales, profit and stock at a glance.",
     "settings": "Manage your shop settings and preferences."
+  },
+  "lock": {
+    "enterPin": "Enter PIN",
+    "createPin": "Create a PIN",
+    "confirmPin": "Confirm PIN",
+    "wrongPin": "Wrong PIN — {{count}} tries left",
+    "pinMismatch": "PINs did not match, start again",
+    "tooManyTries": "Too many wrong tries",
+    "tryAgainIn": "Try again in {{seconds}}s",
+    "backspace": "Backspace",
+    "digit": "Digit {{digit}}"
   }
 }

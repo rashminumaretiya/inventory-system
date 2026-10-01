@@ -7,9 +7,11 @@ import { Provider } from "react-redux";
 
 import i18n from "./i18n/i18n";
 import Backups from "./presentation/Backups";
+import AuthGate from "./presentation/lock/AuthGate";
 import AllRoutes from "./routes";
 import theme from "./shared/theme";
 import store from "./store";
+import { AuthProvider } from "./utils/AuthContext";
 import { NotificationsProvider } from "./utils/NotificationsContext";
 
 function App() {
@@ -19,13 +21,17 @@ function App() {
         <ThemeProvider theme={theme}>
           <I18nextProvider i18n={i18n}>
             <BrowserRouter>
-              {/* One notification engine feeds the bell and the sidebar. */}
-              <NotificationsProvider>
+              <AuthProvider>
                 <Toaster position="top-right" />
                 <CssBaseline />
-                <AllRoutes />
-                <Backups />
-              </NotificationsProvider>
+                {/* Nothing below here loads, polls or downloads while locked. */}
+                <AuthGate>
+                  <NotificationsProvider>
+                    <AllRoutes />
+                    <Backups />
+                  </NotificationsProvider>
+                </AuthGate>
+              </AuthProvider>
             </BrowserRouter>
           </I18nextProvider>
         </ThemeProvider>
