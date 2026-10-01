@@ -1,0 +1,16 @@
+# Netlify build settings, kept in the repo so they travel with the code.
+
+[build]
+  command = "npm run build"
+  publish = "build"
+
+[build.environment]
+  # Matches .nvmrc; the version the build was verified on.
+  NODE_VERSION = "22"
+
+# This is a single-page app: React Router owns every path. Without this,
+# refreshing /orders or opening a shared /settings link returns a Netlify 404.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
