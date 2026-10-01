@@ -92,9 +92,12 @@ const ProductTable = ({
       spacing={1}
       sx={{ py: 5, px: 2 }}
     >
-      <ShoppingCartOutlinedIcon sx={{ fontSize: 40, color: "natural.main" }} />
-      <IMSTypography color="natural.main" textAlign="center">
-        {t("description.noDataFound")}
+      <ShoppingCartOutlinedIcon sx={{ fontSize: 44, color: "natural.main" }} />
+      <IMSTypography fontWeight={600} textAlign="center">
+        {t("description.cartEmpty")}
+      </IMSTypography>
+      <IMSTypography variant="body2" color="natural.main" textAlign="center">
+        {t("description.cartEmptyHint")}
       </IMSTypography>
     </IMSStack>
   );

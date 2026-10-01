@@ -1,19 +1,25 @@
 /**
  * The billing form, described as data.
  *
+ * Groups match where things sit on screen:
+ *   invoice  — bill number and date, top of the right-hand panel
+ *   customer — who the bill is for, a single row above the cart
+ *   entry    — the item being added, a bar directly above the cart
+ *   payment  — GST and discount, in the right-hand panel
+ *   tender   — payment mode and money taken, pinned beside the total
+ *
+ * The totals are not fields at all: they are calculated, so they render as a
+ * receipt-style summary rather than read-only input boxes.
+ *
  * `sector` says where a value belongs — `customerInfo`, `order` (the line being
- * entered) or `bill` (the whole bill). `xs`/`md` are grid widths, so the three
- * groups stack on a phone and sit side by side on a desktop.
+ * entered) or `bill` (the whole bill). `xs`/`md` are grid widths inside a group.
  */
 export const billingFields = [
   {
-    key: "customer",
-    xs: 12,
-    md: 4,
+    key: "invoice",
     billingFormFields: [
       {
         name: "invoiceNo",
-        pane: "details",
         type: "text",
         label: "formLabel.invoiceNo",
         xs: 5,
@@ -23,58 +29,52 @@ export const billingFields = [
       },
       {
         name: "billingDate",
-        pane: "details",
         type: "datePicker",
         label: "formLabel.billingDate",
         xs: 7,
         md: 7,
         sector: "meta",
       },
+    ],
+  },
+  {
+    key: "customer",
+    billingFormFields: [
       {
         name: "vendorName",
-        pane: "details",
         type: "autoComplete",
         label: "formLabel.customerName",
         option: "",
         xs: 12,
-        md: 12,
+        md: 4,
         sector: "customerInfo",
         pattern: "notEmpty",
-        addNew: "formLabel.addNewCustomer",
+        addNew: "buttonText.newShort",
       },
       {
         name: "vendorPhone",
-        pane: "details",
         type: "text",
         label: "formLabel.phoneNumber",
         xs: 12,
-        md: 12,
+        md: 4,
         sector: "customerInfo",
         pattern: "optionalPhone",
       },
       {
         name: "address",
-        pane: "details",
         type: "text",
         label: "formLabel.customerAddress",
         xs: 12,
-        md: 12,
-        rows: 1,
-        multiline: true,
+        md: 4,
         sector: "customerInfo",
-        gutterNone: true,
       },
     ],
   },
   {
-    key: "item",
-    xs: 12,
-    md: 5,
-    sx: { mx: "auto" },
+    key: "entry",
     billingFormFields: [
       {
         name: "itemName",
-        pane: "entry",
         type: "autoComplete",
         label: "formLabel.itemName",
         option: "",
@@ -82,16 +82,14 @@ export const billingFields = [
         md: 12,
         sector: "order",
         pattern: "notEmpty",
-        addNew: "formLabel.addNewItem",
+        addNew: "buttonText.newShort",
       },
       {
         name: "itemQuantity",
-        pane: "entry",
         type: "number",
         label: "formLabel.itemQuantity",
         xs: 5,
-        md: 4,
-        endAdornment: true,
+        md: 5,
         sector: "order",
         pattern: "positiveNumber",
         inputProps: { min: 0, step: "any" },
@@ -100,20 +98,17 @@ export const billingFields = [
         label: "",
         ariaLabel: "formLabel.unit",
         name: "quantityCategory",
-        pane: "entry",
         type: "select",
         defaultValue: "Kg",
         xs: 3,
-        md: 4,
+        md: 3,
         sector: "order",
-        // Options are narrowed to the selected product's unit family in
-        // dashboard.container.js, so a piece-counted item can never be
-        // billed in Kg.
+        // Narrowed to the selected product's unit family in
+        // dashboard.container.js, so a counted item is never billed in Kg.
         menu: ["Kg", "Grams", "Pcs."],
       },
       {
         name: "price",
-        pane: "entry",
         type: "number",
         label: "description.price",
         xs: 4,
@@ -122,9 +117,13 @@ export const billingFields = [
         pattern: "positiveNumber",
         inputProps: { min: 0, step: "any" },
       },
+    ],
+  },
+  {
+    key: "payment",
+    billingFormFields: [
       {
         name: "GST",
-        pane: "details",
         type: "radio",
         label: "formLabel.GST",
         xs: 6,
@@ -138,9 +137,7 @@ export const billingFields = [
       },
       {
         name: "GSTNumber",
-        pane: "details",
-        // GSTINs are alphanumeric (24ABCDE1234F1Z5), so this cannot be a
-        // number input.
+        // GSTINs are alphanumeric (24ABCDE1234F1Z5), so not a number input.
         type: "text",
         label: "formLabel.GSTNumber",
         sector: "bill",
@@ -150,9 +147,24 @@ export const billingFields = [
         pattern: "gstin",
       },
       {
+        label: "formLabel.discount",
+        name: "discount",
+        type: "number",
+        xs: 12,
+        md: 12,
+        sector: "bill",
+        pattern: "nonNegative",
+        inputProps: { min: 0, step: "any" },
+      },
+    ],
+  },
+  {
+    // Used on nearly every bill, so it is pinned beside the total.
+    key: "tender",
+    billingFormFields: [
+      {
         label: "formLabel.payment",
         name: "payment",
-        pane: "details",
         type: "select",
         defaultValue: "Cash",
         menu: ["Cash", "Pending", "Online"],
@@ -161,94 +173,15 @@ export const billingFields = [
         sector: "bill",
       },
       {
-        label: "formLabel.discount",
-        name: "discount",
-        pane: "details",
-        type: "number",
-        xs: 6,
-        md: 6,
-        sector: "bill",
-        pattern: "nonNegative",
-        inputProps: { min: 0, step: "any" },
-      },
-      {
         label: "formLabel.amountPay",
         name: "amountPay",
-        pane: "details",
         type: "number",
         xs: 6,
         md: 6,
         sector: "bill",
-        gutterNone: true,
         // Nothing is collected up front on an unpaid bill.
         disabled: (formData) => formData?.payment === "Pending",
         inputProps: { min: 0, step: "any" },
-      },
-      {
-        label: "formLabel.changeDue",
-        name: "changeDue",
-        pane: "details",
-        type: "number",
-        xs: 6,
-        md: 6,
-        sector: "bill",
-        gutterNone: true,
-        disabled: true,
-      },
-    ],
-  },
-  {
-    key: "totals",
-    // The money column is tinted so it reads as the summary, not another form.
-    accent: true,
-    xs: 12,
-    md: 3,
-    billingFormFields: [
-      {
-        name: "subtotal",
-        pane: "totals",
-        type: "number",
-        label: "formLabel.subtotal",
-        xs: 12,
-        md: 12,
-        disabled: true,
-      },
-      {
-        name: "discountAmount",
-        pane: "totals",
-        type: "number",
-        label: "formLabel.discountApplied",
-        xs: 12,
-        md: 12,
-        disabled: true,
-      },
-      {
-        name: "GSTAmount",
-        pane: "totals",
-        type: "number",
-        label: "formLabel.GSTAmount",
-        xs: 12,
-        md: 12,
-        disabled: true,
-      },
-      {
-        name: "balanceDue",
-        pane: "totals",
-        type: "number",
-        label: "formLabel.balanceDue",
-        xs: 12,
-        md: 12,
-        disabled: true,
-      },
-      {
-        name: "total",
-        pane: "totals",
-        type: "number",
-        label: "formLabel.totalPrice",
-        xs: 12,
-        md: 12,
-        disabled: true,
-        emphasis: true,
       },
     ],
   },

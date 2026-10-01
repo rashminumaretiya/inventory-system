@@ -56,17 +56,24 @@ const Layout = () => {
         sx={{
           flexGrow: 1,
           minWidth: 0,
-          px: { xs: 2, sm: 2.5, md: 4 },
-          pt: { xs: `${56 + 16}px`, md: 4 },
+          px: { xs: 2, sm: 2.5, md: 3 },
+          pt: { xs: `${56 + 16}px`, md: 3 },
           // Leave room for the phone tab bar plus the home indicator.
           pb: {
             xs: `calc(${BOTTOM_NAV_HEIGHT + 16}px + env(safe-area-inset-bottom))`,
-            md: 4,
+            md: 3,
           },
           "@media print": { p: 0, m: 0 },
         }}
       >
-        <IMSBox sx={{ maxWidth: 1400, mx: "auto", width: "100%" }}>
+        {/* The till uses the full width; list screens stay readable at 1400. */}
+        <IMSBox
+          sx={{
+            maxWidth: pathname === "/" ? "none" : 1400,
+            mx: "auto",
+            width: "100%",
+          }}
+        >
           <Outlet />
         </IMSBox>
       </IMSBox>

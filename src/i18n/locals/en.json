@@ -69,7 +69,9 @@
     "pinHelp": "The PIN that opens the till. Keep it to yourself.",
     "autoLockHelp": "Lock the till after this many minutes without use. 0 turns it off.",
     "autoLockOn": "Locks after {{minutes}} minutes idle.",
-    "autoLockOff": "The till stays open until you lock it."
+    "autoLockOff": "The till stays open until you lock it.",
+    "cartEmpty": "No items in this bill yet",
+    "cartEmptyHint": "Search an item above and press Add New"
   },
   "menu": {
     "dashboard": "Billing",
@@ -91,7 +93,6 @@
     "phoneNumber": "Phone Number",
     "customerAddress": "Customer Address",
     "itemName": "Item Name",
-    "addNewItem": "Add New Item",
     "itemQuantity": "Item Quantity",
     "GST": "GST",
     "GSTNumber": "GST Number",
@@ -201,7 +202,8 @@
     "increase": "Increase quantity",
     "decrease": "Decrease quantity",
     "changePin": "Change PIN",
-    "lockNow": "Lock Now"
+    "lockNow": "Lock Now",
+    "newShort": "+ New"
   },
   "notifications": {
     "title": "Notifications",

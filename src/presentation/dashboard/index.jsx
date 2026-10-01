@@ -1,5 +1,13 @@
-import { Card, CircularProgress, useMediaQuery, useTheme } from "@mui/material";
+import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
+import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import TuneIcon from "@mui/icons-material/Tune";
+import {
+  Card,
+  CircularProgress,
+  Divider,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -17,8 +25,8 @@ import IMSSelect from "../../shared/IMSSelect";
 import IMSStack from "../../shared/IMSStack";
 import IMSTextField from "../../shared/IMSTextField";
 import IMSTypography from "../../shared/IMSTypography";
-import { BOTTOM_NAV_HEIGHT } from "../../shared/theme";
-import { formatMoney } from "../../utils/billing";
+import { BOTTOM_NAV_HEIGHT, surface } from "../../shared/theme";
+import { formatMoney, num } from "../../utils/billing";
 import AddCustomer from "./addCustomer";
 import AddProduct from "./addProduct";
 import { Print } from "./print";
@@ -30,8 +38,13 @@ const hideOnPrint = { "@media print": { display: "none" } };
 const MOBILE_CHROME = 56 + 16 + BOTTOM_NAV_HEIGHT + 16;
 const DESKTOP_CHROME = 64;
 
+/** Width of the right-hand bill panel. */
+const PANEL_WIDTH = { md: 330, lg: 360, xl: 420 };
+
 /** Tighter vertical rhythm than the default form spacing. */
-const compactForm = { "& .MuiFormControl-root": { mb: 1.25 } };
+
+/** For single-row strips: fields sit flush so they line up with the button. */
+const rowForm = { "& .MuiFormControl-root": { mb: 0 } };
 
 const Dashboard = () => {
   const {
@@ -66,18 +79,18 @@ const Dashboard = () => {
   const { generateReceipt } = Print();
   const [detailsOpen, setDetailsOpen] = useState(false);
 
-  /** Flat field list, plus the phone's entry / details / totals split. */
-  const { groups, byPane } = useMemo(() => {
-    const flat = mappedBillingFields.flatMap((g) => g.billingFormFields);
-    return {
-      groups: mappedBillingFields,
-      byPane: {
-        entry: flat.filter((f) => f.pane === "entry"),
-        details: flat.filter((f) => f.pane === "details"),
-        totals: flat.filter((f) => f.pane === "totals"),
-      },
-    };
-  }, [mappedBillingFields]);
+  /** Fields by group key, e.g. `group.entry`. */
+  const group = useMemo(
+    () =>
+      Object.fromEntries(
+        mappedBillingFields.map((g) => [g.key, g.billingFormFields]),
+      ),
+    [mappedBillingFields],
+  );
+  const fieldNamed = (name) =>
+    Object.values(group)
+      .flat()
+      .find((field) => field.name === name);
 
   const isDisabled = (field) =>
     typeof field.disabled === "function"
@@ -90,6 +103,7 @@ const Dashboard = () => {
       : t(field.label);
 
   const renderField = (field) => {
+    if (!field) return null;
     const index = 0;
     const disabled = isDisabled(field);
     const error = disabled ? undefined : formError[field.name];
@@ -105,9 +119,6 @@ const Dashboard = () => {
       addClick: () => handleAddNew(field.sector),
       error: Boolean(error),
       helperText: error,
-      gutterNone: field.gutterNone,
-      // Side-by-side label and value only where there is room for it.
-      row: field.row && !isMobile,
     };
 
     switch (field.type) {
@@ -172,17 +183,6 @@ const Dashboard = () => {
             type={field?.type}
             InputProps={{ readOnly: disabled, disabled }}
             inputProps={field.inputProps}
-            sx={
-              field.emphasis
-                ? {
-                    "& .MuiInputBase-input": {
-                      fontSize: 20,
-                      fontWeight: 700,
-                      textAlign: "right",
-                    },
-                  }
-                : undefined
-            }
           />
         );
       case "radio":
@@ -211,7 +211,7 @@ const Dashboard = () => {
     }
   };
 
-  const fieldGrid = (fields, columnSpacing = 2) => (
+  const fieldGrid = (fields = [], columnSpacing = 2) => (
     <IMSGrid container columnSpacing={columnSpacing} alignItems="flex-end">
       {fields.map((field) => (
         <IMSGrid item xs={field?.xs ?? 12} md={field?.md} key={field.name}>
@@ -221,15 +221,20 @@ const Dashboard = () => {
     </IMSGrid>
   );
 
+  const currency = settings.currencySymbol;
+  const changeDue = num(receiptData.changeDue);
+  const balanceDue = num(receiptData.balanceDue);
+
+  /* ---------------------------------------------------------- shared parts */
+
   const cart = (
     <Card
       sx={{
         flex: 1,
-        minHeight: { xs: 0, md: 120 },
+        minHeight: { xs: 0, md: 160 },
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        mb: { xs: 1.5, md: 2 },
       }}
     >
       <ProductTable
@@ -237,32 +242,163 @@ const Dashboard = () => {
         setAddData={setAddData}
         onStepLine={stepLine}
         onRemoveLine={removeLine}
-        hideTotal={isMobile}
+        hideTotal
         sx={{ flex: 1, minHeight: 0, overflowY: "auto" }}
       />
     </Card>
   );
 
-  const primaryAction = isEditMode ? (
+  /**
+   * One row of the bill summary. The figure carries a test id so tests read
+   * the number rather than depend on how it is styled.
+   */
+  const summaryRow = (id, label, value, { sign = "", tone } = {}) => (
+    <IMSStack
+      direction="row"
+      justifyContent="space-between"
+      alignItems="baseline"
+      sx={{ py: 0.4 }}
+    >
+      <IMSTypography variant="body2" color="text.secondary">
+        {label}
+      </IMSTypography>
+      <IMSTypography
+        variant="body2"
+        fontWeight={600}
+        color={tone || "text.primary"}
+      >
+        {sign}
+        <span data-testid={`summary-${id}`}>
+          {currency}
+          {formatMoney(value)}
+        </span>
+      </IMSTypography>
+    </IMSStack>
+  );
+
+  /** Receipt-style totals: calculated, so shown as figures, not input boxes. */
+  const summary = (
+    <IMSBox
+      sx={{
+        bgcolor: "primary.light",
+        border: 1,
+        borderColor: "primary.main",
+        borderRadius: 2.5,
+        px: 2,
+        py: 1.5,
+      }}
+    >
+      {summaryRow("subtotal", t("formLabel.subtotal"), totals.subtotal)}
+      {summaryRow(
+        "discountAmount",
+        t("formLabel.discountApplied"),
+        totals.discountAmount,
+        { sign: totals.discountAmount > 0 ? "− " : "" },
+      )}
+      {summaryRow(
+        "GSTAmount",
+        `${t("formLabel.GSTAmount")} (${
+          formData.GST === "yes" ? settings.gstRate : 0
+        }%)`,
+        totals.gstAmount,
+      )}
+
+      <Divider sx={{ my: 1, borderColor: "primary.main", opacity: 0.25 }} />
+
+      <IMSStack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+      >
+        <IMSStack>
+          <IMSTypography fontWeight={700} color="primary.dark">
+            {t("formLabel.totalPrice")}
+          </IMSTypography>
+          <IMSTypography variant="caption" color="primary.dark">
+            {t("description.itemsCount", { count: addData.length })}
+          </IMSTypography>
+        </IMSStack>
+        <IMSTypography
+          sx={{ fontSize: { xs: 28, md: 30 }, fontWeight: 800, lineHeight: 1 }}
+          color="primary.dark"
+        >
+          <span data-testid="summary-total">
+            {currency}
+            {formatMoney(totals.total)}
+          </span>
+        </IMSTypography>
+      </IMSStack>
+
+      <Divider sx={{ my: 1, borderColor: "primary.main", opacity: 0.25 }} />
+
+      {summaryRow("changeDue", t("formLabel.changeDue"), changeDue, {
+        tone: changeDue > 0 ? "success.main" : "text.secondary",
+      })}
+      {summaryRow("balanceDue", t("formLabel.balanceDue"), balanceDue, {
+        tone: balanceDue > 0 ? "error.main" : "text.secondary",
+      })}
+    </IMSBox>
+  );
+
+  const saveButton = (
     <IMSButton
       variant="contained"
+      size="large"
+      fullWidth
       disabled={loading}
-      onClick={handleUpdate}
-      fullWidth={isMobile}
+      onClick={isEditMode ? handleUpdate : handleSave}
+      sx={{ minHeight: 52, fontSize: 16 }}
     >
-      {t("buttonText.update")}
+      {t(isEditMode ? "buttonText.update" : "buttonText.save")}
       {loading && <CircularProgress size={16} sx={{ ml: 1 }} />}
     </IMSButton>
-  ) : (
-    <IMSButton
-      disabled={loading}
-      variant="contained"
-      onClick={handleSave}
-      fullWidth={isMobile}
-    >
-      {t("buttonText.save")}
-      {loading && <CircularProgress size={16} sx={{ ml: 1 }} />}
-    </IMSButton>
+  );
+
+  const secondaryActions = (
+    <IMSStack direction="row" spacing={1}>
+      <IMSButton
+        variant="outlined"
+        fullWidth
+        startIcon={<PrintOutlinedIcon />}
+        disabled={addData?.length === 0}
+        onClick={() => generateReceipt(receiptData)}
+      >
+        {t("buttonText.print")}
+      </IMSButton>
+      <IMSButton
+        variant="outlined"
+        color="black"
+        fullWidth
+        onClick={isEditMode ? handleClearAll : handleCancel}
+      >
+        {t(isEditMode ? "buttonText.clearAll" : "buttonText.cancel")}
+      </IMSButton>
+    </IMSStack>
+  );
+
+  const dialogs = (
+    <>
+      {addNewCustomer.option === "customerInfo" && (
+        <IMSDialog
+          title={t("formLabel.addNewCustomer")}
+          open={addNewCustomer.show}
+          maxWidth="sm"
+          handleClose={closeNewCustomer}
+        >
+          <AddCustomer onSaved={closeNewCustomer} />
+        </IMSDialog>
+      )}
+      {addNewCustomer.option === "order" && (
+        <IMSDialog
+          title={t("formLabel.addNewProduct")}
+          open={addNewCustomer.show}
+          maxWidth="sm"
+          handleClose={closeNewCustomer}
+        >
+          <AddProduct onSaved={closeNewCustomer} />
+        </IMSDialog>
+      )}
+    </>
   );
 
   /* ----------------------------------------------------------- phone view */
@@ -273,6 +409,7 @@ const Dashboard = () => {
           sx={{
             display: "flex",
             flexDirection: "column",
+            gap: 1.5,
             // Exactly one screen: nothing scrolls except the cart.
             height: `calc(100vh - ${MOBILE_CHROME}px)`,
             "@supports (height: 100dvh)": {
@@ -282,9 +419,14 @@ const Dashboard = () => {
           }}
         >
           <IMSForm onSubmit={handleAddData}>
-            <Card sx={{ p: 1.5, mb: 1.5, ...compactForm }}>
-              {fieldGrid(byPane.entry, 1.5)}
-              <IMSButton variant="contained" type="submit" fullWidth>
+            <Card sx={{ p: 1.5 }}>
+              {fieldGrid(group.entry, 1.5)}
+              <IMSButton
+                variant="contained"
+                type="submit"
+                fullWidth
+                startIcon={<AddShoppingCartIcon />}
+              >
                 {t("buttonText.addNew")}
               </IMSButton>
             </Card>
@@ -316,7 +458,7 @@ const Dashboard = () => {
                 </IMSTypography>
               </IMSStack>
               <IMSTypography variant="h4" color="primary.dark">
-                {settings.currencySymbol}
+                {currency}
                 {formatMoney(totals.total)}
               </IMSTypography>
             </IMSStack>
@@ -333,27 +475,18 @@ const Dashboard = () => {
                 </IMSButton>
               </IMSGrid>
               <IMSGrid item xs={6}>
-                {primaryAction}
-              </IMSGrid>
-              <IMSGrid item xs={6}>
                 <IMSButton
-                  variant="outlined"
-                  color="black"
+                  variant="contained"
                   fullWidth
-                  onClick={isEditMode ? handleClearAll : handleCancel}
+                  disabled={loading}
+                  onClick={isEditMode ? handleUpdate : handleSave}
                 >
-                  {t(isEditMode ? "buttonText.clearAll" : "buttonText.cancel")}
+                  {t(isEditMode ? "buttonText.update" : "buttonText.save")}
+                  {loading && <CircularProgress size={16} sx={{ ml: 1 }} />}
                 </IMSButton>
               </IMSGrid>
-              <IMSGrid item xs={6}>
-                <IMSButton
-                  variant="outlined"
-                  fullWidth
-                  disabled={addData?.length === 0}
-                  onClick={() => generateReceipt(receiptData)}
-                >
-                  {t("buttonText.print")}
-                </IMSButton>
+              <IMSGrid item xs={12}>
+                {secondaryActions}
               </IMSGrid>
             </IMSGrid>
           </IMSBox>
@@ -367,140 +500,148 @@ const Dashboard = () => {
           handleClose={() => setDetailsOpen(false)}
           maxWidth="sm"
         >
-          <IMSBox sx={compactForm}>
-            {fieldGrid(byPane.details)}
-            <IMSBox sx={{ mt: 1 }}>{fieldGrid(byPane.totals)}</IMSBox>
+          <IMSBox>
+            {fieldGrid(group.invoice)}
+            {fieldGrid(group.customer)}
+            {fieldGrid(group.payment)}
+            {fieldGrid(group.tender)}
           </IMSBox>
+          <IMSBox sx={{ my: 1.5 }}>{summary}</IMSBox>
           <IMSButton
             variant="contained"
             fullWidth
-            sx={{ mt: 1 }}
             onClick={() => setDetailsOpen(false)}
           >
             {t("buttonText.done")}
           </IMSButton>
         </IMSDialog>
 
-        {addNewCustomer.option === "customerInfo" && (
-          <IMSDialog
-            title={t("formLabel.addNewCustomer")}
-            open={addNewCustomer.show}
-            maxWidth="sm"
-            handleClose={closeNewCustomer}
-          >
-            <AddCustomer onSaved={closeNewCustomer} />
-          </IMSDialog>
-        )}
-        {addNewCustomer.option === "order" && (
-          <IMSDialog
-            title={t("formLabel.addNewProduct")}
-            open={addNewCustomer.show}
-            maxWidth="sm"
-            handleClose={closeNewCustomer}
-          >
-            <AddProduct onSaved={closeNewCustomer} />
-          </IMSDialog>
-        )}
+        {dialogs}
       </>
     );
   }
 
   /* --------------------------------------------------------- desktop view */
+
+  const fullHeight = {
+    height: `calc(100vh - ${DESKTOP_CHROME}px)`,
+    "@supports (height: 100dvh)": {
+      height: `calc(100dvh - ${DESKTOP_CHROME}px)`,
+    },
+  };
+
   return (
     <>
-      <IMSBox
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          height: `calc(100vh - ${DESKTOP_CHROME}px)`,
-          "@supports (height: 100dvh)": {
-            height: `calc(100dvh - ${DESKTOP_CHROME}px)`,
-          },
-          ...hideOnPrint,
-        }}
+      <IMSStack
+        direction="row"
+        spacing={2}
+        sx={{ ...fullHeight, minHeight: 0, ...hideOnPrint }}
       >
-        {cart}
+        {/* Left: who it is for, what is being added, and the bill so far. */}
+        <IMSStack spacing={2} sx={{ flex: 1, minWidth: 0, minHeight: 0 }}>
+          <Card sx={{ p: 2, pb: 2.5, flexShrink: 0, ...rowForm }}>
+            {fieldGrid(group.customer)}
+          </Card>
 
-        {/* On a short screen this pane scrolls inside itself rather than
-            pushing the page, so the till always fits exactly one viewport. */}
-        <IMSBox
+          {/* The item bar is its own form, so Enter adds the line. */}
+          <IMSForm onSubmit={handleAddData}>
+            <Card
+              sx={{
+                p: 2,
+                pb: 3,
+                flexShrink: 0,
+                borderColor: "primary.main",
+                ...rowForm,
+              }}
+            >
+              <IMSBox
+                sx={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  alignItems: "flex-end",
+                  gap: 1.5,
+                }}
+              >
+                <IMSBox
+                  sx={{
+                    flex: "1 1 100%",
+                    minWidth: 0,
+                    "@media (min-width: 1400px)": { flex: "1 1 200px" },
+                  }}
+                >
+                  {renderField(fieldNamed("itemName"))}
+                </IMSBox>
+                <IMSBox sx={{ flex: "0 0 96px" }}>
+                  {renderField(fieldNamed("itemQuantity"))}
+                </IMSBox>
+                <IMSBox sx={{ flex: "0 0 96px" }}>
+                  {renderField(fieldNamed("quantityCategory"))}
+                </IMSBox>
+                <IMSBox sx={{ flex: "1 1 96px", minWidth: 0 }}>
+                  {renderField(fieldNamed("price"))}
+                </IMSBox>
+                <IMSButton
+                  variant="contained"
+                  type="submit"
+                  startIcon={<AddShoppingCartIcon />}
+                  sx={{ flex: "0 0 auto", minHeight: 41 }}
+                >
+                  {t("buttonText.addNew")}
+                </IMSButton>
+              </IMSBox>
+            </Card>
+          </IMSForm>
+
+          {cart}
+        </IMSStack>
+
+        {/* Right: the bill itself — number, payment, total, and Save. */}
+        <Card
           sx={{
-            flexShrink: 1,
+            width: PANEL_WIDTH,
+            flexShrink: 0,
+            display: "flex",
+            flexDirection: "column",
             minHeight: 0,
-            overflowY: "auto",
-            overflowX: "hidden",
+            overflow: "hidden",
           }}
         >
-          <IMSForm onSubmit={handleAddData}>
-            <IMSGrid container spacing={2} sx={{ ...compactForm }}>
-              {groups.map((group) => (
-                <IMSGrid item xs={12} md={group?.md} key={group.key}>
-                  <Card
-                    sx={{
-                      p: 1.75,
-                      height: "100%",
-                      ...(group.accent && {
-                        bgcolor: "primary.light",
-                        borderColor: "primary.main",
-                        "& .MuiOutlinedInput-root": { bgcolor: "white.main" },
-                      }),
-                    }}
-                  >
-                    {fieldGrid(group.billingFormFields)}
-                  </Card>
-                </IMSGrid>
-              ))}
-            </IMSGrid>
+          {/* Scrolls inside itself on a short screen; the page never does. */}
+          <IMSBox
+            sx={{
+              flex: 1,
+              minHeight: 0,
+              overflowY: "auto",
+              px: 2,
+              pt: 2,
+            }}
+          >
+            {fieldGrid(group.invoice, 1.5)}
+            <Divider sx={{ mb: 1.5 }} />
+            {fieldGrid(group.payment, 1.5)}
+          </IMSBox>
 
-            <IMSStack
-              direction="row"
-              spacing={1.5}
-              justifyContent="flex-end"
-              sx={{ pt: 2, flexShrink: 0 }}
-            >
-              <IMSButton variant="contained" type="submit">
-                {t("buttonText.addNew")}
-              </IMSButton>
-              {primaryAction}
-              <IMSButton
-                variant="outlined"
-                color="black"
-                onClick={isEditMode ? handleClearAll : handleCancel}
-              >
-                {t(isEditMode ? "buttonText.clearAll" : "buttonText.cancel")}
-              </IMSButton>
-              <IMSButton
-                variant="outlined"
-                disabled={addData?.length === 0}
-                onClick={() => generateReceipt(receiptData)}
-              >
-                {t("buttonText.print")}
-              </IMSButton>
+          {/* Pinned: the money and the button that takes it are always in view. */}
+          <IMSBox
+            sx={{
+              flexShrink: 0,
+              p: 2,
+              pt: 1.5,
+              borderTop: `1px solid ${surface.border}`,
+              bgcolor: "white.main",
+            }}
+          >
+            <IMSBox>{fieldGrid(group.tender, 1.5)}</IMSBox>
+            {summary}
+            <IMSStack spacing={1} sx={{ mt: 1.5 }}>
+              {saveButton}
+              {secondaryActions}
             </IMSStack>
-          </IMSForm>
-        </IMSBox>
-      </IMSBox>
+          </IMSBox>
+        </Card>
+      </IMSStack>
 
-      {addNewCustomer.option === "customerInfo" && (
-        <IMSDialog
-          title={t("formLabel.addNewCustomer")}
-          open={addNewCustomer.show}
-          maxWidth="sm"
-          handleClose={closeNewCustomer}
-        >
-          <AddCustomer onSaved={closeNewCustomer} />
-        </IMSDialog>
-      )}
-      {addNewCustomer.option === "order" && (
-        <IMSDialog
-          title={t("formLabel.addNewProduct")}
-          open={addNewCustomer.show}
-          maxWidth="sm"
-          handleClose={closeNewCustomer}
-        >
-          <AddProduct onSaved={closeNewCustomer} />
-        </IMSDialog>
-      )}
+      {dialogs}
     </>
   );
 };

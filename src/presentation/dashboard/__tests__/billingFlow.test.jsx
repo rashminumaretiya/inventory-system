@@ -66,6 +66,14 @@ const renderDashboard = () => {
 const field = (name) => screen.getByRole("spinbutton", { name });
 const textField = (name) => screen.getByRole("textbox", { name });
 
+/** A figure from the bill summary, as a number. */
+const amount = (key) =>
+  Number(
+    screen
+      .getByTestId(`summary-${key}`)
+      .textContent.replace(/[^0-9.-]/g, "")
+  );
+
 /** Type into a MUI Autocomplete and pick the matching option. */
 const pickOption = async (label, text) => {
   const input = screen.getByRole("combobox", { name: label });
@@ -146,8 +154,8 @@ describe("adding lines", () => {
 
     await addLine("Potato", 2);
 
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(22));
-    expect(field(/total price/i)).toHaveValue(22);
+    await waitFor(() => expect(amount("subtotal")).toBe(22));
+    expect(amount("total")).toBe(22);
   });
 
   it("merges a repeat item rather than adding a second row", async () => {
@@ -155,10 +163,10 @@ describe("adding lines", () => {
     await ready();
 
     await addLine("Potato", 2);
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(22));
+    await waitFor(() => expect(amount("subtotal")).toBe(22));
     await addLine("Potato", 3);
 
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(55));
+    await waitFor(() => expect(amount("subtotal")).toBe(55));
     expect(cartRows().filter((row) => row.textContent.includes("Potato"))).toHaveLength(1);
   });
 
@@ -167,11 +175,11 @@ describe("adding lines", () => {
     await ready();
 
     await addLine("Chilli", 500, "Grams");
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(10));
+    await waitFor(() => expect(amount("subtotal")).toBe(10));
 
     await addLine("Chilli", 1, "Kg");
     // 500 g + 1 Kg = 1.5 Kg at Rs 20/Kg = Rs 30.00
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(30));
+    await waitFor(() => expect(amount("subtotal")).toBe(30));
   });
 
   it("offers only pieces for a piece-counted item", async () => {
@@ -194,11 +202,11 @@ describe("adding lines", () => {
     await ready();
 
     await addLine("Potato", 8);
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(88));
+    await waitFor(() => expect(amount("subtotal")).toBe(88));
 
     await addLine("Potato", 5); // 13 Kg against 9 Kg of stock
     expect(await screen.findByText(/only 1 Kg left in stock/i)).toBeInTheDocument();
-    expect(field(/subtotal/i)).toHaveValue(88);
+    expect(amount("subtotal")).toBe(88);
   });
 
   it("rejects a zero quantity", async () => {
@@ -218,12 +226,12 @@ describe("bill totals", () => {
     await ready();
 
     await addLine("Potato", 2);
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(22));
+    await waitFor(() => expect(amount("subtotal")).toBe(22));
 
     fireEvent.click(screen.getByRole("radio", { name: "Yes" }));
 
-    await waitFor(() => expect(field(/gst amount/i)).toHaveValue(3.96));
-    expect(field(/total price/i)).toHaveValue(25.96);
+    await waitFor(() => expect(amount("GSTAmount")).toBe(3.96));
+    expect(amount("total")).toBe(25.96);
   });
 
   it("takes a discount off before GST", async () => {
@@ -231,10 +239,10 @@ describe("bill totals", () => {
     await ready();
 
     await addLine("Potato", 2);
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(22));
+    await waitFor(() => expect(amount("subtotal")).toBe(22));
 
     type(field(/^discount$/i), "2");
-    await waitFor(() => expect(field(/total price/i)).toHaveValue(20));
+    await waitFor(() => expect(amount("total")).toBe(20));
   });
 
   it("works out change when the customer overpays", async () => {
@@ -242,11 +250,11 @@ describe("bill totals", () => {
     await ready();
 
     await addLine("Potato", 2);
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(22));
+    await waitFor(() => expect(amount("subtotal")).toBe(22));
 
     type(field(/amount paid/i), "50");
-    await waitFor(() => expect(field(/^change$/i)).toHaveValue(28));
-    expect(field(/balance due/i)).toHaveValue(0);
+    await waitFor(() => expect(amount("changeDue")).toBe(28));
+    expect(amount("balanceDue")).toBe(0);
   });
 
   it("records a balance when the customer underpays", async () => {
@@ -254,11 +262,11 @@ describe("bill totals", () => {
     await ready();
 
     await addLine("Potato", 2);
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(22));
+    await waitFor(() => expect(amount("subtotal")).toBe(22));
 
     type(field(/amount paid/i), "10");
-    await waitFor(() => expect(field(/balance due/i)).toHaveValue(12));
-    expect(field(/^change$/i)).toHaveValue(0);
+    await waitFor(() => expect(amount("balanceDue")).toBe(12));
+    expect(amount("changeDue")).toBe(0);
   });
 });
 
@@ -278,13 +286,13 @@ describe("customer details", () => {
     await ready();
 
     await addLine("Potato", 2);
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(22));
+    await waitFor(() => expect(amount("subtotal")).toBe(22));
 
     type(textField(/phone number/i), "9812345678");
 
     // Editing the customer used to write the phone number into the cart line.
     await waitFor(() => expect(textField(/phone number/i)).toHaveValue("9812345678"));
-    expect(field(/subtotal/i)).toHaveValue(22);
+    expect(amount("subtotal")).toBe(22);
     expect(cartRows().some((row) => row.textContent.includes("9812345678"))).toBe(false);
   });
 
@@ -344,7 +352,7 @@ describe("saving", () => {
     await ready();
 
     await addLine("Chilli", 500, "Grams");
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(10));
+    await waitFor(() => expect(amount("subtotal")).toBe(10));
     await pickOption(/customer name/i, "Jay");
 
     fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
@@ -374,8 +382,8 @@ describe("saving", () => {
     fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
 
     await waitFor(() => expect(posted).toHaveLength(1));
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(0));
-    expect(screen.getByText(/no data found/i)).toBeInTheDocument();
+    await waitFor(() => expect(amount("subtotal")).toBe(0));
+    expect(screen.getByText(/no items in this bill/i)).toBeInTheDocument();
     expect(localStorage.getItem("formData")).toBeNull();
   });
 });
@@ -400,7 +408,7 @@ describe("cart persistence", () => {
     renderDashboard();
     await ready();
 
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(22));
+    await waitFor(() => expect(amount("subtotal")).toBe(22));
   });
 });
 
@@ -412,13 +420,13 @@ describe("adjusting a line without retyping it", () => {
     await ready();
 
     await addLine("Waffer", 3, "Pcs.");
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(30));
+    await waitFor(() => expect(amount("subtotal")).toBe(30));
 
     fireEvent.click(stepper(/increase quantity/i));
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(40));
+    await waitFor(() => expect(amount("subtotal")).toBe(40));
 
     fireEvent.click(stepper(/decrease quantity/i));
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(30));
+    await waitFor(() => expect(amount("subtotal")).toBe(30));
   });
 
   it("steps weight in 250 g", async () => {
@@ -426,11 +434,11 @@ describe("adjusting a line without retyping it", () => {
     await ready();
 
     await addLine("Potato", 2);
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(22));
+    await waitFor(() => expect(amount("subtotal")).toBe(22));
 
     fireEvent.click(stepper(/increase quantity/i));
     // 2.25 Kg at Rs 11
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(24.75));
+    await waitFor(() => expect(amount("subtotal")).toBe(24.75));
   });
 
   it("removes the row when it is stepped down to nothing", async () => {
@@ -438,11 +446,11 @@ describe("adjusting a line without retyping it", () => {
     await ready();
 
     await addLine("Waffer", 1, "Pcs.");
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(10));
+    await waitFor(() => expect(amount("subtotal")).toBe(10));
 
     fireEvent.click(stepper(/decrease quantity/i));
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(0));
-    expect(screen.getByText(/no data found/i)).toBeInTheDocument();
+    await waitFor(() => expect(amount("subtotal")).toBe(0));
+    expect(screen.getByText(/no items in this bill/i)).toBeInTheDocument();
   });
 
   it("will not step past the stock on hand", async () => {
@@ -451,10 +459,10 @@ describe("adjusting a line without retyping it", () => {
 
     // Potato has 9 Kg; take all of it, then try to add another 250 g.
     await addLine("Potato", 9);
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(99));
+    await waitFor(() => expect(amount("subtotal")).toBe(99));
 
     fireEvent.click(stepper(/increase quantity/i));
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(99));
+    await waitFor(() => expect(amount("subtotal")).toBe(99));
   });
 
   it("keeps the adjusted line after a reload", async () => {
@@ -463,7 +471,7 @@ describe("adjusting a line without retyping it", () => {
 
     await addLine("Waffer", 2, "Pcs.");
     fireEvent.click(stepper(/increase quantity/i));
-    await waitFor(() => expect(field(/subtotal/i)).toHaveValue(30));
+    await waitFor(() => expect(amount("subtotal")).toBe(30));
 
     const stored = JSON.parse(localStorage.getItem("formData"));
     expect(stored[0]).toMatchObject({ itemQuantity: "3", subtotal: "30.00" });
