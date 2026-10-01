@@ -1,6 +1,8 @@
 export const customerFields = [
   {
     name: "name",
+    // Free text: types Gujarati while the app is in Gujarati.
+    transliterate: true,
     type: "text",
     label: "formLabel.customerName",
     option: "",
@@ -17,6 +19,8 @@ export const customerFields = [
   {
     // Walk-in customers often have no address on file.
     name: "address",
+    // Free text: types Gujarati while the app is in Gujarati.
+    transliterate: true,
     type: "text",
     label: "formLabel.customerAddress",
     md: 12,

@@ -121,7 +121,7 @@ const ProductTable = ({
                   spacing={1}
                   sx={{
                     px: 1.5,
-                    py: 1,
+                    py: 0.75,
                     borderBottom: "1px solid #eef1f1",
                   }}
                 >

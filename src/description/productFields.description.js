@@ -1,6 +1,8 @@
 export const productFields = [
   {
     name: "itemName",
+    // Free text: types Gujarati while the app is in Gujarati.
+    transliterate: true,
     type: "text",
     label: "description.item_name",
     md: 12,

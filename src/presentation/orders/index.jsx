@@ -38,6 +38,7 @@ import IMSDialog from "../../shared/IMSDialog";
 import IMSRecordCard from "../../shared/IMSRecordCard";
 import IMSStack from "../../shared/IMSStack";
 import IMSTypography from "../../shared/IMSTypography";
+import FullHeightPage from "../../shared/FullHeightPage";
 import PageHeader from "../../shared/PageHeader";
 import PageToolbar from "../../shared/PageToolbar";
 import { MUIStyled } from "../../shared/MUIStyled";
@@ -49,6 +50,7 @@ import {
   productStockInBase,
 } from "../../utils/billing";
 import { notifyDataChanged } from "../../utils/dataEvents";
+import { textMatches } from "../../utils/transliterate";
 import useSettings from "../../utils/useSettings";
 import {
   customerKeyOf,
@@ -60,7 +62,25 @@ import CollectPayment from "./collectPayment";
 import { Print } from "../dashboard/print";
 
 export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
-  maxHeight: "calc(100vh - 260px)",
+  // Fills whatever height is left on the page and scrolls inside itself.
+  flex: 1,
+  minHeight: 0,
+  // A frame around the whole table, matching the cards elsewhere.
+  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: 12,
+  backgroundColor: theme.palette.background.paper,
+  // Tuck the last row's line under the frame, so the bottom edge is not
+  // drawn twice.
+  "& .MuiTable-root": { marginBottom: -1 },
+  // The expand row under each order: no height and no line while closed.
+  "& .MuiTableBody-root .MuiTableCell-root.collapse-cell": {
+    paddingTop: 0,
+    paddingBottom: 0,
+    borderBottom: 0,
+  },
+  "& .MuiTableBody-root .MuiTableCell-root.collapse-cell.open": {
+    borderBottom: `1px solid ${theme.palette.divider}`,
+  },
   "& .MuiTableHead-root": {
     "& .MuiTableCell-root": {
       padding: "8px 10px",
@@ -146,7 +166,7 @@ const Orders = () => {
     return orderList
       .filter((order) =>
         term
-          ? order?.customerInfo?.vendorName?.toLowerCase().includes(term) ||
+          ? textMatches(order?.customerInfo?.vendorName, term) ||
             order?.invoiceNo?.toLowerCase().includes(term) ||
             order?.customerInfo?.vendorPhone?.includes(term)
           : true
@@ -375,7 +395,7 @@ const Orders = () => {
   );
 
   return (
-    <>
+    <FullHeightPage>
       <PageHeader
         title={t("menu.orders")}
         subtitle={t("pageSubtitle.orders")}
@@ -442,7 +462,11 @@ const Orders = () => {
       />
 
       {pageRows.length === 0 ? (
-        <IMSTypography textAlign="center" color="natural.main" sx={{ py: 6 }}>
+        <IMSTypography
+          textAlign="center"
+          color="natural.main"
+          sx={{ py: 6, flex: { md: 1 } }}
+        >
           {t("description.noDataFound")}
         </IMSTypography>
       ) : isMobile ? (
@@ -578,7 +602,10 @@ const Orders = () => {
                       </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell colSpan={10} sx={{ py: 0 }}>
+                      <TableCell
+                        colSpan={10}
+                        className={expanded ? "collapse-cell open" : "collapse-cell"}
+                      >
                         <Collapse in={expanded} timeout="auto" unmountOnExit>
                           <Table size="small">
                             <TableHead>
@@ -687,6 +714,7 @@ const Orders = () => {
           setPage(0);
         }}
         sx={{
+          flexShrink: 0,
           "& .MuiTablePagination-toolbar": { flexWrap: "wrap", rowGap: 0.5 },
         }}
       />
@@ -734,7 +762,7 @@ const Orders = () => {
           </IMSButton>
         </IMSStack>
       </IMSDialog>
-    </>
+    </FullHeightPage>
   );
 };
 

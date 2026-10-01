@@ -71,7 +71,8 @@
     "autoLockOn": "Locks after {{minutes}} minutes idle.",
     "autoLockOff": "The till stays open until you lock it.",
     "cartEmpty": "No items in this bill yet",
-    "cartEmptyHint": "Search an item above and press Add New"
+    "cartEmptyHint": "Search an item above and press Add New",
+    "fixHighlighted": "Fix the highlighted fields to save this bill."
   },
   "menu": {
     "dashboard": "Billing",
@@ -133,7 +134,8 @@
     "received": "Received Quantity",
     "costPriceOptional": "Cost Price (optional)",
     "amountReceived": "Amount Received",
-    "autoLockMinutes": "Auto Lock (minutes)"
+    "autoLockMinutes": "Auto Lock (minutes)",
+    "qty": "Qty"
   },
   "errorMsg": {
     "pleaseEnter": "Please enter {{field}}",
@@ -176,7 +178,8 @@
     "importNoCollections": "That file has no product, customer or order data",
     "stockAdded": "Added {{quantity}} {{unit}} to {{name}}",
     "paymentRecorded": "Recorded {{amount}} against {{count}} bill(s)",
-    "pinChanged": "PIN changed"
+    "pinChanged": "PIN changed",
+    "fixBeforeSaving": "Can't save yet — {{message}}"
   },
   "buttonText": {
     "addNew": "Add New",
@@ -243,5 +246,10 @@
     "tryAgainIn": "Try again in {{seconds}}s",
     "backspace": "Backspace",
     "digit": "Digit {{digit}}"
+  },
+  "typing": {
+    "toggle": "Switch typing between Gujarati and English",
+    "switchToEnglish": "Typing Gujarati — tap for English",
+    "switchToGujarati": "Typing English — tap for Gujarati"
   }
 }

@@ -1,5 +1,9 @@
 import { FormControl, TextField as TF } from "@mui/material";
-import { useId } from "react";
+import { useCallback, useEffect, useId, useRef } from "react";
+
+import attachTransliteration from "../utils/attachTransliteration";
+import { isGujaratiTyping } from "../utils/typingMode";
+import TypingModeToggle from "./TypingModeToggle";
 import { MUIStyled } from "./MUIStyled";
 import IMSFormLabel from "./IMSFormLabel";
 
@@ -87,12 +91,45 @@ const IMSTextField = ({
   gutterNone,
   addNew,
   addClick,
+  // Free text that should type Gujarati while the app is in Gujarati.
+  transliterate,
+  inputRef: callerInputRef,
+  InputProps,
   ...props
 }) => {
   const generatedId = useId();
   // Linking label to input gives the field an accessible name, so screen
   // readers announce it and clicking the label focuses the input.
   const inputId = props.id || `${props.name || "field"}-${generatedId}`;
+
+  const ownRef = useRef(null);
+  const inputRef = useCallback(
+    (node) => {
+      ownRef.current = node;
+      if (typeof callerInputRef === "function") callerInputRef(node);
+      else if (callerInputRef) callerInputRef.current = node;
+    },
+    [callerInputRef]
+  );
+
+  useEffect(() => {
+    if (!transliterate) return undefined;
+    return attachTransliteration(ownRef.current, isGujaratiTyping);
+  }, [transliterate]);
+
+  /**
+   * The અ/A switch goes in whichever adornment slot is free: the end for a
+   * plain field, the start for an Autocomplete (whose end holds its buttons).
+   */
+  const mergedInputProps = { ...InputProps };
+  if (transliterate) {
+    if (!InputProps?.endAdornment) {
+      mergedInputProps.endAdornment = <TypingModeToggle position="end" />;
+    } else if (!InputProps?.startAdornment) {
+      mergedInputProps.startAdornment = <TypingModeToggle position="start" />;
+    }
+  }
+
   return (
     <FormControl
       fullWidth
@@ -115,6 +152,8 @@ const IMSTextField = ({
         fullWidth
         sx={{ flex: 1, ml: row ? 2 : 0 }}
         {...props}
+        InputProps={mergedInputProps}
+        inputRef={inputRef}
         id={inputId}
       />
     </FormControl>

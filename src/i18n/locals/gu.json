@@ -7,7 +7,7 @@
     "total": "કુલ",
     "action": "ઍક્શન",
     "search": "શોધો...",
-    "searchOrders": "બિલ નં., ગ્રાહક કે ફોન શોધો...",
+    "searchOrders": "બિલ નં., ગ્રાહક ના ફોન શોધો...",
     "rowsPerPage": "પેજ દીઠ પંક્તિઓ",
     "inStock": "સ્ટોકમાં છે",
     "lowStock": "સ્ટોક ઓછો છે",
@@ -71,7 +71,8 @@
     "autoLockOn": "{{minutes}} મિનિટ નિષ્ક્રિય રહ્યા પછી લોક થશે.",
     "autoLockOff": "તમે જાતે લોક ન કરો ત્યાં સુધી ખુલ્લું રહેશે.",
     "cartEmpty": "આ બિલમાં હજુ કોઈ વસ્તુ નથી",
-    "cartEmptyHint": "ઉપર વસ્તુ શોધો અને એડ કરો દબાવો"
+    "cartEmptyHint": "ઉપર વસ્તુ શોધો અને એડ કરો",
+    "fixHighlighted": "આ બિલ સેવ કરવા માટે લાલ દર્શાવેલી વિગતો સુધારો."
   },
   "menu": {
     "dashboard": "બિલિંગ",
@@ -133,7 +134,8 @@
     "received": "આવેલો જથ્થો",
     "costPriceOptional": "ખરીદ ભાવ (વૈકલ્પિક)",
     "amountReceived": "મળેલી રકમ",
-    "autoLockMinutes": "ઓટો લોક (મિનિટ)"
+    "autoLockMinutes": "ઓટો લોક (મિનિટ)",
+    "qty": "જથ્થો"
   },
   "errorMsg": {
     "pleaseEnter": "{{field}} નાખો",
@@ -176,7 +178,8 @@
     "importNoCollections": "આ ફાઇલમાં પ્રોડક્ટ, ગ્રાહક કે ઓર્ડરનો ડેટા નથી",
     "stockAdded": "{{name}} માં {{quantity}} {{unit}} ઉમેરાયું",
     "paymentRecorded": "{{count}} બિલ સામે {{amount}} નોંધાયું",
-    "pinChanged": "પિન બદલાઈ ગયો"
+    "pinChanged": "પિન બદલાઈ ગયો",
+    "fixBeforeSaving": "હજુ સેવ ન થઈ શકે — {{message}}"
   },
   "buttonText": {
     "addNew": "એડ કરો",
@@ -243,5 +246,10 @@
     "tryAgainIn": "{{seconds}} સેકન્ડ પછી ફરી પ્રયાસ કરો",
     "backspace": "ભૂંસો",
     "digit": "અંક {{digit}}"
+  },
+  "typing": {
+    "toggle": "ગુજરાતી અને અંગ્રેજી ટાઇપિંગ બદલો",
+    "switchToEnglish": "ગુજરાતી ટાઇપ થાય છે — અંગ્રેજી માટે દબાવો",
+    "switchToGujarati": "અંગ્રેજી ટાઇપ થાય છે — ગુજરાતી માટે દબાવો"
   }
 }

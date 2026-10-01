@@ -62,6 +62,13 @@ export const SIDEBAR_WIDTH = 260;
 export const HEADER_HEIGHT = 68;
 export const BOTTOM_NAV_HEIGHT = 60;
 
+/**
+ * Space above and below page content on desktop. Full-height screens subtract
+ * twice this from the viewport, so it lives here rather than as a number in
+ * each file — the billing page had drifted out of step when it was changed.
+ */
+export const DESKTOP_PAGE_GUTTER = 24;
+
 let theme = createTheme({
   palette,
   shape: { borderRadius: 8 },

@@ -541,11 +541,25 @@ const DashboardContainer = () => {
     // second is recorded as a balance due, so neither blocks the sale.
 
     setFormError((prev) => ({ ...prev, ...error }));
-    return Object.values(error).every((message) => !message);
+
+    /** Only the fields that actually failed, so the view can point at them. */
+    const failed = Object.fromEntries(
+      Object.entries(error).filter(([, message]) => message)
+    );
+    const first = Object.values(failed)[0];
+    // The failing field may be off screen (in the phone's Bill Details sheet,
+    // or scrolled away in the desktop panel), so say what is wrong out loud.
+    if (first) toast.error(t("toast.fixBeforeSaving", { message: first }));
+    return failed;
   };
 
+  /**
+   * @returns {Promise<{ok: boolean, errors?: object}>} the fields that blocked
+   *   the save, so the phone layout can open the sheet that holds them.
+   */
   const handleSave = async () => {
-    if (!validateBill()) return;
+    const errors = validateBill();
+    if (Object.keys(errors).length) return { ok: false, errors };
 
     // Re-check stock against the live product list before taking the money.
     const shortages = [];
@@ -638,7 +652,8 @@ const DashboardContainer = () => {
       toast.error(t("toast.orderNotFound"));
       return;
     }
-    if (!validateBill()) return;
+    const errors = validateBill();
+    if (Object.keys(errors).length) return { ok: false, errors };
 
     setLoading(true);
     const updated = { ...billPayload(), id: record.id };

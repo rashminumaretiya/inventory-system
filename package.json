@@ -56,7 +56,8 @@
           "src/setupTests.js"
         ],
         "env": {
-          "jest": true
+          "jest": true,
+          "es2020": true
         }
       }
     ]

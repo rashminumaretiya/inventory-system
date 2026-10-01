@@ -29,6 +29,7 @@ import IMSDialog from "../../shared/IMSDialog";
 import IMSRecordCard from "../../shared/IMSRecordCard";
 import IMSStack from "../../shared/IMSStack";
 import IMSTypography from "../../shared/IMSTypography";
+import FullHeightPage from "../../shared/FullHeightPage";
 import PageHeader from "../../shared/PageHeader";
 import PageToolbar from "../../shared/PageToolbar";
 import { MUIStyled } from "../../shared/MUIStyled";
@@ -45,13 +46,23 @@ import {
   productStockInBase,
 } from "../../utils/billing";
 import { notifyDataChanged } from "../../utils/dataEvents";
+import { textMatches } from "../../utils/transliterate";
 import useSettings from "../../utils/useSettings";
 import AddProduct from "../dashboard/addProduct";
 import EditProduct from "./editProduct";
 import StockIn from "./stockIn";
 
 export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
-  maxHeight: "calc(100vh - 260px)",
+  // Fills whatever height is left on the page and scrolls inside itself.
+  flex: 1,
+  minHeight: 0,
+  // A frame around the whole table, matching the cards elsewhere.
+  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: 12,
+  backgroundColor: theme.palette.background.paper,
+  // Tuck the last row's line under the frame, so the bottom edge is not
+  // drawn twice.
+  "& .MuiTable-root": { marginBottom: -1 },
   "& .MuiTableHead-root": {
     "& .MuiTableCell-root": {
       padding: "8px 10px",
@@ -128,7 +139,7 @@ const Product = () => {
     const term = searchText.trim().toLowerCase();
     return products
       .filter((product) =>
-        term ? product.itemName?.toLowerCase().includes(term) : true
+        term ? textMatches(product.itemName, term) : true
       )
       .filter((product) =>
         statusFilter === "all"
@@ -203,14 +214,14 @@ const Product = () => {
     <IMSTypography
       textAlign="center"
       color="natural.main"
-      sx={{ py: 6 }}
+      sx={{ py: 6, flex: { md: 1 } }}
     >
       {t("description.noDataFound")}
     </IMSTypography>
   );
 
   return (
-    <>
+    <FullHeightPage>
       <PageHeader
         title={t("menu.product")}
         subtitle={t("pageSubtitle.product")}
@@ -339,6 +350,7 @@ const Product = () => {
           setPage(0);
         }}
         sx={{
+          flexShrink: 0,
           "& .MuiTablePagination-toolbar": { flexWrap: "wrap", rowGap: 0.5 },
         }}
       />
@@ -407,7 +419,7 @@ const Product = () => {
           </IMSButton>
         </IMSStack>
       </IMSDialog>
-    </>
+    </FullHeightPage>
   );
 };
 

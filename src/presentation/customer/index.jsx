@@ -24,6 +24,8 @@ import IMSDialog from "../../shared/IMSDialog";
 import IMSRecordCard from "../../shared/IMSRecordCard";
 import IMSStack from "../../shared/IMSStack";
 import IMSTypography from "../../shared/IMSTypography";
+import { textMatches } from "../../utils/transliterate";
+import FullHeightPage from "../../shared/FullHeightPage";
 import PageHeader from "../../shared/PageHeader";
 import PageToolbar from "../../shared/PageToolbar";
 import { MUIStyled } from "../../shared/MUIStyled";
@@ -36,7 +38,16 @@ import AddCustomer from "../dashboard/addCustomer";
 import EditCustomer from "./editCustomer";
 
 export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
-  maxHeight: "calc(100vh - 240px)",
+  // Fills whatever height is left on the page and scrolls inside itself.
+  flex: 1,
+  minHeight: 0,
+  // A frame around the whole table, matching the cards elsewhere.
+  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: 12,
+  backgroundColor: theme.palette.background.paper,
+  // Tuck the last row's line under the frame, so the bottom edge is not
+  // drawn twice.
+  "& .MuiTable-root": { marginBottom: -1 },
   "& .MuiTableHead-root": {
     "& .MuiTableCell-root": {
       padding: "8px 10px",
@@ -91,7 +102,7 @@ const Customer = () => {
       .filter((customer) => customer?.id)
       .filter((customer) =>
         term
-          ? customer.name?.toLowerCase().includes(term) ||
+          ? textMatches(customer.name, term) ||
             customer.phone?.includes(term)
           : true
       )
@@ -152,7 +163,7 @@ const Customer = () => {
   );
 
   return (
-    <>
+    <FullHeightPage>
       <PageHeader
         title={t("menu.customer")}
         subtitle={t("pageSubtitle.customer")}
@@ -172,7 +183,11 @@ const Customer = () => {
       />
 
       {pageRows.length === 0 ? (
-        <IMSTypography textAlign="center" color="natural.main" sx={{ py: 6 }}>
+        <IMSTypography
+          textAlign="center"
+          color="natural.main"
+          sx={{ py: 6, flex: { md: 1 } }}
+        >
           {t("description.noDataFound")}
         </IMSTypography>
       ) : isMobile ? (
@@ -235,6 +250,7 @@ const Customer = () => {
           setPage(0);
         }}
         sx={{
+          flexShrink: 0,
           "& .MuiTablePagination-toolbar": { flexWrap: "wrap", rowGap: 0.5 },
         }}
       />
@@ -284,7 +300,7 @@ const Customer = () => {
           </IMSButton>
         </IMSStack>
       </IMSDialog>
-    </>
+    </FullHeightPage>
   );
 };
 

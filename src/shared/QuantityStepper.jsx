@@ -14,10 +14,16 @@ import { surface } from "./theme";
  */
 const QuantityStepper = ({ quantity, unit, onStep, size = "small" }) => {
   const { t } = useTranslation();
+  // A fixed box, because the theme pads every IconButton generously on
+  // phones; at that size each cart row grew to ~85px and crowded the bill.
+  const box = size === "small" ? 30 : 36;
   const button = {
     border: `1px solid ${surface.borderStrong}`,
     borderRadius: 1.5,
-    p: size === "small" ? 0.25 : 0.5,
+    p: 0,
+    width: box,
+    height: box,
+    "& svg": { fontSize: size === "small" ? 18 : 20 },
   };
 
   return (

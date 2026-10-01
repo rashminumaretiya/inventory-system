@@ -1,7 +1,9 @@
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import TuneIcon from "@mui/icons-material/Tune";
 import {
+  Alert,
   Card,
   CircularProgress,
   Divider,
@@ -27,6 +29,7 @@ import IMSTextField from "../../shared/IMSTextField";
 import IMSTypography from "../../shared/IMSTypography";
 import { BOTTOM_NAV_HEIGHT, surface } from "../../shared/theme";
 import { formatMoney, num } from "../../utils/billing";
+import { fullPageHeight } from "../../shared/FullHeightPage";
 import AddCustomer from "./addCustomer";
 import AddProduct from "./addProduct";
 import { Print } from "./print";
@@ -36,12 +39,9 @@ const hideOnPrint = { "@media print": { display: "none" } };
 
 /** Chrome above and below the page content, so the till fits exactly. */
 const MOBILE_CHROME = 56 + 16 + BOTTOM_NAV_HEIGHT + 16;
-const DESKTOP_CHROME = 64;
 
 /** Width of the right-hand bill panel. */
 const PANEL_WIDTH = { md: 330, lg: 360, xl: 420 };
-
-/** Tighter vertical rhythm than the default form spacing. */
 
 /** For single-row strips: fields sit flush so they line up with the button. */
 const rowForm = { "& .MuiFormControl-root": { mb: 0 } };
@@ -97,10 +97,13 @@ const Dashboard = () => {
       ? field.disabled(formData)
       : Boolean(field.disabled);
 
-  const labelFor = (field) =>
-    field.name === "GST"
-      ? `${t(field.label)} (${settings.gstRate}%)`
-      : t(field.label);
+  const labelFor = (field) => {
+    const base =
+      isMobile && field.shortLabel ? t(field.shortLabel) : t(field.label);
+    if (field.name === "GST") return `${base} (${settings.gstRate}%)`;
+    // Required fields say so, rather than only failing on Save.
+    return field.required ? `${base} *` : base;
+  };
 
   const renderField = (field) => {
     if (!field) return null;
@@ -126,6 +129,7 @@ const Dashboard = () => {
         return (
           <IMSAutoComplete
             {...fieldProps}
+            transliterate={field.transliterate}
             options={field?.options || []}
             autoHighlight
             blurOnSelect
@@ -181,6 +185,7 @@ const Dashboard = () => {
           <IMSTextField
             {...fieldProps}
             type={field?.type}
+            transliterate={field.transliterate && !disabled}
             InputProps={{ readOnly: disabled, disabled }}
             inputProps={field.inputProps}
           />
@@ -403,13 +408,44 @@ const Dashboard = () => {
 
   /* ----------------------------------------------------------- phone view */
   if (isMobile) {
+    const errorIn = (name) => {
+      const field = fieldNamed(name);
+      return field && !isDisabled(field) ? formError[name] : undefined;
+    };
+
+    /** Everything that lives in the Bill Details sheet rather than on screen. */
+    const sheetCustomer = (group.customer || []).filter(
+      (field) => field.name !== "vendorName"
+    );
+    const sheetFields = [
+      ...(group.invoice || []),
+      ...sheetCustomer,
+      ...(group.payment || []),
+      ...(group.tender || []),
+    ].map((field) => field.name);
+    const sheetHasError = sheetFields.some((name) => errorIn(name));
+
+    /**
+     * Save, and if the problem is a field inside the sheet, open the sheet so
+     * the shopkeeper sees it instead of a button that silently does nothing.
+     */
+    const save = async () => {
+      const result = await (isEditMode ? handleUpdate() : handleSave());
+      if (
+        result?.ok === false &&
+        Object.keys(result.errors).some((name) => sheetFields.includes(name))
+      ) {
+        setDetailsOpen(true);
+      }
+    };
+
     return (
       <>
         <IMSBox
           sx={{
             display: "flex",
             flexDirection: "column",
-            gap: 1.5,
+            gap: 1.25,
             // Exactly one screen: nothing scrolls except the cart.
             height: `calc(100vh - ${MOBILE_CHROME}px)`,
             "@supports (height: 100dvh)": {
@@ -418,94 +454,154 @@ const Dashboard = () => {
             ...hideOnPrint,
           }}
         >
+          {/* Required, so it is on the main screen, not hidden in the sheet. */}
+          <Card
+            sx={{
+              px: 1.5,
+              pt: 1.25,
+              // Room for the error line, which sits below the field.
+              pb: errorIn("vendorName") ? 3.25 : 1.5,
+              flexShrink: 0,
+              ...rowForm,
+            }}
+          >
+            {renderField(fieldNamed("vendorName"))}
+          </Card>
+
           <IMSForm onSubmit={handleAddData}>
-            <Card sx={{ p: 1.5 }}>
-              {fieldGrid(group.entry, 1.5)}
-              <IMSButton
-                variant="contained"
-                type="submit"
-                fullWidth
-                startIcon={<AddShoppingCartIcon />}
+            <Card
+              sx={{
+                p: 1.5,
+                pb: ["itemQuantity", "price"].some(errorIn) ? 3.25 : 1.5,
+                ...rowForm,
+              }}
+            >
+              {renderField(fieldNamed("itemName"))}
+              <IMSStack
+                direction="row"
+                spacing={1}
+                alignItems="flex-end"
+                sx={{ mt: errorIn("itemName") ? 3.25 : 1.25 }}
               >
-                {t("buttonText.addNew")}
-              </IMSButton>
+                <IMSBox sx={{ flex: 1.15, minWidth: 0 }}>
+                  {renderField(fieldNamed("itemQuantity"))}
+                </IMSBox>
+                <IMSBox sx={{ flex: 1, minWidth: 0 }}>
+                  {renderField(fieldNamed("quantityCategory"))}
+                </IMSBox>
+                <IMSBox sx={{ flex: 1.15, minWidth: 0 }}>
+                  {renderField(fieldNamed("price"))}
+                </IMSBox>
+                {/* Inline rather than a full-width row, to leave room for the cart. */}
+                <IMSButton
+                  variant="contained"
+                  type="submit"
+                  aria-label={t("buttonText.addNew")}
+                  sx={{
+                    flexShrink: 0,
+                    minWidth: 48,
+                    width: 48,
+                    height: 44,
+                    minHeight: 44,
+                    p: 0,
+                  }}
+                >
+                  <AddShoppingCartIcon />
+                </IMSButton>
+              </IMSStack>
             </Card>
           </IMSForm>
 
           {cart}
 
           <IMSBox sx={{ flexShrink: 0 }}>
+            {/* Total and Save together: the figure and the button that takes it. */}
             <IMSStack
               direction="row"
               alignItems="center"
-              justifyContent="space-between"
+              spacing={1.5}
               sx={{
-                mb: 1,
-                px: 1.75,
-                py: 1.25,
+                p: 1,
+                pl: 1.75,
                 borderRadius: 2,
                 bgcolor: "primary.light",
                 border: 1,
                 borderColor: "primary.main",
               }}
             >
-              <IMSStack>
+              <IMSStack sx={{ flex: 1, minWidth: 0 }}>
                 <IMSTypography variant="caption" color="primary.dark">
                   {t("description.itemsCount", { count: addData.length })}
                 </IMSTypography>
-                <IMSTypography color="primary.dark" fontWeight={600}>
-                  {t("formLabel.totalPrice")}
+                <IMSTypography
+                  color="primary.dark"
+                  sx={{ fontSize: 24, fontWeight: 800, lineHeight: 1.15 }}
+                  noWrap
+                >
+                  {currency}
+                  {formatMoney(totals.total)}
                 </IMSTypography>
               </IMSStack>
-              <IMSTypography variant="h4" color="primary.dark">
-                {currency}
-                {formatMoney(totals.total)}
-              </IMSTypography>
+              <IMSButton
+                variant="contained"
+                disabled={loading}
+                onClick={save}
+                sx={{ minWidth: 128, minHeight: 48, fontSize: 16 }}
+              >
+                {t(isEditMode ? "buttonText.update" : "buttonText.save")}
+                {loading && <CircularProgress size={16} sx={{ ml: 1 }} />}
+              </IMSButton>
             </IMSStack>
-            <IMSGrid container spacing={1}>
-              <IMSGrid item xs={6}>
-                <IMSButton
-                  variant="outlined"
-                  color="black"
-                  fullWidth
-                  startIcon={<TuneIcon />}
-                  onClick={() => setDetailsOpen(true)}
-                >
-                  {t("description.billDetails")}
-                </IMSButton>
-              </IMSGrid>
-              <IMSGrid item xs={6}>
-                <IMSButton
-                  variant="contained"
-                  fullWidth
-                  disabled={loading}
-                  onClick={isEditMode ? handleUpdate : handleSave}
-                >
-                  {t(isEditMode ? "buttonText.update" : "buttonText.save")}
-                  {loading && <CircularProgress size={16} sx={{ ml: 1 }} />}
-                </IMSButton>
-              </IMSGrid>
-              <IMSGrid item xs={12}>
-                {secondaryActions}
-              </IMSGrid>
-            </IMSGrid>
+
+            <IMSStack direction="row" spacing={1} sx={{ mt: 1 }}>
+              <IMSButton
+                variant="outlined"
+                // Turns red when something inside it is stopping the save.
+                color={sheetHasError ? "error" : "black"}
+                startIcon={sheetHasError ? <ErrorOutlineIcon /> : <TuneIcon />}
+                onClick={() => setDetailsOpen(true)}
+                sx={{ flex: 1.4, minWidth: 0 }}
+              >
+                {t("description.billDetails")}
+              </IMSButton>
+              <IMSButton
+                variant="outlined"
+                startIcon={<PrintOutlinedIcon />}
+                disabled={addData?.length === 0}
+                onClick={() => generateReceipt(receiptData)}
+                sx={{ flex: 1, minWidth: 0 }}
+              >
+                {t("buttonText.print")}
+              </IMSButton>
+              <IMSButton
+                variant="outlined"
+                color="black"
+                onClick={isEditMode ? handleClearAll : handleCancel}
+                sx={{ flex: 1, minWidth: 0 }}
+              >
+                {t(isEditMode ? "buttonText.clearAll" : "buttonText.cancel")}
+              </IMSButton>
+            </IMSStack>
           </IMSBox>
         </IMSBox>
 
-        {/* Customer and payment sit behind a sheet: needed on some bills, not
-            on most, and keeping them here is what lets the till fit a screen. */}
+        {/* Optional details for this bill. Customer Name is not repeated here:
+            it is on the main screen, where a required field belongs. */}
         <IMSDialog
           title={t("description.billDetails")}
           open={detailsOpen}
           handleClose={() => setDetailsOpen(false)}
           maxWidth="sm"
         >
-          <IMSBox>
-            {fieldGrid(group.invoice)}
-            {fieldGrid(group.customer)}
-            {fieldGrid(group.payment)}
-            {fieldGrid(group.tender)}
-          </IMSBox>
+          {sheetHasError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {t("description.fixHighlighted")}
+            </Alert>
+          )}
+          {fieldGrid(group.invoice)}
+          {fieldGrid(sheetCustomer)}
+          {fieldGrid(group.payment)}
+          {fieldGrid(group.tender)}
           <IMSBox sx={{ my: 1.5 }}>{summary}</IMSBox>
           <IMSButton
             variant="contained"
@@ -523,19 +619,12 @@ const Dashboard = () => {
 
   /* --------------------------------------------------------- desktop view */
 
-  const fullHeight = {
-    height: `calc(100vh - ${DESKTOP_CHROME}px)`,
-    "@supports (height: 100dvh)": {
-      height: `calc(100dvh - ${DESKTOP_CHROME}px)`,
-    },
-  };
-
   return (
     <>
       <IMSStack
         direction="row"
         spacing={2}
-        sx={{ ...fullHeight, minHeight: 0, ...hideOnPrint }}
+        sx={{ ...fullPageHeight, minHeight: 0, ...hideOnPrint }}
       >
         {/* Left: who it is for, what is being added, and the bill so far. */}
         <IMSStack spacing={2} sx={{ flex: 1, minWidth: 0, minHeight: 0 }}>

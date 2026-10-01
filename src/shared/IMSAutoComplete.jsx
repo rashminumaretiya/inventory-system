@@ -4,6 +4,8 @@ import IMSTextField from "./IMSTextField";
 import IMSTypography from "./IMSTypography";
 import { useTranslation } from "react-i18next";
 
+import { textMatches } from "../utils/transliterate";
+
 const IMSAutoComplete = ({
   formLabel,
   row,
@@ -18,9 +20,18 @@ const IMSAutoComplete = ({
   addNew,
   addClick,
   gutterNone,
+  transliterate,
   ...props
 }) => {
   const { t } = useTranslation();
+
+  /**
+   * Match across scripts: "પોત" typed in Gujarati mode still finds an option
+   * saved as "Potato", and "pot" typed in English finds "પોટેટો".
+   */
+  const filterOptions = (list, { inputValue: query, getOptionLabel }) =>
+    list.filter((option) => textMatches(getOptionLabel(option), query));
+
   return (
     <>
       {addNew && (
@@ -50,6 +61,7 @@ const IMSAutoComplete = ({
             row={row}
             formLabel={formLabel}
             addNew={addNew}
+            transliterate={transliterate}
             {...params}
             variant="outlined"
             name={name}
@@ -58,6 +70,7 @@ const IMSAutoComplete = ({
           />
         )}
         sx={{ flex: 1 }}
+        filterOptions={filterOptions}
         {...props}
       />
     </>

@@ -30,6 +30,7 @@ const IMSFormFields = ({ onChange, error = {}, value = {}, fields = [] }) => {
               <IMSGrid item xs={field?.xs ?? 12} md={field?.md} key={field.name}>
                 <IMSAutoComplete
                   {...shared}
+                  transliterate={field?.transliterate}
                   options={field?.options || []}
                   value={value[field?.name] || ""}
                 />
@@ -42,6 +43,7 @@ const IMSFormFields = ({ onChange, error = {}, value = {}, fields = [] }) => {
                 <IMSTextField
                   {...shared}
                   type={field?.type}
+                  transliterate={field?.transliterate}
                   label=""
                   multiline={field?.multiline}
                   rows={field?.rows}

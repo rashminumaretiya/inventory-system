@@ -32,6 +32,8 @@ const PageToolbar = ({ search, filters, actions, divider = true }) => {
               variant="outlined"
               gutterNone
               name="search"
+              // Search types Gujarati too, and still finds English names.
+              transliterate
               placeholder={search.placeholder || t("description.search")}
               value={search.value}
               onChange={search.onChange}

@@ -3,7 +3,11 @@ import React, { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
 import IMSBox from "../shared/IMSBox";
-import { BOTTOM_NAV_HEIGHT, SIDEBAR_WIDTH } from "../shared/theme";
+import {
+  BOTTOM_NAV_HEIGHT,
+  DESKTOP_PAGE_GUTTER,
+  SIDEBAR_WIDTH,
+} from "../shared/theme";
 import BottomNav from "./BottomNav";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
@@ -57,11 +61,11 @@ const Layout = () => {
           flexGrow: 1,
           minWidth: 0,
           px: { xs: 2, sm: 2.5, md: 3 },
-          pt: { xs: `${56 + 16}px`, md: 3 },
+          pt: { xs: `${56 + 16}px`, md: `${DESKTOP_PAGE_GUTTER}px` },
           // Leave room for the phone tab bar plus the home indicator.
           pb: {
             xs: `calc(${BOTTOM_NAV_HEIGHT + 16}px + env(safe-area-inset-bottom))`,
-            md: 3,
+            md: `${DESKTOP_PAGE_GUTTER}px`,
           },
           "@media print": { p: 0, m: 0 },
         }}

@@ -47,6 +47,8 @@ export const saveSettings = (settings) => {
 export const settingsFields = [
   {
     name: "shopName",
+    // Free text: types Gujarati while the app is in Gujarati.
+    transliterate: true,
     type: "text",
     label: "formLabel.shopName",
     xs: 12,
@@ -71,6 +73,8 @@ export const settingsFields = [
   },
   {
     name: "shopAddress",
+    // Free text: types Gujarati while the app is in Gujarati.
+    transliterate: true,
     type: "text",
     label: "formLabel.shopAddress",
     xs: 12,
@@ -104,6 +108,8 @@ export const settingsFields = [
   },
   {
     name: "receiptFooter",
+    // Free text: types Gujarati while the app is in Gujarati.
+    transliterate: true,
     type: "text",
     label: "formLabel.receiptFooter",
     xs: 12,

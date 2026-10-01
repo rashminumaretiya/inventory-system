@@ -42,8 +42,12 @@ export const billingFields = [
     billingFormFields: [
       {
         name: "vendorName",
+        // Free text: types Gujarati while the app is in Gujarati.
+        transliterate: true,
         type: "autoComplete",
         label: "formLabel.customerName",
+        // A bill cannot be saved without it, so the label says so.
+        required: true,
         option: "",
         xs: 12,
         md: 4,
@@ -62,6 +66,8 @@ export const billingFields = [
       },
       {
         name: "address",
+        // Free text: types Gujarati while the app is in Gujarati.
+        transliterate: true,
         type: "text",
         label: "formLabel.customerAddress",
         xs: 12,
@@ -75,6 +81,8 @@ export const billingFields = [
     billingFormFields: [
       {
         name: "itemName",
+        // Free text: types Gujarati while the app is in Gujarati.
+        transliterate: true,
         type: "autoComplete",
         label: "formLabel.itemName",
         option: "",
@@ -88,6 +96,8 @@ export const billingFields = [
         name: "itemQuantity",
         type: "number",
         label: "formLabel.itemQuantity",
+        // Fits the narrow column on a phone.
+        shortLabel: "formLabel.qty",
         xs: 5,
         md: 5,
         sector: "order",

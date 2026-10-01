@@ -68,6 +68,31 @@ editable under **Settings** and stored in `localStorage`. They drive the printed
 receipt, the GST applied to every bill and the low-stock warnings, so none of it
 is hard-coded.
 
+## Gujarati typing
+
+With the app in Gujarati, free-text fields type Gujarati from an ordinary
+keyboard: `ramesh` → રમેશ, `chaand` → ચાંદ, `shree` → શ્રી. Each such field
+shows an **અ / A** switch to type English instead — for a product sold under an
+English name — and the choice is remembered for every field.
+
+- The converter is [`src/utils/transliterate.js`](src/utils/transliterate.js):
+  rule-based and offline, so it needs no network and names never leave the
+  device. Capital **T D N L Sh** give ટ ડ ણ ળ ષ mid-word (`paTel` → પટેલ); long
+  vowels are typed doubled (`raam` → રામ). A word's first capital is ignored,
+  because phones capitalise it on their own.
+- Only free text converts: names, addresses, item names, shop name, receipt
+  footer and the search boxes. Phone numbers, GSTIN, prices and quantities never
+  do. A field opts in with `transliterate: true` in its description.
+- Search works across scripts: `pot` typed as પોત still finds **Potato**,
+  because both sides go through the same converter (`textMatches`).
+- [`attachTransliteration.js`](src/utils/attachTransliteration.js) converts
+  each word live on desktop and iOS. Android keyboards compose a word before
+  committing it, so there the word converts when it is committed.
+
+What it is not: a dictionary-backed keyboard. Plain rules cannot tell ત from ટ
+in "patel"; Google's or Gboard's Gujarati keyboard can, and works here too if
+the phone is switched to it.
+
 ## PIN lock
 
 The till opens behind a 4-digit PIN. On first run it asks the shopkeeper to
