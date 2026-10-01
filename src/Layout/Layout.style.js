@@ -22,8 +22,7 @@ export const SidebarWrapper = MUIStyled(IMSStack)(({ theme }) => ({
   borderRight: `1px solid ${surface.border}`,
   width: SIDEBAR_WIDTH,
   height: "100%",
-  // Respect the notch on a phone in landscape.
-  paddingTop: "env(safe-area-inset-top)",
+  // The notch space is taken by the teal header band inside, not left white here.
   "@media print": { display: "none" },
   "& .MuiList-root": {
     padding: "4px 12px",

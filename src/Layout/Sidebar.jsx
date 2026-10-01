@@ -1,5 +1,5 @@
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import { Chip, Divider } from "@mui/material";
+import { Chip } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
@@ -16,7 +16,6 @@ import IMSTypography from "../shared/IMSTypography";
 import { surface } from "../shared/theme";
 import { useAlertCounts } from "../utils/NotificationsContext";
 import { useAuth } from "../utils/AuthContext";
-import useSettings from "../utils/useSettings";
 import { SidebarWrapper } from "./Layout.style";
 import NotificationBell from "./NotificationBell";
 import { itemsInGroup, navGroups } from "./navigation";
@@ -27,7 +26,6 @@ const baseLanguage = (tag) => (String(tag || "").startsWith("gu") ? "gu" : "en")
 const Sidebar = ({ onNavigate, showBell }) => {
   const location = useLocation();
   const { t } = useTranslation();
-  const { settings } = useSettings();
   const counts = useAlertCounts();
   const { lock } = useAuth();
   const [language, setLanguage] = useState(() => baseLanguage(i18n.language));
@@ -46,39 +44,36 @@ const Sidebar = ({ onNavigate, showBell }) => {
 
   return (
     <SidebarWrapper>
-      {/* Workspace header: shop identity rather than a generic logo block. */}
+      {/* A teal band, the same teal the logo sits on, across the full width.
+          It also takes the notch space on phones, so the teal reaches the top. */}
       <IMSStack
         direction="row"
         alignItems="center"
         spacing={1.25}
-        sx={{ px: 2, py: 2 }}
+        sx={{
+          px: 2,
+          pb: 1.75,
+          pt: "calc(14px + env(safe-area-inset-top))",
+          bgcolor: "primary.main",
+          // The bell sits on teal here, so it is white.
+          "& .MuiIconButton-root": { color: "white.main" },
+        }}
       >
         <IMSBox
           sx={{
-            width: 38,
-            height: 38,
-            borderRadius: 2,
-            bgcolor: "primary.main",
             display: "grid",
             placeItems: "center",
             flexShrink: 0,
-            "& svg": { width: 26, height: 26 },
+            // Sized to the logo's own 2.7:1 shape so the wordmark reads.
+            "& svg": { width: 120, height: 44, display: "block" },
           }}
         >
           <Logo />
         </IMSBox>
-        <IMSStack sx={{ minWidth: 0, flex: 1 }}>
-          <IMSTypography fontWeight={700} noWrap lineHeight={1.2}>
-            {settings.shopName}
-          </IMSTypography>
-          <IMSTypography variant="caption" color="natural.main" noWrap>
-            {t("description.appTagline")}
-          </IMSTypography>
-        </IMSStack>
+        <IMSBox sx={{ flex: 1 }} />
         {/* On desktop there is no top bar, so the bell lives here. */}
         {showBell && <NotificationBell />}
       </IMSStack>
-      <Divider />
 
       <IMSBox sx={{ overflowY: "auto", flex: 1, py: 1 }}>
         {navGroups.map((group) => (
