@@ -10,10 +10,11 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import DashboardContainer from "../../container/dashboard.container";
+import { fullPageHeight } from "../../shared/FullHeightPage";
 import IMSAutoComplete from "../../shared/IMSAutoComplete";
 import IMSBox from "../../shared/IMSBox";
 import IMSButton from "../../shared/IMSButton";
@@ -29,7 +30,6 @@ import IMSTextField from "../../shared/IMSTextField";
 import IMSTypography from "../../shared/IMSTypography";
 import { BOTTOM_NAV_HEIGHT, surface } from "../../shared/theme";
 import { formatMoney, num } from "../../utils/billing";
-import { fullPageHeight } from "../../shared/FullHeightPage";
 import AddCustomer from "./addCustomer";
 import AddProduct from "./addProduct";
 import { Print } from "./print";
@@ -415,7 +415,7 @@ const Dashboard = () => {
 
     /** Everything that lives in the Bill Details sheet rather than on screen. */
     const sheetCustomer = (group.customer || []).filter(
-      (field) => field.name !== "vendorName"
+      (field) => field.name !== "vendorName",
     );
     const sheetFields = [
       ...(group.invoice || []),

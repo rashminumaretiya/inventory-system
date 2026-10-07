@@ -1,5 +1,4 @@
 import { Divider } from "@mui/material";
-import React from "react";
 
 import IMSGrid from "./IMSGrid";
 import IMSStack from "./IMSStack";

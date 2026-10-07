@@ -18,7 +18,7 @@ import {
   useTheme,
 } from "@mui/material";
 import dayjs from "dayjs";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -184,11 +184,7 @@ const NotificationBell = () => {
                   >
                     <CloseIcon sx={{ fontSize: 16 }} />
                   </IconButton>
-                  <IMSTypography
-                    variant="caption"
-                    color="natural.main"
-                    noWrap
-                  >
+                  <IMSTypography variant="caption" color="natural.main" noWrap>
                     {ageLabel(notification.at, t)}
                   </IMSTypography>
                 </IMSStack>

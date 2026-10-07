@@ -1,5 +1,4 @@
 import { Autocomplete } from "@mui/material";
-import React from "react";
 import IMSTextField from "./IMSTextField";
 import IMSTypography from "./IMSTypography";
 import { useTranslation } from "react-i18next";

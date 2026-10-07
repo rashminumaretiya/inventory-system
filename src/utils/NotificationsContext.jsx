@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from "react";
+import { createContext, useContext } from "react";
 import useNotifications from "./useNotifications";
 
 const NotificationsContext = createContext(null);
@@ -39,7 +39,7 @@ export const useAlertCounts = () => {
       else counts.product += 1;
       return counts;
     },
-    { orders: 0, product: 0 }
+    { orders: 0, product: 0 },
   );
 };
 

@@ -11,6 +11,11 @@ npm install
 npm start           # http://localhost:3000
 ```
 
+The dev server listens on this computer only (`HOST=localhost` in
+`.env.development`). To try it from a phone on the same Wi-Fi, run
+`HOST=0.0.0.0 npm start` on a network you trust and open the "On Your Network"
+address it prints.
+
 By default the app talks to the hosted JSON API. To work against the bundled
 local server instead, create `.env.local`:
 

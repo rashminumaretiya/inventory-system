@@ -1,5 +1,3 @@
-import React from "react";
-
 import IMSBox from "./IMSBox";
 import { DESKTOP_PAGE_GUTTER } from "./theme";
 

@@ -1,6 +1,5 @@
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { BottomNavigation, BottomNavigationAction, Paper } from "@mui/material";
-import React from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 

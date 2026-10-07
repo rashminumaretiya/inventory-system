@@ -1,5 +1,4 @@
 import { CircularProgress } from "@mui/material";
-import React from "react";
 
 import StockInContainer from "../../container/stockIn.container";
 import IMSButton from "../../shared/IMSButton";
@@ -106,7 +105,11 @@ const StockIn = ({ product, onSaved }) => {
           {saving && <CircularProgress size={16} sx={{ ml: 1 }} />}
         </IMSButton>
       </IMSStack>
-      <IMSTypography variant="caption" color="natural.main" sx={{ mt: 1, display: "block" }}>
+      <IMSTypography
+        variant="caption"
+        color="natural.main"
+        sx={{ mt: 1, display: "block" }}
+      >
         {t("description.stockInNote")}
       </IMSTypography>
     </IMSForm>

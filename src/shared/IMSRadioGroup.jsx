@@ -5,7 +5,6 @@ import {
   Radio,
   RadioGroup,
 } from "@mui/material";
-import React from "react";
 import IMSFormLabel from "./IMSFormLabel";
 
 /**

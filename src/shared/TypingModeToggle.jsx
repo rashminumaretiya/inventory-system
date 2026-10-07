@@ -1,5 +1,4 @@
 import { ButtonBase, InputAdornment, Tooltip } from "@mui/material";
-import React from "react";
 import { useTranslation } from "react-i18next";
 
 import { useTypingMode } from "../utils/typingMode";
@@ -19,7 +18,9 @@ const TypingModeToggle = ({ position = "end" }) => {
       {/* describeChild: the tooltip describes the state; the button keeps its own name. */}
       <Tooltip
         describeChild
-        title={t(gujaratiTyping ? "typing.switchToEnglish" : "typing.switchToGujarati")}
+        title={t(
+          gujaratiTyping ? "typing.switchToEnglish" : "typing.switchToGujarati",
+        )}
       >
         <ButtonBase
           // Keep focus in the field, so typing carries on after the switch.

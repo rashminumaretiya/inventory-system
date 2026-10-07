@@ -1,5 +1,4 @@
 import { CircularProgress, Divider } from "@mui/material";
-import React from "react";
 
 import CollectPaymentContainer from "../../container/collectPayment.container";
 import IMSButton from "../../shared/IMSButton";
@@ -53,7 +52,9 @@ const CollectPayment = ({ customerName, orders, onSaved }) => {
         <IMSStack>
           <IMSTypography fontWeight={600}>{customerName}</IMSTypography>
           <IMSTypography variant="body2" color="text.secondary">
-            {t("description.billCount", { count: preview.allocations.length || orders.length })}
+            {t("description.billCount", {
+              count: preview.allocations.length || orders.length,
+            })}
           </IMSTypography>
         </IMSStack>
         <IMSStack alignItems="flex-end">
@@ -120,7 +121,9 @@ const CollectPayment = ({ customerName, orders, onSaved }) => {
                 </IMSTypography>
                 <IMSTypography
                   variant="caption"
-                  color={changes.balanceDue > 0 ? "warning.main" : "success.main"}
+                  color={
+                    changes.balanceDue > 0 ? "warning.main" : "success.main"
+                  }
                 >
                   {changes.balanceDue > 0
                     ? t("description.stillDue", {

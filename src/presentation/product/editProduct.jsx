@@ -1,4 +1,3 @@
-import React from "react";
 import { CircularProgress } from "@mui/material";
 
 import EditProductContainer from "../../container/editProduct.container";

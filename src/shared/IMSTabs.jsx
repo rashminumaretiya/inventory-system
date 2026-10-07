@@ -1,5 +1,4 @@
 import { Tab, Tabs } from "@mui/material";
-import React from "react";
 
 import { surface } from "./theme";
 

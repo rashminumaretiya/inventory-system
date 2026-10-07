@@ -1,5 +1,5 @@
 import { Drawer, useMediaQuery, useTheme } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
 import IMSBox from "../shared/IMSBox";

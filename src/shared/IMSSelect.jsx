@@ -1,5 +1,5 @@
 import { FormControl, Select } from "@mui/material";
-import React, { useId } from "react";
+import { useId } from "react";
 import IMSFormLabel from "./IMSFormLabel";
 import { MUIStyled } from "./MUIStyled";
 import IMSMenuItem from "./IMSMenuItem";
