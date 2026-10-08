@@ -23,7 +23,14 @@ import validation from "../../utils/validation";
 /** Which settings field belongs on which tab. */
 const TAB_FIELDS = {
   shop: ["shopName", "shopPhone", "shopGSTIN", "shopAddress"],
-  billing: ["invoicePrefix", "gstRate", "lowStockThreshold", "receiptFooter"],
+  billing: [
+    "invoicePrefix",
+    "gstRate",
+    "lowStockThreshold",
+    "billPaper",
+    "billLanguage",
+    "receiptFooter",
+  ],
   security: ["autoLockMinutes"],
 };
 
@@ -114,11 +121,22 @@ const Settings = () => {
     updateSettings({ [name]: checked });
   };
 
+  /** Select options may carry a `labelKey`; they are shown translated. */
+  const translated = (field) =>
+    field.menu
+      ? {
+          ...field,
+          menu: field.menu.map((item) =>
+            item.labelKey ? { ...item, label: t(item.labelKey) } : item
+          ),
+        }
+      : field;
+
   const fieldGroup = (names) => (
     <IMSFormFields
       onChange={handleChange}
       error={error}
-      fields={fieldsFor(names)}
+      fields={fieldsFor(names).map(translated)}
       value={formData}
     />
   );
@@ -174,6 +192,12 @@ const Settings = () => {
               description={t("description.lowStockHelp")}
             >
               {fieldGroup(["lowStockThreshold"])}
+            </SettingsSection>
+            <SettingsSection
+              title={t("description.printedBill")}
+              description={t("description.printedBillHelp")}
+            >
+              {fieldGroup(["billPaper", "billLanguage"])}
             </SettingsSection>
             <SettingsSection
               title={t("formLabel.receiptFooter")}

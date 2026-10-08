@@ -22,7 +22,7 @@ jest.mock("../print", () => ({
 }));
 
 const products = [
-  { id: "p-potato", itemName: "Potato", price: "11", stock: "9.000", quantityCategory: "Kg" },
+  { id: "p-potato", itemName: "Potato", price: "11", stock: "9.000", quantityCategory: "Kg", hsn: "0701" },
   { id: "p-waffer", itemName: "Waffer", price: "10", stock: "120.000", quantityCategory: "Pcs." },
   // Stored as a legacy "Grams" product, whose stock is really 1.86 Kg.
   { id: "p-chilli", itemName: "Chilli", price: "20", stock: "1.860", quantityCategory: "Grams" },
@@ -371,6 +371,21 @@ describe("saving", () => {
     await waitFor(() => expect(patched).toHaveLength(1));
     expect(patched[0].url).toBe("/product/p-chilli");
     expect(patched[0].payload.stock).toBe("1.360");
+  });
+
+  it("keeps each item's HSN code on the saved line, for the tax invoice", async () => {
+    renderDashboard();
+    await ready();
+
+    await addLine("Potato", 2);
+    await addLine("Waffer", 1, "Pcs.");
+    await pickOption(/customer name/i, "Jay");
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+
+    await waitFor(() => expect(posted).toHaveLength(1));
+    const [potato, waffer] = posted[0].payload.order;
+    expect(potato).toMatchObject({ itemName: "Potato", hsn: "0701" });
+    expect(waffer).toMatchObject({ itemName: "Waffer", hsn: "" });
   });
 
   it("clears the bill after a successful save", async () => {

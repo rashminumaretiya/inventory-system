@@ -250,6 +250,8 @@ const DashboardContainer = ({ onSaved } = {}) => {
           itemName: chosen.itemName,
           price: chosen.price,
           costPrice: chosen.costPrice ?? "",
+          // For the HSN column of the printed tax invoice.
+          hsn: chosen.hsn ?? "",
           quantityCategory: baseUnitOf(chosen.quantityCategory),
         });
         return;

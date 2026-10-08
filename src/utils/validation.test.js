@@ -72,3 +72,21 @@ describe("numeric patterns", () => {
     expect(run("positiveNumber", "abc")).toBe("errorMsg.validNumber");
   });
 });
+
+describe("hsnOptional", () => {
+  it("may be left empty", () => {
+    expect(run("hsnOptional", "")).toBeUndefined();
+    expect(run("hsnOptional", undefined)).toBeUndefined();
+    expect(run("hsnOptional", "  ")).toBeUndefined();
+  });
+  it("accepts 4 to 8 digits", () => {
+    expect(run("hsnOptional", "0803")).toBeUndefined();
+    expect(run("hsnOptional", "240220")).toBeUndefined();
+    expect(run("hsnOptional", "24022090")).toBeUndefined();
+  });
+  it("rejects anything else", () => {
+    expect(run("hsnOptional", "080")).toBe("errorMsg.validHSN");
+    expect(run("hsnOptional", "080311223")).toBe("errorMsg.validHSN");
+    expect(run("hsnOptional", "08A3")).toBe("errorMsg.validHSN");
+  });
+});

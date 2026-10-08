@@ -5,8 +5,17 @@ export const productFields = [
     transliterate: true,
     type: "text",
     label: "description.item_name",
-    md: 12,
+    md: 8,
     pattern: "notEmpty",
+  },
+  {
+    // Optional; printed in the HSN column of the tax invoice when present.
+    name: "hsn",
+    type: "text",
+    label: "formLabel.hsn",
+    md: 4,
+    pattern: "hsnOptional",
+    inputProps: { inputMode: "numeric", maxLength: 8 },
   },
   {
     // Selling price, per Kg for weight items or per piece for counted ones.

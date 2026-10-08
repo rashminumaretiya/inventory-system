@@ -254,6 +254,26 @@ describe("Settings screen", () => {
     });
   });
 
+  it("chooses the printed bill's paper size and language", async () => {
+    mount(<Settings />);
+    openTab(/billing/i);
+
+    const paper = screen.getByRole("combobox", { name: /bill paper size/i });
+    expect(paper).toHaveTextContent("A4 — bill book");
+    fireEvent.mouseDown(paper);
+    fireEvent.click(await screen.findByRole("option", { name: "A5 — small bill book" }));
+
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: /bill language/i }));
+    fireEvent.click(await screen.findByRole("option", { name: "English" }));
+
+    fireEvent.click(screen.getByRole("button", { name: /^Save$/ }));
+    await waitFor(() => {
+      const stored = JSON.parse(localStorage.getItem("shopSettings"));
+      expect(stored.billPaper).toBe("A5");
+      expect(stored.billLanguage).toBe("en");
+    });
+  });
+
   it("rejects a GST rate above 100", async () => {
     mount(<Settings />);
     openTab(/billing/i);

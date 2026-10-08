@@ -70,6 +70,12 @@ const validation = (pattern, value, label, t) => {
       return t("errorMsg.validHour");
   };
 
+  /** HSN codes are 4, 6 or 8 digits; any length in between is accepted. */
+  const hsnOptional = () => {
+    if (isBlank(value) || String(value).trim() === "") return;
+    if (!/^\d{4,8}$/.test(String(value).trim())) return t("errorMsg.validHSN");
+  };
+
   switch (pattern) {
     case "notEmpty":
       return notEmpty();
@@ -89,6 +95,8 @@ const validation = (pattern, value, label, t) => {
       return percent();
     case "hour":
       return hour();
+    case "hsnOptional":
+      return hsnOptional();
     default:
       return "";
   }

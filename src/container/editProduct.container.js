@@ -69,6 +69,7 @@ const EditProductContainer = ({ editData, onSaved } = {}) => {
       quantityCategory: baseUnitOf(formData.quantityCategory),
       stock: formatStock(formData.stock),
       lowStockAt: formData.lowStockAt ? String(num(formData.lowStockAt)) : "",
+      hsn: String(formData.hsn ?? "").trim(),
     };
 
     setSaving(true);

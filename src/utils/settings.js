@@ -22,6 +22,10 @@ export const defaultSettings = {
   notifyLowStock: true,
   /** Minutes of inactivity before the till locks itself; 0 means never. */
   autoLockMinutes: 10,
+  /** "A4" or "A5" print a bill-book tax invoice; "thermal" an 80 mm receipt. */
+  billPaper: "A4",
+  /** The printed bill's language, which can differ from the app's. */
+  billLanguage: "gu",
 };
 
 export const getSettings = () => {
@@ -131,5 +135,30 @@ export const settingsFields = [
     xs: 6,
     md: 6,
     pattern: "hour",
+  },
+  {
+    name: "billPaper",
+    type: "select",
+    label: "formLabel.billPaper",
+    xs: 12,
+    md: 6,
+    // labelKey: translated by the settings screen.
+    menu: [
+      { value: "A4", labelKey: "invoice.paperA4" },
+      { value: "A5", labelKey: "invoice.paperA5" },
+      { value: "thermal", labelKey: "invoice.paperThermal" },
+    ],
+  },
+  {
+    name: "billLanguage",
+    type: "select",
+    label: "formLabel.billLanguage",
+    xs: 12,
+    md: 6,
+    // Each language named in its own script, whatever the app's language.
+    menu: [
+      { value: "gu", label: "ગુજરાતી" },
+      { value: "en", label: "English" },
+    ],
   },
 ];

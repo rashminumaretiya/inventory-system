@@ -73,7 +73,9 @@
     "cartEmptyHint": "ઉપર વસ્તુ શોધો અને એડ કરો",
     "fixHighlighted": "આ બિલ સેવ કરવા માટે લાલ દર્શાવેલી વિગતો સુધારો.",
     "due": "બાકી",
-    "withDues": "બાકીવાળા {{count}} · {{amount}}"
+    "withDues": "બાકીવાળા {{count}} · {{amount}}",
+    "printedBill": "છાપેલું બિલ",
+    "printedBillHelp": "A4 કે A5 બિલ બુક જેવું પૂરું ટેક્સ ઇન્વોઇસ છાપે છે. થર્મલ સાંકડી રસીદ છાપે છે. બિલની ભાષા એપથી અલગ રાખી શકાય છે."
   },
   "menu": {
     "dashboard": "બિલિંગ",
@@ -136,7 +138,10 @@
     "costPriceOptional": "ખરીદ ભાવ (વૈકલ્પિક)",
     "amountReceived": "મળેલી રકમ",
     "autoLockMinutes": "ઓટો લોક (મિનિટ)",
-    "qty": "જથ્થો"
+    "qty": "જથ્થો",
+    "hsn": "HSN કોડ",
+    "billPaper": "બિલ પેપર સાઇઝ",
+    "billLanguage": "બિલની ભાષા"
   },
   "errorMsg": {
     "pleaseEnter": "{{field}} નાખો",
@@ -151,7 +156,8 @@
     "unknownItem": "લિસ્ટમાંથી આઇટમ પસંદ કરો, અથવા પહેલા ઉમેરો",
     "stockShort": "સ્ટોકમાં ફક્ત {{stock}} {{unit}} બાકી છે",
     "stockShortNamed": "{{item}}: સ્ટોકમાં ફક્ત {{stock}} {{unit}} બાકી છે",
-    "moreThanOwed": "બાકી રકમ {{owed}} કરતાં આ વધારે છે"
+    "moreThanOwed": "બાકી રકમ {{owed}} કરતાં આ વધારે છે",
+    "validHSN": "HSN કોડ 4 થી 8 અંકનો હોય છે"
   },
   "toast": {
     "loadFailed": "ડેટા લોડ થઈ શક્યો નથી. કનેક્શન ચેક કરો.",
@@ -305,5 +311,51 @@
     "paidInFull": "પૂરું ચૂકવાયું",
     "edit": "બિલ સુધારો",
     "close": "બંધ કરો"
+  },
+  "invoice": {
+    "taxTitle": "ટેક્સ ઇન્વોઇસ",
+    "title": "બિલ",
+    "gstin": "GSTIN",
+    "mobile": "મો.",
+    "stateCode": "સ્ટેટ કોડ",
+    "billedTo": "નામ અને સરનામું",
+    "invoiceNo": "બિલ નં.",
+    "date": "તારીખ",
+    "time": "સમય",
+    "payment": "પેમેન્ટ",
+    "paymentCash": "રોકડ",
+    "paymentOnline": "ઓનલાઇન",
+    "paymentPending": "બાકી",
+    "sNo": "ક્રમ",
+    "description": "વસ્તુની વિગત",
+    "qty": "જથ્થો",
+    "hsn": "HSN",
+    "rate": "ભાવ",
+    "amount": "રકમ",
+    "total": "કુલ",
+    "discount": "ડિસ્કાઉન્ટ",
+    "taxable": "કરપાત્ર રકમ",
+    "cgst": "CGST @ {{rate}}%",
+    "sgst": "SGST @ {{rate}}%",
+    "igst": "IGST @ {{rate}}%",
+    "gst": "જી.એસ.ટી. ({{rate}}%)",
+    "grandTotal": "કુલ રકમ",
+    "paid": "ચૂકવેલ",
+    "change": "પરત",
+    "balance": "બાકી રકમ",
+    "amountInWords": "અંકે રકમ",
+    "itemCount": "કુલ વસ્તુઓ: {{count}}",
+    "declaration": "અમે જાહેર કરીએ છીએ કે આ બિલમાં દર્શાવેલ માલની કિંમત સાચી છે અને તમામ વિગતો સાચી અને યોગ્ય છે.",
+    "customerSign": "ગ્રાહકની સહી",
+    "forShop": "{{shop}} વતી",
+    "signatory": "અધિકૃત સહી",
+    "customer": "ગ્રાહક",
+    "phone": "ફોન",
+    "address": "સરનામું",
+    "paperA4": "A4 — બિલ બુક",
+    "paperA5": "A5 — નાની બિલ બુક",
+    "paperThermal": "થર્મલ રસીદ (80 mm)",
+    "item": "વસ્તુ",
+    "subtotal": "સબટોટલ"
   }
 }

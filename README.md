@@ -1,7 +1,8 @@
 # Inventory & Billing System
 
 A single-till billing and stock system for a small store: ring up a bill, print
-a thermal receipt, track stock, keep customers, and see daily/monthly sales.
+a bill-book style tax invoice (or a thermal receipt), track stock, keep
+customers, and see daily/monthly sales.
 React + MUI on the front, a JSON API behind it, English and Gujarati throughout.
 
 ## Running it
@@ -68,10 +69,46 @@ total      = taxable + GST
 ## Shop settings
 
 Shop name, address, phone, GSTIN, invoice prefix, GST rate, low-stock threshold,
-receipt footer, which notifications appear and the daily backup hour are all
-editable under **Settings** and stored in `localStorage`. They drive the printed
-receipt, the GST applied to every bill and the low-stock warnings, so none of it
-is hard-coded.
+the printed bill's paper size and language, receipt footer, which notifications
+appear and the daily backup hour are all editable under **Settings** and stored
+in `localStorage`. They drive the printed bill, the GST applied to every bill
+and the low-stock warnings, so none of it is hard-coded.
+
+## Printed bill
+
+**Settings → Billing → Printed bill** chooses the paper and the language. The
+language can differ from the app's, because the bill is for the customer.
+
+- **A4 (default) or A5** — a tax invoice laid out like an Indian bill book:
+  - GSTIN, *TAX INVOICE* and the mobile number across the top
+  - the shop name large in red, with its address and GST state code
+  - the customer (name, mobile, address, GSTIN, state code) beside the bill
+    number, date, time and payment
+  - a tall ruled table: S.No., description, quantity, HSN, rate, amount
+  - the total in words, totals with CGST + SGST — or IGST when the
+    customer's GSTIN is from another state — and the balance still due
+  - the declaration, the customer's signature and "For *shop*" with the
+    authorised signatory
+- **Thermal (80 mm)** — the narrow till receipt, for a thermal printer.
+
+Details:
+
+- A bill without GST is titled *INVOICE*, and the HSN column only appears when
+  an item has an HSN code. Products take an optional **HSN Code** (4–8 digits),
+  which is copied onto each bill line.
+- The items table grows to fill the page exactly. Printing first lays the bill
+  out with pdfmake, then picks the most blank rows that still fit on the pages
+  the bill needs anyway, so a short bill looks like a bill book page and never
+  spills onto a second sheet.
+- The rules (state code from the GSTIN, the GST split, the amount in Indian
+  words in English or Gujarati) are in [`invoice.js`](src/utils/invoice.js);
+  the layout is plain data in [`invoiceDoc.js`](src/utils/invoiceDoc.js), so
+  both are tested without rendering a PDF.
+- The font engine pdfmake uses crashes on a few Gujarati mark sequences: a
+  nasal on a stand-alone vowel (અંકિત, આંબાવાડી), or a sign typed after one
+  (અે for એ). The whole bill would then fail to print. `guardShaping` lays out
+  just those texts with mark positioning off. It was checked against every
+  vowel, consonant, sign and mark pairing.
 
 ## Gujarati typing
 
@@ -259,7 +296,8 @@ src/
   shared/         IMS* wrappers around MUI, plus layout primitives
   store/slice/    redux slices
   utils/          billing, payments, reporting, notifications, backup,
-                  settings, validation, quick search, WhatsApp
+                  settings, validation, quick search, WhatsApp, the printed
+                  bill (invoice rules and layout)
   i18n/locals/    en.json and gu.json (kept at matching keys)
 ```
 
@@ -275,13 +313,17 @@ how the billing form stacks on a phone without any per-screen media queries.
 npm test
 ```
 
-365 tests across 25 suites, among them:
+415 tests across 27 suites, among them:
 
 - `src/utils/*.test.js` — billing maths, payment allocation and dues,
   validation, reporting, notification rules, the backup schedule, Gujarati
   typing, the PIN, search ranking, and WhatsApp numbers and messages. The
   billing tests assert against the real rows in `database.json`, so a change
   that would reprice historical orders fails.
+- `src/utils/invoice.test.js` and `invoiceDoc.test.js` — the printed bill:
+  state codes, CGST/SGST against IGST, amounts in Indian words (English and
+  Gujarati), every block of the bill-book layout, filling the page, the thermal
+  receipt and the guard against the font engine's crash.
 - `src/presentation/dashboard/__tests__/billingFlow.test.jsx` — drives the real
   billing screen: add and merge lines, unit handling, stock limits, GST,
   discount, change, validation and save. `billingMobile.test.jsx` does the same
@@ -299,4 +341,4 @@ npm test
 - `src/__tests__/whatsappFlows.test.jsx` — sharing a bill, the dues column and
   filter, reminders from the Customers screen and from the bell.
 - `src/__tests__/screens.test.jsx` — product, customer, orders, reports and the
-  tabbed settings screen.
+  tabbed settings screen, including the printed bill's paper and language.

@@ -73,7 +73,9 @@
     "cartEmptyHint": "Search an item above and press Add New",
     "fixHighlighted": "Fix the highlighted fields to save this bill.",
     "due": "Due",
-    "withDues": "With dues {{count}} · {{amount}}"
+    "withDues": "With dues {{count}} · {{amount}}",
+    "printedBill": "Printed bill",
+    "printedBillHelp": "A4 or A5 prints a full tax invoice, like a bill book. Thermal prints a narrow till receipt. The bill can be in a different language from the app."
   },
   "menu": {
     "dashboard": "Billing",
@@ -136,7 +138,10 @@
     "costPriceOptional": "Cost Price (optional)",
     "amountReceived": "Amount Received",
     "autoLockMinutes": "Auto Lock (minutes)",
-    "qty": "Qty"
+    "qty": "Qty",
+    "hsn": "HSN Code",
+    "billPaper": "Bill paper size",
+    "billLanguage": "Bill language"
   },
   "errorMsg": {
     "pleaseEnter": "Please enter {{field}}",
@@ -151,7 +156,8 @@
     "unknownItem": "Pick an item from the list, or add it first",
     "stockShort": "Only {{stock}} {{unit}} left in stock",
     "stockShortNamed": "{{item}}: only {{stock}} {{unit}} left in stock",
-    "moreThanOwed": "That is more than the {{owed}} owed"
+    "moreThanOwed": "That is more than the {{owed}} owed",
+    "validHSN": "An HSN code is 4 to 8 digits"
   },
   "toast": {
     "loadFailed": "Could not load data. Check your connection.",
@@ -305,5 +311,51 @@
     "paidInFull": "Paid in full",
     "edit": "Edit bill",
     "close": "Close"
+  },
+  "invoice": {
+    "taxTitle": "TAX INVOICE",
+    "title": "INVOICE",
+    "gstin": "GSTIN",
+    "mobile": "Mo.",
+    "stateCode": "State Code",
+    "billedTo": "Name & Address",
+    "invoiceNo": "Invoice No.",
+    "date": "Date",
+    "time": "Time",
+    "payment": "Payment",
+    "paymentCash": "Cash",
+    "paymentOnline": "Online",
+    "paymentPending": "Pending",
+    "sNo": "S.No.",
+    "description": "Description of Goods",
+    "qty": "Qty",
+    "hsn": "HSN",
+    "rate": "Rate",
+    "amount": "Amount",
+    "total": "Total",
+    "discount": "Discount",
+    "taxable": "Taxable Amount",
+    "cgst": "CGST @ {{rate}}%",
+    "sgst": "SGST @ {{rate}}%",
+    "igst": "IGST @ {{rate}}%",
+    "gst": "GST ({{rate}}%)",
+    "grandTotal": "GRAND TOTAL",
+    "paid": "Paid",
+    "change": "Change",
+    "balance": "Balance Due",
+    "amountInWords": "Amount in words",
+    "itemCount": "Total items: {{count}}",
+    "declaration": "We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.",
+    "customerSign": "Customer's Sign.",
+    "forShop": "For {{shop}}",
+    "signatory": "Auth. Signatory",
+    "customer": "Customer",
+    "phone": "Phone",
+    "address": "Address",
+    "paperA4": "A4 — bill book",
+    "paperA5": "A5 — small bill book",
+    "paperThermal": "Thermal receipt (80 mm)",
+    "item": "Item",
+    "subtotal": "Subtotal"
   }
 }
