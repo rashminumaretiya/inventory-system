@@ -297,5 +297,13 @@
   },
   "today": {
     "toCollect": "ઉઘરાણી: {{amount}}"
+  },
+  "billView": {
+    "customer": "ગ્રાહક",
+    "items": "વસ્તુઓ ({{count}})",
+    "payments": "મળેલ પેમેન્ટ",
+    "paidInFull": "પૂરું ચૂકવાયું",
+    "edit": "બિલ સુધારો",
+    "close": "બંધ કરો"
   }
 }

@@ -297,5 +297,13 @@
   },
   "today": {
     "toCollect": "To collect: {{amount}}"
+  },
+  "billView": {
+    "customer": "Customer",
+    "items": "Items ({{count}})",
+    "payments": "Payments received",
+    "paidInFull": "Paid in full",
+    "edit": "Edit bill",
+    "close": "Close"
   }
 }

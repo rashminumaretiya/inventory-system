@@ -5,12 +5,9 @@ import {
 } from "@mui/icons-material";
 import CurrencyRupeeIcon from "@mui/icons-material/CurrencyRupee";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import {
   Chip,
-  Collapse,
   IconButton,
   Table,
   TableBody,
@@ -27,7 +24,7 @@ import {
   useTheme,
 } from "@mui/material";
 import dayjs from "dayjs";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -65,6 +62,7 @@ import {
   openWhatsApp,
 } from "../../utils/whatsapp";
 import CollectPayment from "./collectPayment";
+import OrderDetails, { paymentColor } from "./orderDetails";
 import { Print } from "../dashboard/print";
 
 export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
@@ -78,15 +76,6 @@ export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
   // Tuck the last row's line under the frame, so the bottom edge is not
   // drawn twice.
   "& .MuiTable-root": { marginBottom: -1 },
-  // The expand row under each order: no height and no line while closed.
-  "& .MuiTableBody-root .MuiTableCell-root.collapse-cell": {
-    paddingTop: 0,
-    paddingBottom: 0,
-    borderBottom: 0,
-  },
-  "& .MuiTableBody-root .MuiTableCell-root.collapse-cell.open": {
-    borderBottom: `1px solid ${theme.palette.divider}`,
-  },
   "& .MuiTableHead-root": {
     "& .MuiTableCell-root": {
       padding: "8px 10px",
@@ -98,14 +87,12 @@ export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
     },
   },
   "& .MuiTableBody-root": {
-    "& .MuiTableCell-root": {
-      padding: "8px 10px",
-      "& .MuiCollapse-wrapper": {
-        backgroundColor: "#f7f9f9",
-        "& .MuiTableHead-root": {
-          "& .MuiTableCell-root": { backgroundColor: "transparent" },
-        },
-      },
+    "& .MuiTableCell-root": { padding: "8px 10px" },
+    // A row opens its bill; show that it can, and which one is open.
+    "& .MuiTableRow-root": { cursor: "pointer" },
+    "& .MuiTableRow-root:focus-visible": {
+      outline: `2px solid ${theme.palette.primary.main}`,
+      outlineOffset: -2,
     },
   },
 }));
@@ -136,7 +123,10 @@ const Orders = () => {
   const { generateReceipt, downloadReceipt } = Print();
 
   const [orderList, setOrderList] = useState([]);
-  const [open, setOpen] = useState(null);
+  // The bill shown in the side drawer. The id outlives `detailsOpen`, so the
+  // drawer keeps its content while it slides shut.
+  const [selectedId, setSelectedId] = useState(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
   const [searchText, setSearchText] = useState("");
@@ -230,6 +220,8 @@ const Orders = () => {
 
       setOrderList((prev) => prev.filter((item) => item.id !== order.id));
       setConfirmDelete(null);
+      // Deleted from its own drawer: there is nothing left to show.
+      if (order.id === selectedId) setDetailsOpen(false);
       notifyDataChanged();
       toast.success(t("toast.orderDeletedStockRestored"));
     } catch {
@@ -300,12 +292,25 @@ const Orders = () => {
     [orderList]
   );
 
-  const paymentColor = (payment) =>
-    payment === "Pending"
-      ? "warning"
-      : payment === "Online"
-      ? "primary"
-      : "success";
+  /** Read from the list, so a payment collected meanwhile shows at once. */
+  const selectedOrder = orderList.find((order) => order.id === selectedId);
+
+  const openDetails = (order) => {
+    setSelectedId(order.id);
+    setDetailsOpen(true);
+  };
+
+  const shareOnWhatsApp = (order) =>
+    openWhatsApp(
+      order?.customerInfo?.vendorPhone,
+      billMessage(order, { t, settings }),
+    );
+
+  const startCollecting = (order) =>
+    setCollectFrom({
+      key: customerKeyOf(order),
+      name: order?.customerInfo?.vendorName || "",
+    });
 
   const pageRows = visibleOrders.slice(
     page * rowsPerPage,
@@ -327,12 +332,7 @@ const Orders = () => {
       {num(data?.balanceDue) > 0 && (
         <Tooltip title={t("buttonText.collect")}>
           <IconButton
-            onClick={() =>
-              setCollectFrom({
-                key: customerKeyOf(data),
-                name: data?.customerInfo?.vendorName || "",
-              })
-            }
+            onClick={() => startCollecting(data)}
             color="success"
             size="small"
           >
@@ -371,49 +371,12 @@ const Orders = () => {
         <IconButton
           size="small"
           sx={{ color: WHATSAPP_GREEN }}
-          onClick={() =>
-            openWhatsApp(
-              data?.customerInfo?.vendorPhone,
-              billMessage(data, { t, settings }),
-            )
-          }
+          onClick={() => shareOnWhatsApp(data)}
         >
           <WhatsAppIcon fontSize="small" />
         </IconButton>
       </Tooltip>
     </>
-  );
-
-  const lineItems = (data) => (
-    <IMSStack sx={{ mt: 1, pt: 1, borderTop: "1px dashed #e0e5e5" }}>
-      {data?.order?.map((item, index) => (
-        <IMSStack
-          key={`${item.id}-${index}`}
-          direction="row"
-          justifyContent="space-between"
-          sx={{ py: 0.25 }}
-        >
-          <IMSTypography variant="body2" sx={{ minWidth: 0 }} noWrap>
-            {item?.itemName}{" "}
-            <IMSTypography component="span" variant="body2" color="natural.main">
-              {item?.itemQuantity} {item?.quantityCategory}
-            </IMSTypography>
-          </IMSTypography>
-          <IMSTypography variant="body2" fontWeight={600}>
-            {settings.currencySymbol}
-            {formatMoney(item?.subtotal)}
-          </IMSTypography>
-        </IMSStack>
-      ))}
-      <IMSButton
-        size="small"
-        variant="outlined"
-        sx={{ mt: 1 }}
-        onClick={() => downloadReceipt(data)}
-      >
-        {t("buttonText.download")}
-      </IMSButton>
-    </IMSStack>
   );
 
   return (
@@ -494,7 +457,6 @@ const Orders = () => {
       ) : isMobile ? (
         <IMSStack>
           {pageRows.map((data) => {
-            const expanded = open === data.id;
             const balance = num(data?.balanceDue);
             return (
               <IMSRecordCard
@@ -528,12 +490,7 @@ const Orders = () => {
                     : []),
                 ]}
                 actions={rowActions(data)}
-                onClick={() => setOpen(expanded ? null : data.id)}
-                footer={
-                  <Collapse in={expanded} timeout="auto" unmountOnExit>
-                    {lineItems(data)}
-                  </Collapse>
-                }
+                onClick={() => openDetails(data)}
               />
             );
           })}
@@ -543,7 +500,6 @@ const Orders = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell />
                 <TableCell>
                   {sortLabel("invoiceNo", t("formLabel.invoiceNo"))}
                 </TableCell>
@@ -564,170 +520,77 @@ const Orders = () => {
             </TableHead>
             <TableBody>
               {pageRows.map((data) => {
-                const expanded = open === data.id;
                 const balance = num(data?.balanceDue);
                 return (
-                  <React.Fragment key={data.id}>
-                    <TableRow
-                      hover
-                      onClick={() => setOpen(expanded ? null : data.id)}
-                      sx={{ cursor: "pointer" }}
+                  <TableRow
+                    key={data.id}
+                    hover
+                    // Click, or Enter/Space from the keyboard, opens the bill.
+                    tabIndex={0}
+                    selected={detailsOpen && selectedId === data.id}
+                    onClick={() => openDetails(data)}
+                    onKeyDown={(event) => {
+                      if (event.target !== event.currentTarget) return;
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        openDetails(data);
+                      }
+                    }}
+                  >
+                    <TableCell>{data?.invoiceNo}</TableCell>
+                    <TableCell>
+                      {dayjs(data?.billingDate).format("DD/MM/YYYY")}
+                    </TableCell>
+                    {/* Phone under the name: one column fewer, so every
+                        action still fits on a 1366px laptop. */}
+                    <TableCell>
+                      {data?.customerInfo?.vendorName}
+                      {data?.customerInfo?.vendorPhone && (
+                        <IMSTypography
+                          variant="caption"
+                          color="natural.main"
+                          display="block"
+                        >
+                          {data.customerInfo.vendorPhone}
+                        </IMSTypography>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={data?.payment}
+                        size="small"
+                        sx={{ width: 80 }}
+                        color={paymentColor(data?.payment)}
+                      />
+                    </TableCell>
+                    <TableCell>{data?.GSTNumber || "N/A"}</TableCell>
+                    <TableCell align="right">
+                      {settings.currencySymbol}
+                      {formatMoney(data?.total)}
+                    </TableCell>
+                    <TableCell align="right">
+                      {balance > 0 ? (
+                        <IMSTypography
+                          component="span"
+                          color="error"
+                          fontWeight={600}
+                        >
+                          {settings.currencySymbol}
+                          {formatMoney(balance)}
+                        </IMSTypography>
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
+                    {/* The row's own buttons act; they do not open the drawer. */}
+                    <TableCell
+                      align="right"
+                      onClick={(event) => event.stopPropagation()}
+                      sx={{ whiteSpace: "nowrap" }}
                     >
-                      <TableCell>
-                        <IconButton aria-label="expand row" size="small">
-                          {expanded ? (
-                            <KeyboardArrowUpIcon />
-                          ) : (
-                            <KeyboardArrowDownIcon />
-                          )}
-                        </IconButton>
-                      </TableCell>
-                      <TableCell>{data?.invoiceNo}</TableCell>
-                      <TableCell>
-                        {dayjs(data?.billingDate).format("DD/MM/YYYY")}
-                      </TableCell>
-                      {/* Phone under the name: one column fewer, so every
-                          action still fits on a 1366px laptop. */}
-                      <TableCell>
-                        {data?.customerInfo?.vendorName}
-                        {data?.customerInfo?.vendorPhone && (
-                          <IMSTypography
-                            variant="caption"
-                            color="natural.main"
-                            display="block"
-                          >
-                            {data.customerInfo.vendorPhone}
-                          </IMSTypography>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={data?.payment}
-                          size="small"
-                          sx={{ width: 80 }}
-                          color={paymentColor(data?.payment)}
-                        />
-                      </TableCell>
-                      <TableCell>{data?.GSTNumber || "N/A"}</TableCell>
-                      <TableCell align="right">
-                        {settings.currencySymbol}
-                        {formatMoney(data?.total)}
-                      </TableCell>
-                      <TableCell align="right">
-                        {balance > 0 ? (
-                          <IMSTypography
-                            component="span"
-                            color="error"
-                            fontWeight={600}
-                          >
-                            {settings.currencySymbol}
-                            {formatMoney(balance)}
-                          </IMSTypography>
-                        ) : (
-                          "-"
-                        )}
-                      </TableCell>
-                      <TableCell
-                        align="right"
-                        onClick={(event) => event.stopPropagation()}
-                        sx={{ whiteSpace: "nowrap" }}
-                      >
-                        {rowActions(data)}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell
-                        colSpan={9}
-                        className={expanded ? "collapse-cell open" : "collapse-cell"}
-                      >
-                        <Collapse in={expanded} timeout="auto" unmountOnExit>
-                          <Table size="small">
-                            <TableHead>
-                              <TableRow>
-                                <TableCell>
-                                  {t("description.item_name")}
-                                </TableCell>
-                                <TableCell>
-                                  {t("description.item_qty")}
-                                </TableCell>
-                                <TableCell align="right">
-                                  {t("description.price")}
-                                </TableCell>
-                                <TableCell align="right">
-                                  {t("description.total")}
-                                </TableCell>
-                              </TableRow>
-                            </TableHead>
-                            <TableBody>
-                              {data?.order?.map((item, index) => (
-                                <TableRow key={`${item.id}-${index}`}>
-                                  <TableCell>{item?.itemName}</TableCell>
-                                  <TableCell>
-                                    {item?.itemQuantity}{" "}
-                                    <IMSTypography
-                                      color="natural.main"
-                                      variant="body2"
-                                      component="span"
-                                    >
-                                      {item?.quantityCategory}
-                                    </IMSTypography>
-                                  </TableCell>
-                                  <TableCell align="right">
-                                    {formatMoney(item?.price)}
-                                  </TableCell>
-                                  <TableCell align="right">
-                                    {formatMoney(item?.subtotal)}
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                          <IMSStack
-                            direction="row"
-                            spacing={3}
-                            flexWrap="wrap"
-                            justifyContent="flex-end"
-                            alignItems="center"
-                            sx={{ py: 1, pr: 1, rowGap: 1 }}
-                          >
-                            <IMSTypography variant="body2">
-                              {t("formLabel.subtotal")}:{" "}
-                              {settings.currencySymbol}
-                              {formatMoney(data?.subtotal)}
-                            </IMSTypography>
-                            {num(data?.discountAmount) > 0 && (
-                              <IMSTypography variant="body2">
-                                {t("formLabel.discountApplied")}: -
-                                {settings.currencySymbol}
-                                {formatMoney(data.discountAmount)}
-                              </IMSTypography>
-                            )}
-                            {num(data?.GSTAmount) > 0 && (
-                              <IMSTypography variant="body2">
-                                {t("formLabel.GSTAmount")}:{" "}
-                                {settings.currencySymbol}
-                                {formatMoney(data.GSTAmount)}
-                              </IMSTypography>
-                            )}
-                            {num(data?.amountPaid) > 0 && (
-                              <IMSTypography variant="body2">
-                                {t("formLabel.amountPay")}:{" "}
-                                {settings.currencySymbol}
-                                {formatMoney(data.amountPaid)}
-                              </IMSTypography>
-                            )}
-                            <IMSButton
-                              size="small"
-                              variant="outlined"
-                              onClick={() => downloadReceipt(data)}
-                            >
-                              {t("buttonText.download")}
-                            </IMSButton>
-                          </IMSStack>
-                        </Collapse>
-                      </TableCell>
-                    </TableRow>
-                  </React.Fragment>
+                      {rowActions(data)}
+                    </TableCell>
+                  </TableRow>
                 );
               })}
             </TableBody>
@@ -751,6 +614,18 @@ const Orders = () => {
           flexShrink: 0,
           "& .MuiTablePagination-toolbar": { flexWrap: "wrap", rowGap: 0.5 },
         }}
+      />
+
+      <OrderDetails
+        order={selectedOrder}
+        open={detailsOpen && Boolean(selectedOrder)}
+        onClose={() => setDetailsOpen(false)}
+        onCollect={() => startCollecting(selectedOrder)}
+        onPrint={() => generateReceipt(selectedOrder)}
+        onDownload={() => downloadReceipt(selectedOrder)}
+        onShare={() => shareOnWhatsApp(selectedOrder)}
+        onEdit={() => navigate(`/?order/${selectedOrder.id}`)}
+        onDelete={() => setConfirmDelete(selectedOrder)}
       />
 
       <IMSDialog

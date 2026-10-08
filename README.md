@@ -143,6 +143,13 @@ ever be set at billing time, so a pending-payment alert could never be cleared.
 Orders can be filtered to **unpaid only**, with the total still to collect shown
 on the filter itself.
 
+**One bill at a glance.** Clicking an order's row (Enter from the keyboard, or
+tapping its card on a phone) opens a drawer from the right with the whole bill:
+customer with a tap-to-call number, each line as "2 Kg × ₹11.00/Kg", the
+totals, payments collected later, and Collect / Print / Download / WhatsApp /
+Edit / Delete. It reads the live order, so a payment collected from the drawer
+shows as soon as it is saved ([`orderDetails.jsx`](src/presentation/orders/orderDetails.jsx)).
+
 **Receiving goods.** Stock previously only ever went *down*. **Products → Add
 Stock** takes the quantity that arrived (in Kg, Grams or Pcs.) and *adds* it to
 the shelf rather than replacing the figure, so nobody does the sum by hand. It
@@ -268,7 +275,7 @@ how the billing form stacks on a phone without any per-screen media queries.
 npm test
 ```
 
-355 tests across 24 suites, among them:
+365 tests across 25 suites, among them:
 
 - `src/utils/*.test.js` — billing maths, payment allocation and dues,
   validation, reporting, notification rules, the backup schedule, Gujarati
@@ -284,6 +291,9 @@ npm test
   toast.
 - `src/Layout/__tests__/` — the bell, the sidebar (icons, Today card), Quick
   Search (results, keys, actions, Gujarati) and its shortcut.
+- `src/presentation/orders/__tests__/orderDetails.test.jsx` — the bill drawer:
+  opening from a row, the keyboard or a phone card, what it shows, and its
+  actions (collect, print, download, share, edit, delete).
 - `src/__tests__/shopkeeperFlows.test.jsx` — receiving stock and collecting
   payment, including unit conversion and oldest-first allocation.
 - `src/__tests__/whatsappFlows.test.jsx` — sharing a bill, the dues column and

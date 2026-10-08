@@ -205,11 +205,12 @@ describe("Orders screen", () => {
     });
   });
 
-  it("expands a row to show its line items", async () => {
+  it("opens a bill's line items in a side drawer", async () => {
     mount(<Orders />);
     await screen.findByText("DT_1");
     fireEvent.click(screen.getByText("DT_1").closest("tr"));
-    expect(await screen.findByText("Potato")).toBeInTheDocument();
+    const drawer = await screen.findByRole("dialog", { name: /DT_1/ });
+    expect(within(drawer).getByText("Potato")).toBeInTheDocument();
   });
 });
 
