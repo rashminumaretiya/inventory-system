@@ -80,7 +80,7 @@ and the low-stock warnings, so none of it is hard-coded.
 language can differ from the app's, because the bill is for the customer.
 
 - **A4 (default) or A5** — a tax invoice laid out like an Indian bill book:
-  - GSTIN, *TAX INVOICE* and the mobile number across the top
+  - GSTIN, *TAX INVOICE* (GST bills only) and the mobile number across the top
   - the shop name large in red, with its address and GST state code
   - the customer (name, mobile, address, GSTIN, state code) beside the bill
     number, date, time and payment
@@ -93,9 +93,10 @@ language can differ from the app's, because the bill is for the customer.
 
 Details:
 
-- A bill without GST is titled *INVOICE*, and the HSN column only appears when
-  an item has an HSN code. Products take an optional **HSN Code** (4–8 digits),
-  which is copied onto each bill line.
+- Only a GST bill has a title, *TAX INVOICE*; a bill without GST starts with
+  the shop name. A top line or address line with nothing in it is left out.
+- The HSN column only appears when an item has an HSN code. Products take an
+  optional **HSN Code** (4–8 digits), which is copied onto each bill line.
 - The items table grows to fill the page exactly. Printing first lays the bill
   out with pdfmake, then picks the most blank rows that still fit on the pages
   the bill needs anyway, so a short bill looks like a bill book page and never

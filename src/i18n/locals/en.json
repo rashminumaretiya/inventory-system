@@ -314,7 +314,6 @@
   },
   "invoice": {
     "taxTitle": "TAX INVOICE",
-    "title": "INVOICE",
     "gstin": "GSTIN",
     "mobile": "Mo.",
     "stateCode": "State Code",

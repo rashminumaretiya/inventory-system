@@ -153,16 +153,30 @@ describe("bill-book tax invoice", () => {
     );
   });
 
-  it("is a plain invoice without GST, with no HSN column and no repeated total", () => {
+  it("has no title without GST, no HSN column and no repeated total", () => {
     const doc = build(cashBill);
     const all = texts(doc);
 
-    expect(all).toContain("INVOICE");
     expect(all).not.toContain("TAX INVOICE");
+    expect(all).not.toContain("INVOICE");
     expect(rowTexts(itemsTable(doc).body[0])).toEqual(["S.No.", "Description of Goods", "Qty", "Rate", "Amount"]);
     expect(all).not.toContain("Total");
     expect(all).toEqual(expect.arrayContaining(["GRAND TOTAL", "₹120.00", "Rupees One Hundred Twenty Only"]));
     expect(all).not.toContain("Balance Due");
+  });
+
+  it("leaves out the top line and the address line when they would be empty", () => {
+    const bare = { ...settings, shopGSTIN: "", shopPhone: "", shopAddress: "" };
+    const header = (doc) => doc.content[0].table.body;
+
+    // No GST, no GSTIN, no mobile: the box starts with the shop's name.
+    const plain = build(cashBill, bare);
+    expect(header(plain)).toHaveLength(1);
+    expect(header(plain)[0][0].stack).toHaveLength(1);
+    expect(texts(header(plain))).toEqual(["DEVANGI TOBACCO"]);
+
+    // A GST bill still says TAX INVOICE, even with nothing either side of it.
+    expect(texts(header(build(bill, bare))[0])).toContain("TAX INVOICE");
   });
 
   it("prints in Gujarati when the bill language is Gujarati", () => {

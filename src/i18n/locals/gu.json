@@ -314,7 +314,6 @@
   },
   "invoice": {
     "taxTitle": "ટેક્સ ઇન્વોઇસ",
-    "title": "બિલ",
     "gstin": "GSTIN",
     "mobile": "મો.",
     "stateCode": "સ્ટેટ કોડ",

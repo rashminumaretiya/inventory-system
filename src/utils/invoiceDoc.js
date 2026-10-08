@@ -159,42 +159,44 @@ const bookDoc = (bill, { settings, t, lang, blankRows }) => {
     paddingBottom: () => 1,
   };
 
-  // 1. GSTIN · title · mobile, then the shop's name and address.
+  // 1. GSTIN · title · mobile, then the shop's name and address. Only a GST
+  //    bill carries a title ("TAX INVOICE"); a strip or line with nothing to
+  //    say is left out rather than printed empty.
   const STATE_BOX = 74;
+  const title = f.gst > 0 ? t("invoice.taxTitle") : "";
+  const topStrip = (sellerGSTIN || title || settings.shopPhone) && [
+    {
+      columns: [
+        {
+          width: "*",
+          text: sellerGSTIN ? `${t("invoice.gstin")}: ${sellerGSTIN}` : "",
+          bold: true,
+          fontSize: P.small,
+        },
+        {
+          width: "auto",
+          text: title,
+          bold: true,
+          fontSize: P.title,
+          decoration: "underline",
+        },
+        {
+          width: "*",
+          text: settings.shopPhone
+            ? `${t("invoice.mobile")} ${settings.shopPhone}`
+            : "",
+          bold: true,
+          fontSize: P.small,
+          alignment: "right",
+        },
+      ],
+    },
+  ];
   const header = {
     table: {
       widths: ["*"],
       body: [
-        [
-          {
-            columns: [
-              {
-                width: "*",
-                text: sellerGSTIN
-                  ? `${t("invoice.gstin")}: ${sellerGSTIN}`
-                  : "",
-                bold: true,
-                fontSize: P.small,
-              },
-              {
-                width: "auto",
-                text: t(f.gst > 0 ? "invoice.taxTitle" : "invoice.title"),
-                bold: true,
-                fontSize: P.title,
-                decoration: "underline",
-              },
-              {
-                width: "*",
-                text: settings.shopPhone
-                  ? `${t("invoice.mobile")} ${settings.shopPhone}`
-                  : "",
-                bold: true,
-                fontSize: P.small,
-                alignment: "right",
-              },
-            ],
-          },
-        ],
+        topStrip,
         [
           {
             stack: [
@@ -205,7 +207,7 @@ const bookDoc = (bill, { settings, t, lang, blankRows }) => {
                 fontSize: P.name,
                 alignment: "center",
               },
-              {
+              (settings.shopAddress || sellerState) && {
                 // An empty column the width of the state box keeps the address centred.
                 columns: [
                   { width: STATE_BOX, text: "" },
@@ -246,10 +248,10 @@ const bookDoc = (bill, { settings, t, lang, blankRows }) => {
                 ],
                 margin: [0, 2, 0, 0],
               },
-            ],
+            ].filter(Boolean),
           },
         ],
-      ],
+      ].filter(Boolean),
     },
     layout: ruled(),
   };
