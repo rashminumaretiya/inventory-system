@@ -149,6 +149,34 @@ the shelf rather than replacing the figure, so nobody does the sum by hand. It
 previews the resulting stock and lets the buying price be corrected at the same
 time, since that is when it changes.
 
+**Who owes what.** The Customers screen shows each customer's dues next to
+their phone number, filters to **with dues** (count and total on the filter),
+and collects a payment or sends a WhatsApp reminder from the same row.
+
+## Working fast at the counter
+
+Everything here is one tap, or one key, from where the shopkeeper already is.
+
+- **Quick Search** — the search box at the top of the sidebar, the magnifier in
+  the phone's top bar, **Ctrl K** (⌘K on a Mac) or **/** from anywhere. One box
+  finds items (with stock and price), customers (with what they owe), bills (by
+  number, name or phone) and actions such as *Collect payments*, *Items running
+  low*, *Add a new item*, *Download a backup now* or *Lock the till*. Arrow keys
+  move, Enter opens. It types Gujarati like every other box, and finds an action
+  by its English name while the app is in Gujarati
+  ([`quickSearch.js`](src/utils/quickSearch.js)).
+- **Keys on the billing screen** — **F2** item, **F4** customer, **F9** save.
+  Quick Search lists them too.
+- **WhatsApp** — after Save, the "saved" toast offers *WhatsApp* (and print);
+  every bill on the Orders screen has a share button; a pending-payment alert in
+  the bell and a customer with dues each have *Remind on WhatsApp*. The message is
+  written in the app's language. It uses a `wa.me` link, so there is no API or
+  account: WhatsApp opens with the text ready and the shopkeeper presses Send
+  ([`whatsapp.js`](src/utils/whatsapp.js)). Ten-digit numbers are taken as Indian.
+- **Today card** — at the bottom of the sidebar: today's takings, the number of
+  bills, and everything still to collect. It reads the data the notification
+  poller already has, so it costs no extra request.
+
 ## Notifications
 
 The bell warns about the two things that cost a small shop money: unpaid bills
@@ -177,13 +205,15 @@ whenever a sale, edit, delete or import fires `notifyDataChanged()`.
 
 The same screens serve a desktop till and a phone:
 
-- **Desktop** — a permanent light sidebar carries the shop identity, grouped
-  navigation with live alert badges, and the bell. There is no top bar; each page
-  opens with its own title and description.
-- **Phone** — a top bar with menu and bell, the sidebar as a drawer, and a bottom
-  tab bar for Billing, Orders, Products and Reports. Wide tables become record
-  cards, dialogs go full screen, and the billing screen keeps Save within thumb
-  reach in a sticky bar above the tabs.
+- **Desktop** — a permanent light sidebar carries the logo, the bell, Quick
+  Search, grouped navigation with live alert badges and the Today card. Each menu
+  item has its own colour: an outlined icon on a soft tile, and a filled icon on a
+  solid tile for the current screen (see [`navigation.js`](src/Layout/navigation.js)).
+  There is no top bar; each page opens with its own title and description.
+- **Phone** — a top bar with menu, search and bell, the sidebar as a drawer, and
+  a bottom tab bar for Billing, Orders, Products and Reports, with the current tab
+  on a pill. Wide tables become record cards, dialogs go full screen, and the
+  billing screen keeps Save within thumb reach in a sticky bar above the tabs.
 
 Breakpoint-sensitive pieces live in the shared components — `PageHeader`,
 `PageToolbar`, `IMSRecordCard`, `SettingsSection` and `IMSTabs` — so a new screen
@@ -222,7 +252,7 @@ src/
   shared/         IMS* wrappers around MUI, plus layout primitives
   store/slice/    redux slices
   utils/          billing, payments, reporting, notifications, backup,
-                  settings, validation
+                  settings, validation, quick search, WhatsApp
   i18n/locals/    en.json and gu.json (kept at matching keys)
 ```
 
@@ -238,18 +268,25 @@ how the billing form stacks on a phone without any per-screen media queries.
 npm test
 ```
 
-176 tests across 10 suites:
+355 tests across 24 suites, among them:
 
-- `src/utils/*.test.js` — billing maths, payment allocation, validation,
-  reporting, notification rules and the backup schedule. The billing tests
-  assert against the real rows in `database.json`, so a change that would
-  reprice historical orders fails.
+- `src/utils/*.test.js` — billing maths, payment allocation and dues,
+  validation, reporting, notification rules, the backup schedule, Gujarati
+  typing, the PIN, search ranking, and WhatsApp numbers and messages. The
+  billing tests assert against the real rows in `database.json`, so a change
+  that would reprice historical orders fails.
 - `src/presentation/dashboard/__tests__/billingFlow.test.jsx` — drives the real
   billing screen: add and merge lines, unit handling, stock limits, GST,
-  discount, change, validation and save.
-- `src/Layout/__tests__/notificationBell.test.jsx` — badge count, panel contents,
-  dismissing, navigation and the settings switches.
+  discount, change, validation and save. `billingMobile.test.jsx` does the same
+  for the phone layout.
+- `src/presentation/dashboard/__tests__/billingShortcuts.test.jsx` — F2, F4
+  and F9 (including a double F9 saving once), and WhatsApp from the "saved"
+  toast.
+- `src/Layout/__tests__/` — the bell, the sidebar (icons, Today card), Quick
+  Search (results, keys, actions, Gujarati) and its shortcut.
 - `src/__tests__/shopkeeperFlows.test.jsx` — receiving stock and collecting
   payment, including unit conversion and oldest-first allocation.
+- `src/__tests__/whatsappFlows.test.jsx` — sharing a bill, the dues column and
+  filter, reminders from the Customers screen and from the bell.
 - `src/__tests__/screens.test.jsx` — product, customer, orders, reports and the
   tabbed settings screen.

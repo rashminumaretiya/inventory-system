@@ -100,6 +100,8 @@ export const buildNotifications = ({
           days: alert.days,
         },
         amount: alert.amount,
+        // For the bell's WhatsApp reminder.
+        phone: alert.phone,
         link: "/orders",
         search: alert.name,
         at: alert.oldestDate,

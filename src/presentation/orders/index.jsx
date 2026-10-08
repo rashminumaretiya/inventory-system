@@ -7,6 +7,7 @@ import CurrencyRupeeIcon from "@mui/icons-material/CurrencyRupee";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import {
   Chip,
   Collapse,
@@ -58,6 +59,11 @@ import {
   ordersForCustomer,
   totalOutstanding,
 } from "../../utils/payments";
+import {
+  WHATSAPP_GREEN,
+  billMessage,
+  openWhatsApp,
+} from "../../utils/whatsapp";
 import CollectPayment from "./collectPayment";
 import { Print } from "../dashboard/print";
 
@@ -142,9 +148,11 @@ const Orders = () => {
   const [unpaidOnly, setUnpaidOnly] = useState(false);
   const [importing, setImporting] = useState(false);
 
-  // Arriving from a pending-payment notification pre-fills the search.
+  // Arriving from a pending-payment notification pre-fills the search; Quick
+  // Search's "collect payments" opens on the unpaid bills.
   useEffect(() => {
     if (location.state?.search) setSearchText(location.state.search);
+    if (location.state?.unpaidOnly) setUnpaidOnly(true);
   }, [location.state]);
 
   const load = useCallback(async () => {
@@ -359,6 +367,20 @@ const Orders = () => {
           <PrintOutlined fontSize="small" />
         </IconButton>
       </Tooltip>
+      <Tooltip title={t("whatsapp.share")}>
+        <IconButton
+          size="small"
+          sx={{ color: WHATSAPP_GREEN }}
+          onClick={() =>
+            openWhatsApp(
+              data?.customerInfo?.vendorPhone,
+              billMessage(data, { t, settings }),
+            )
+          }
+        >
+          <WhatsAppIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
     </>
   );
 
@@ -529,7 +551,6 @@ const Orders = () => {
                   {sortLabel("billingDate", t("formLabel.invoiceDate"))}
                 </TableCell>
                 <TableCell>{t("formLabel.customerName")}</TableCell>
-                <TableCell>{t("formLabel.phoneNumber")}</TableCell>
                 <TableCell>
                   {sortLabel("payment", t("formLabel.payment"))}
                 </TableCell>
@@ -565,8 +586,20 @@ const Orders = () => {
                       <TableCell>
                         {dayjs(data?.billingDate).format("DD/MM/YYYY")}
                       </TableCell>
-                      <TableCell>{data?.customerInfo?.vendorName}</TableCell>
-                      <TableCell>{data?.customerInfo?.vendorPhone}</TableCell>
+                      {/* Phone under the name: one column fewer, so every
+                          action still fits on a 1366px laptop. */}
+                      <TableCell>
+                        {data?.customerInfo?.vendorName}
+                        {data?.customerInfo?.vendorPhone && (
+                          <IMSTypography
+                            variant="caption"
+                            color="natural.main"
+                            display="block"
+                          >
+                            {data.customerInfo.vendorPhone}
+                          </IMSTypography>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <Chip
                           label={data?.payment}
@@ -597,13 +630,14 @@ const Orders = () => {
                       <TableCell
                         align="right"
                         onClick={(event) => event.stopPropagation()}
+                        sx={{ whiteSpace: "nowrap" }}
                       >
                         {rowActions(data)}
                       </TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell
-                        colSpan={10}
+                        colSpan={9}
                         className={expanded ? "collapse-cell open" : "collapse-cell"}
                       >
                         <Collapse in={expanded} timeout="auto" unmountOnExit>

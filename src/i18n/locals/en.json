@@ -71,7 +71,9 @@
     "autoLockOff": "The till stays open until you lock it.",
     "cartEmpty": "No items in this bill yet",
     "cartEmptyHint": "Search an item above and press Add New",
-    "fixHighlighted": "Fix the highlighted fields to save this bill."
+    "fixHighlighted": "Fix the highlighted fields to save this bill.",
+    "due": "Due",
+    "withDues": "With dues {{count}} · {{amount}}"
   },
   "menu": {
     "dashboard": "Billing",
@@ -250,5 +252,50 @@
     "toggle": "Switch typing between Gujarati and English",
     "switchToEnglish": "Typing Gujarati — tap for English",
     "switchToGujarati": "Typing English — tap for Gujarati"
+  },
+  "search": {
+    "open": "Search",
+    "placeholder": "Search items, customers, bills or actions",
+    "actions": "Actions",
+    "items": "Items",
+    "customers": "Customers",
+    "bills": "Bills",
+    "noResults": "Nothing matches “{{query}}”",
+    "keysHint": "↑ ↓ move · Enter open · Esc close",
+    "shortcutsTitle": "Keyboard shortcuts",
+    "inStock": "{{stock}} {{unit}} in stock · {{price}}",
+    "due": "Due {{amount}}",
+    "billMeta": "{{name}} · {{date}} · {{total}}"
+  },
+  "action": {
+    "newBill": "New bill",
+    "collect": "Collect payments — unpaid bills",
+    "lowStock": "Items running low",
+    "addProduct": "Add a new item",
+    "addCustomer": "Add a new customer",
+    "reports": "Today's sales and reports",
+    "settings": "Shop settings",
+    "backupNow": "Download a backup now",
+    "language": "Switch to {{language}}",
+    "lock": "Lock the till"
+  },
+  "shortcut": {
+    "search": "Search anything",
+    "item": "Jump to item name",
+    "customer": "Jump to customer name",
+    "save": "Save the bill"
+  },
+  "whatsapp": {
+    "share": "Share on WhatsApp",
+    "send": "WhatsApp",
+    "remind": "Remind on WhatsApp",
+    "billHeading": "Bill {{invoice}} · {{date}}",
+    "customer": "Customer: {{name}}",
+    "reminder": "Namaste {{name}}, a gentle reminder from {{shop}}: {{amount}} is pending on {{count}} bill(s). Please pay when convenient. Thank you!",
+    "customerFallback": "ji",
+    "shopFallback": "our shop"
+  },
+  "today": {
+    "toCollect": "To collect: {{amount}}"
   }
 }

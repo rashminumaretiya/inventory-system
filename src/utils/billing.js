@@ -183,6 +183,18 @@ export const describeStock = (product) => {
 };
 
 /**
+ * "out", "low" or "ok". A product's own `lowStockAt` wins over the shop-wide
+ * threshold; a limit of 0 means "only warn when it runs out".
+ */
+export const stockStatus = (product, threshold) => {
+  const stock = productStockInBase(product);
+  const limit = product?.lowStockAt ? num(product.lowStockAt) : num(threshold);
+  if (stock <= 0) return "out";
+  if (limit > 0 && stock <= limit) return "low";
+  return "ok";
+};
+
+/**
  * Net stock movement needed to replace bill `before` with bill `after`,
  * as a Map of productId -> signed base-unit delta to ADD to stock.
  *

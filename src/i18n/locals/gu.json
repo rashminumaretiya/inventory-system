@@ -71,7 +71,9 @@
     "autoLockOff": "તમે જાતે લોક ન કરો ત્યાં સુધી ખુલ્લું રહેશે.",
     "cartEmpty": "આ બિલમાં હજુ કોઈ વસ્તુ નથી",
     "cartEmptyHint": "ઉપર વસ્તુ શોધો અને એડ કરો",
-    "fixHighlighted": "આ બિલ સેવ કરવા માટે લાલ દર્શાવેલી વિગતો સુધારો."
+    "fixHighlighted": "આ બિલ સેવ કરવા માટે લાલ દર્શાવેલી વિગતો સુધારો.",
+    "due": "બાકી",
+    "withDues": "બાકીવાળા {{count}} · {{amount}}"
   },
   "menu": {
     "dashboard": "બિલિંગ",
@@ -250,5 +252,50 @@
     "toggle": "ગુજરાતી અને અંગ્રેજી ટાઇપિંગ બદલો",
     "switchToEnglish": "ગુજરાતી ટાઇપ થાય છે — અંગ્રેજી માટે દબાવો",
     "switchToGujarati": "અંગ્રેજી ટાઇપ થાય છે — ગુજરાતી માટે દબાવો"
+  },
+  "search": {
+    "open": "શોધો",
+    "placeholder": "આઇટમ, ગ્રાહક, બિલ કે કામ શોધો",
+    "actions": "ઝડપી કામ",
+    "items": "આઇટમ",
+    "customers": "ગ્રાહકો",
+    "bills": "બિલ",
+    "noResults": "“{{query}}” સાથે કંઈ મળતું નથી",
+    "keysHint": "↑ ↓ ખસો · Enter ખોલો · Esc બંધ",
+    "shortcutsTitle": "કીબોર્ડ શોર્ટકટ",
+    "inStock": "સ્ટોકમાં {{stock}} {{unit}} · {{price}}",
+    "due": "બાકી {{amount}}",
+    "billMeta": "{{name}} · {{date}} · {{total}}"
+  },
+  "action": {
+    "newBill": "નવું બિલ",
+    "collect": "ઉઘરાણી — બાકી બિલ",
+    "lowStock": "ઘટતો સ્ટોક",
+    "addProduct": "નવી આઇટમ ઉમેરો",
+    "addCustomer": "નવો ગ્રાહક ઉમેરો",
+    "reports": "આજનું વેચાણ અને અહેવાલ",
+    "settings": "દુકાનની સેટિંગ્સ",
+    "backupNow": "હમણાં બેકઅપ ડાઉનલોડ કરો",
+    "language": "{{language}} માં બદલો",
+    "lock": "હમણાં લોક કરો"
+  },
+  "shortcut": {
+    "search": "કંઈ પણ શોધો",
+    "item": "આઇટમના નામ પર જાઓ",
+    "customer": "ગ્રાહકના નામ પર જાઓ",
+    "save": "બિલ સાચવો"
+  },
+  "whatsapp": {
+    "share": "વોટ્સએપ પર મોકલો",
+    "send": "વોટ્સએપ",
+    "remind": "વોટ્સએપ પર યાદ અપાવો",
+    "billHeading": "બિલ {{invoice}} · {{date}}",
+    "customer": "ગ્રાહક: {{name}}",
+    "reminder": "નમસ્તે {{name}}, {{shop}} તરફથી નમ્ર યાદ: {{count}} બિલના {{amount}} બાકી છે. અનુકૂળતાએ ચૂકવી આપશો. આભાર!",
+    "customerFallback": "જી",
+    "shopFallback": "અમારી દુકાન"
+  },
+  "today": {
+    "toCollect": "ઉઘરાણી: {{amount}}"
   }
 }

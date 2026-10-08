@@ -24,6 +24,8 @@ const EMPTY = {
   markAllRead: () => {},
   dismiss: () => {},
   dismissAll: () => {},
+  orders: [],
+  products: [],
 };
 
 /** Falls back to an inert value so components render outside the provider. */

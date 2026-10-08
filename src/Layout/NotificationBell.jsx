@@ -4,6 +4,7 @@ import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import {
   Badge,
   Divider,
@@ -28,6 +29,11 @@ import IMSTypography from "../shared/IMSTypography";
 import { formatMoney, formatQuantity } from "../utils/billing";
 import { useNotificationsContext } from "../utils/NotificationsContext";
 import useSettings from "../utils/useSettings";
+import {
+  WHATSAPP_GREEN,
+  openWhatsApp,
+  reminderMessage,
+} from "../utils/whatsapp";
 
 const ICON = {
   pending: ReceiptLongOutlinedIcon,
@@ -174,16 +180,42 @@ const NotificationBell = () => {
                   secondaryTypographyProps={{ variant: "body2" }}
                 />
                 <IMSStack alignItems="flex-end" sx={{ ml: 1, flexShrink: 0 }}>
-                  <IconButton
-                    size="small"
-                    aria-label={t("notifications.dismiss")}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      dismiss(notification);
-                    }}
-                  >
-                    <CloseIcon sx={{ fontSize: 16 }} />
-                  </IconButton>
+                  <IMSStack direction="row">
+                    {/* Someone owes money: one tap drafts the reminder. */}
+                    {notification.type === "pending" && (
+                      <IconButton
+                        size="small"
+                        aria-label={t("whatsapp.remind")}
+                        sx={{ color: WHATSAPP_GREEN }}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openWhatsApp(
+                            notification.phone,
+                            reminderMessage(
+                              {
+                                name: notification.titleParams?.name,
+                                amount: notification.amount,
+                                count: notification.bodyParams?.count,
+                              },
+                              { t, settings },
+                            ),
+                          );
+                        }}
+                      >
+                        <WhatsAppIcon sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    )}
+                    <IconButton
+                      size="small"
+                      aria-label={t("notifications.dismiss")}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        dismiss(notification);
+                      }}
+                    >
+                      <CloseIcon sx={{ fontSize: 16 }} />
+                    </IconButton>
+                  </IMSStack>
                   <IMSTypography variant="caption" color="natural.main" noWrap>
                     {ageLabel(notification.at, t)}
                   </IMSTypography>

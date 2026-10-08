@@ -4,13 +4,14 @@ import PrintOutlinedIcon from "@mui/icons-material/PrintOutlined";
 import TuneIcon from "@mui/icons-material/Tune";
 import {
   Alert,
+  Box,
   Card,
   CircularProgress,
   Divider,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import DashboardContainer from "../../container/dashboard.container";
@@ -28,12 +29,14 @@ import IMSSelect from "../../shared/IMSSelect";
 import IMSStack from "../../shared/IMSStack";
 import IMSTextField from "../../shared/IMSTextField";
 import IMSTypography from "../../shared/IMSTypography";
+import Kbd from "../../shared/Kbd";
 import { BOTTOM_NAV_HEIGHT, surface } from "../../shared/theme";
 import { formatMoney, num } from "../../utils/billing";
 import AddCustomer from "./addCustomer";
 import AddProduct from "./addProduct";
 import { Print } from "./print";
 import ProductTable from "./productTable";
+import { announceSaved } from "./savedToast";
 
 const hideOnPrint = { "@media print": { display: "none" } };
 
@@ -46,7 +49,17 @@ const PANEL_WIDTH = { md: 330, lg: 360, xl: 420 };
 /** For single-row strips: fields sit flush so they line up with the button. */
 const rowForm = { "& .MuiFormControl-root": { mb: 0 } };
 
+/** A dialog, sheet or popover is open: it owns the keyboard, not the till. */
+const overlayOpen = () =>
+  Boolean(document.querySelector(".MuiModal-root:not(.MuiModal-hidden)"));
+
 const Dashboard = () => {
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const { generateReceipt } = Print();
+  const [detailsOpen, setDetailsOpen] = useState(false);
+
   const {
     mappedBillingFields,
     getFieldValue,
@@ -71,13 +84,32 @@ const Dashboard = () => {
     receiptData,
     settings,
     totals,
-  } = DashboardContainer();
+  } = DashboardContainer({
+    onSaved: (order) => announceSaved({ order, t, onPrint: generateReceipt }),
+  });
 
-  const { t } = useTranslation();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const { generateReceipt } = Print();
-  const [detailsOpen, setDetailsOpen] = useState(false);
+  /* Keyboard: F2 item, F4 customer, F9 save. One listener for the screen's
+     life; it reads the current save handler through a ref. */
+  const itemFieldRef = useRef(null);
+  const customerFieldRef = useRef(null);
+  const saveRef = useRef(null);
+
+  useEffect(() => {
+    const focusIn = (ref) => ref.current?.querySelector("input")?.focus();
+    const handler = (event) => {
+      if (event.ctrlKey || event.metaKey || event.altKey || overlayOpen()) return;
+      const run = {
+        F2: () => focusIn(itemFieldRef),
+        F4: () => focusIn(customerFieldRef),
+        F9: () => saveRef.current?.(),
+      }[event.key];
+      if (!run) return;
+      event.preventDefault();
+      run();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   /** Fields by group key, e.g. `group.entry`. */
   const group = useMemo(
@@ -230,6 +262,40 @@ const Dashboard = () => {
   const changeDue = num(receiptData.changeDue);
   const balanceDue = num(receiptData.balanceDue);
 
+  /** Everything that lives in the phone's Bill Details sheet, not on screen. */
+  const sheetCustomer = (group.customer || []).filter(
+    (field) => field.name !== "vendorName",
+  );
+  const sheetFields = [
+    ...(group.invoice || []),
+    ...sheetCustomer,
+    ...(group.payment || []),
+    ...(group.tender || []),
+  ].map((field) => field.name);
+
+  /**
+   * Save (or update in edit mode). On a phone, if the problem is a field
+   * inside the Bill Details sheet, open the sheet so the shopkeeper sees it
+   * instead of a button that silently does nothing.
+   */
+  const saveBill = async () => {
+    // The buttons are disabled while saving; F9 must not slip past that.
+    if (loading) return;
+    const result = await (isEditMode ? handleUpdate() : handleSave());
+    if (
+      isMobile &&
+      result?.ok === false &&
+      Object.keys(result.errors).some((name) => sheetFields.includes(name))
+    ) {
+      setDetailsOpen(true);
+    }
+  };
+
+  // Point F9 at this render's save handler.
+  useEffect(() => {
+    saveRef.current = saveBill;
+  });
+
   /* ---------------------------------------------------------- shared parts */
 
   const cart = (
@@ -351,11 +417,21 @@ const Dashboard = () => {
       size="large"
       fullWidth
       disabled={loading}
-      onClick={isEditMode ? handleUpdate : handleSave}
+      onClick={saveBill}
       sx={{ minHeight: 52, fontSize: 16 }}
     >
       {t(isEditMode ? "buttonText.update" : "buttonText.save")}
       {loading && <CircularProgress size={16} sx={{ ml: 1 }} />}
+      <Kbd
+        sx={{
+          ml: 1.25,
+          bgcolor: "rgba(255,255,255,0.16)",
+          borderColor: "rgba(255,255,255,0.45)",
+          color: "white.main",
+        }}
+      >
+        F9
+      </Kbd>
     </IMSButton>
   );
 
@@ -413,31 +489,7 @@ const Dashboard = () => {
       return field && !isDisabled(field) ? formError[name] : undefined;
     };
 
-    /** Everything that lives in the Bill Details sheet rather than on screen. */
-    const sheetCustomer = (group.customer || []).filter(
-      (field) => field.name !== "vendorName",
-    );
-    const sheetFields = [
-      ...(group.invoice || []),
-      ...sheetCustomer,
-      ...(group.payment || []),
-      ...(group.tender || []),
-    ].map((field) => field.name);
     const sheetHasError = sheetFields.some((name) => errorIn(name));
-
-    /**
-     * Save, and if the problem is a field inside the sheet, open the sheet so
-     * the shopkeeper sees it instead of a button that silently does nothing.
-     */
-    const save = async () => {
-      const result = await (isEditMode ? handleUpdate() : handleSave());
-      if (
-        result?.ok === false &&
-        Object.keys(result.errors).some((name) => sheetFields.includes(name))
-      ) {
-        setDetailsOpen(true);
-      }
-    };
 
     return (
       <>
@@ -456,6 +508,7 @@ const Dashboard = () => {
         >
           {/* Required, so it is on the main screen, not hidden in the sheet. */}
           <Card
+            ref={customerFieldRef}
             sx={{
               px: 1.5,
               pt: 1.25,
@@ -476,7 +529,7 @@ const Dashboard = () => {
                 ...rowForm,
               }}
             >
-              {renderField(fieldNamed("itemName"))}
+              <Box ref={itemFieldRef}>{renderField(fieldNamed("itemName"))}</Box>
               <IMSStack
                 direction="row"
                 spacing={1}
@@ -545,7 +598,7 @@ const Dashboard = () => {
               <IMSButton
                 variant="contained"
                 disabled={loading}
-                onClick={save}
+                onClick={saveBill}
                 sx={{ minWidth: 128, minHeight: 48, fontSize: 16 }}
               >
                 {t(isEditMode ? "buttonText.update" : "buttonText.save")}
@@ -628,7 +681,10 @@ const Dashboard = () => {
       >
         {/* Left: who it is for, what is being added, and the bill so far. */}
         <IMSStack spacing={2} sx={{ flex: 1, minWidth: 0, minHeight: 0 }}>
-          <Card sx={{ p: 2, pb: 2.5, flexShrink: 0, ...rowForm }}>
+          <Card
+            ref={customerFieldRef}
+            sx={{ p: 2, pb: 2.5, flexShrink: 0, ...rowForm }}
+          >
             {fieldGrid(group.customer)}
           </Card>
 
@@ -651,7 +707,8 @@ const Dashboard = () => {
                   gap: 1.5,
                 }}
               >
-                <IMSBox
+                <Box
+                  ref={itemFieldRef}
                   sx={{
                     flex: "1 1 100%",
                     minWidth: 0,
@@ -659,7 +716,7 @@ const Dashboard = () => {
                   }}
                 >
                   {renderField(fieldNamed("itemName"))}
-                </IMSBox>
+                </Box>
                 <IMSBox sx={{ flex: "0 0 96px" }}>
                   {renderField(fieldNamed("itemQuantity"))}
                 </IMSBox>

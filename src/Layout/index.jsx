@@ -1,5 +1,5 @@
 import { Drawer, useMediaQuery, useTheme } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
 import IMSBox from "../shared/IMSBox";
@@ -10,22 +10,36 @@ import {
 } from "../shared/theme";
 import BottomNav from "./BottomNav";
 import Header from "./Header";
+import QuickSearch from "./QuickSearch";
 import Sidebar from "./Sidebar";
+import useSearchShortcut from "./useSearchShortcut";
 
 const Layout = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const { pathname } = useLocation();
 
   // Never leave the drawer open behind a new screen.
   useEffect(() => setDrawerOpen(false), [pathname]);
 
+  const openSearch = useCallback(() => {
+    setDrawerOpen(false);
+    setSearchOpen(true);
+  }, []);
+  useSearchShortcut(openSearch);
+
   return (
     <IMSBox sx={{ display: "flex", minHeight: "100vh" }}>
       {/* Desktop needs no top bar: the sidebar carries identity and the bell,
           and each page opens with its own title. */}
-      {isMobile && <Header onMenuClick={() => setDrawerOpen(true)} />}
+      {isMobile && (
+        <Header
+          onMenuClick={() => setDrawerOpen(true)}
+          onOpenSearch={openSearch}
+        />
+      )}
 
       {isMobile ? (
         <Drawer
@@ -34,7 +48,10 @@ const Layout = () => {
           ModalProps={{ keepMounted: true }}
           PaperProps={{ sx: { width: SIDEBAR_WIDTH, border: 0 } }}
         >
-          <Sidebar onNavigate={() => setDrawerOpen(false)} />
+          <Sidebar
+            onNavigate={() => setDrawerOpen(false)}
+            onOpenSearch={openSearch}
+          />
         </Drawer>
       ) : (
         <Drawer
@@ -51,7 +68,7 @@ const Layout = () => {
             "@media print": { display: "none" },
           }}
         >
-          <Sidebar showBell />
+          <Sidebar showBell onOpenSearch={openSearch} />
         </Drawer>
       )}
 
@@ -71,18 +88,14 @@ const Layout = () => {
         }}
       >
         {/* The till uses the full width; list screens stay readable at 1400. */}
-        <IMSBox
-          sx={{
-            maxWidth: pathname === "/" ? "none" : 1400,
-            mx: "auto",
-            width: "100%",
-          }}
-        >
+        <IMSBox>
           <Outlet />
         </IMSBox>
       </IMSBox>
 
       {isMobile && <BottomNav onMoreClick={() => setDrawerOpen(true)} />}
+
+      <QuickSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
     </IMSBox>
   );
 };

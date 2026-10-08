@@ -1,5 +1,6 @@
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import { Chip } from "@mui/material";
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import { ButtonBase, Chip } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
@@ -13,17 +14,20 @@ import IMSListItem from "../shared/IMSListItem";
 import IMSSelect from "../shared/IMSSelect";
 import IMSStack from "../shared/IMSStack";
 import IMSTypography from "../shared/IMSTypography";
+import Kbd, { searchShortcutLabel } from "../shared/Kbd";
 import { surface } from "../shared/theme";
 import { useAlertCounts } from "../utils/NotificationsContext";
 import { useAuth } from "../utils/AuthContext";
 import { SidebarWrapper } from "./Layout.style";
+import NavIcon from "./NavIcon";
 import NotificationBell from "./NotificationBell";
+import TodayCard from "./TodayCard";
 import { itemsInGroup, navGroups } from "./navigation";
 
 /** "en-GB" and "en-US" both mean English as far as the picker is concerned. */
 const baseLanguage = (tag) => (String(tag || "").startsWith("gu") ? "gu" : "en");
 
-const Sidebar = ({ onNavigate, showBell }) => {
+const Sidebar = ({ onNavigate, onOpenSearch, showBell }) => {
   const location = useLocation();
   const { t } = useTranslation();
   const counts = useAlertCounts();
@@ -75,6 +79,41 @@ const Sidebar = ({ onNavigate, showBell }) => {
         {showBell && <NotificationBell />}
       </IMSStack>
 
+      {/* Looks like a search box, opens Quick Search: items, customers, bills
+          and actions from anywhere. */}
+      {onOpenSearch && (
+        <ButtonBase
+          onClick={onOpenSearch}
+          aria-label={t("search.open")}
+          aria-keyshortcuts="Control+K Meta+K"
+          sx={{
+            mx: 1.5,
+            mt: 1.5,
+            px: 1.25,
+            height: 40,
+            gap: 1,
+            justifyContent: "flex-start",
+            borderRadius: 2.5,
+            border: `1px solid ${surface.border}`,
+            bgcolor: surface.subtle,
+            color: "natural.main",
+            "&:hover": { borderColor: surface.borderStrong },
+          }}
+        >
+          <SearchRoundedIcon sx={{ fontSize: 20 }} />
+          <IMSTypography
+            component="span"
+            variant="body2"
+            color="natural.main"
+            sx={{ flex: 1, textAlign: "left" }}
+            noWrap
+          >
+            {t("search.open")}…
+          </IMSTypography>
+          <Kbd>{searchShortcutLabel()}</Kbd>
+        </ButtonBase>
+      )}
+
       <IMSBox sx={{ overflowY: "auto", flex: 1, py: 1 }}>
         {navGroups.map((group) => (
           <IMSBox key={group.key}>
@@ -96,18 +135,18 @@ const Sidebar = ({ onNavigate, showBell }) => {
             <IMSList>
               {itemsInGroup(group.key).map((item) => {
                 const badge = item.badge ? counts[item.badge] : 0;
+                const active = location.pathname === item.link;
                 return (
                   <IMSListItem key={item.key}>
                     <Link
                       to={item.link}
-                      className={
-                        location.pathname === item.link ? "active" : ""
-                      }
+                      className={active ? "active" : ""}
+                      aria-current={active ? "page" : undefined}
                       // On a phone the sidebar is a drawer, so it should close
                       // once a destination is chosen.
                       onClick={onNavigate}
                     >
-                      <item.Icon />
+                      <NavIcon item={item} active={active} />
                       <IMSTypography component="span">
                         {t(item.labelKey)}
                       </IMSTypography>
@@ -134,6 +173,7 @@ const Sidebar = ({ onNavigate, showBell }) => {
       </IMSBox>
 
       <IMSBox sx={{ borderTop: `1px solid ${surface.border}`, p: 2 }}>
+        <TodayCard onNavigate={onNavigate} />
         <IMSButton
           fullWidth
           variant="outlined"

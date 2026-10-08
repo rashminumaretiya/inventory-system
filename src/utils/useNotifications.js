@@ -110,6 +110,10 @@ const useNotifications = () => {
     markAllRead,
     dismiss,
     dismissAll,
+    // The data behind the alerts, shared with the Today card and Quick
+    // Search so they need no poller of their own.
+    orders,
+    products,
   };
 };
 

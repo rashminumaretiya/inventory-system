@@ -2,6 +2,8 @@ import {
   allocatePayment,
   applyPayment,
   customerKeyOf,
+  customerKeyOfRecord,
+  duesByCustomer,
   isSettled,
   orderOutstanding,
   ordersForCustomer,
@@ -176,5 +178,39 @@ describe("paymentHistory", () => {
 
   it("is empty when no one has paid late", () => {
     expect(paymentHistory([bill()])).toEqual([]);
+  });
+});
+
+describe("customerKeyOfRecord", () => {
+  it("keys a saved customer the same way as their bills", () => {
+    const customer = { name: "Jay", phone: " 9876543100 " };
+    expect(customerKeyOfRecord(customer)).toBe(customerKeyOf(bill()));
+  });
+
+  it("falls back to the name when there is no phone", () => {
+    expect(customerKeyOfRecord({ name: " Abhi ", phone: "" })).toBe("Abhi");
+    expect(customerKeyOfRecord(undefined)).toBe("");
+  });
+});
+
+describe("duesByCustomer", () => {
+  it("adds up what each customer owes and on how many bills", () => {
+    const dues = duesByCustomer([
+      bill({ id: "o1", balanceDue: 300 }),
+      bill({ id: "o2", balanceDue: 200.5 }),
+      bill({ id: "o3", balanceDue: 0, payment: "Cash" }),
+      bill({
+        id: "o4",
+        balanceDue: 50,
+        customerInfo: { vendorName: "Abhi", vendorPhone: "" },
+      }),
+    ]);
+
+    expect(dues.get("9876543100")).toEqual({ amount: 500.5, bills: 2 });
+    expect(dues.get("Abhi")).toEqual({ amount: 50, bills: 1 });
+  });
+
+  it("leaves out customers who owe nothing", () => {
+    expect(duesByCustomer([bill({ balanceDue: 0, payment: "Cash" })]).size).toBe(0);
   });
 });

@@ -42,8 +42,8 @@ import {
   baseUnitOf,
   formatMoney,
   formatQuantity,
-  num,
   productStockInBase,
+  stockStatus,
 } from "../../utils/billing";
 import { notifyDataChanged } from "../../utils/dataEvents";
 import { textMatches } from "../../utils/transliterate";
@@ -78,15 +78,6 @@ export const TableContainerStyle = MUIStyled(TableContainer)(({ theme }) => ({
   },
 }));
 
-/** out | low | ok — drives the status chip and the filter. */
-export const stockStatus = (product, threshold) => {
-  const stock = productStockInBase(product);
-  const limit = product?.lowStockAt ? num(product.lowStockAt) : num(threshold);
-  if (stock <= 0) return "out";
-  if (limit > 0 && stock <= limit) return "low";
-  return "ok";
-};
-
 const Product = () => {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -106,9 +97,12 @@ const Product = () => {
   const [editProductDialog, setEditProductDialog] = useState(false);
   const [stockInProduct, setStockInProduct] = useState(null);
 
-  // Arriving from a low-stock notification pre-fills the search.
+  // Arriving from a low-stock notification pre-fills the search; Quick Search
+  // can also ask for a status filter or the Add Product dialog.
   useEffect(() => {
     if (location.state?.search) setSearchText(location.state.search);
+    if (location.state?.statusFilter) setStatusFilter(location.state.statusFilter);
+    if (location.state?.add) setShow(true);
   }, [location.state]);
 
   const load = useCallback(async () => {

@@ -16,7 +16,10 @@ export const HeaderWrapper = MUIStyled(AppBar)(({ theme }) => ({
   "@media print": { display: "none" },
 }));
 
-/** Light sidebar: white panel, grey icons, soft active state. */
+/**
+ * Light sidebar: white panel, each item's icon on a tile of its own colour
+ * (see NavIcon), and a soft active row.
+ */
 export const SidebarWrapper = MUIStyled(IMSStack)(({ theme }) => ({
   backgroundColor: theme.palette.white.main,
   borderRight: `1px solid ${surface.border}`,
@@ -32,19 +35,14 @@ export const SidebarWrapper = MUIStyled(IMSStack)(({ theme }) => ({
       "& a": {
         display: "flex",
         alignItems: "center",
-        gap: 10,
-        padding: "9px 12px",
-        borderRadius: 8,
+        gap: 12,
+        // 32px tile + 6px above and below: a 44px row, a comfortable tap.
+        padding: "6px 10px",
+        borderRadius: 10,
         color: theme.palette.text.secondary,
         textDecoration: "none",
         width: "100%",
         transition: "background-color .15s ease, color .15s ease",
-        "& svg": {
-          flexShrink: 0,
-          width: 20,
-          height: 20,
-          color: theme.palette.natural.main,
-        },
         "& span": {
           color: "inherit",
           lineHeight: 1.2,
@@ -55,7 +53,6 @@ export const SidebarWrapper = MUIStyled(IMSStack)(({ theme }) => ({
           backgroundColor: surface.subtle,
           color: theme.palette.black.main,
           "& span": { fontWeight: 600 },
-          "& svg": { color: theme.palette.primary.main },
         },
       },
     },

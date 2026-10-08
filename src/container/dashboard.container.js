@@ -45,7 +45,13 @@ const flatBillingFields = billingFields.flatMap(
   (group) => group.billingFormFields
 );
 
-const DashboardContainer = () => {
+/**
+ * @param {object} [options]
+ * @param {(order: object) => void} [options.onSaved] called with a newly saved
+ *   bill instead of the plain "saved" toast, so the screen can offer to share
+ *   or print it.
+ */
+const DashboardContainer = ({ onSaved } = {}) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -599,7 +605,9 @@ const DashboardContainer = () => {
       dispatch(setOrdersAction(nextOrders));
       resetBill();
       notifyDataChanged();
-      toast.success(t("toast.orderSaved", { invoice: order.invoiceNo }));
+      if (onSaved) onSaved(order);
+      else toast.success(t("toast.orderSaved", { invoice: order.invoiceNo }));
+      return { ok: true, order };
     } catch {
       toast.error(t("toast.saveFailed"));
     } finally {

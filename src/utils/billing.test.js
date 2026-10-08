@@ -13,6 +13,7 @@ import {
   setCartLineQuantity,
   stepCartLine,
   stockDeltasBetween,
+  stockStatus,
   toBaseQuantity,
 } from "./billing";
 
@@ -306,5 +307,25 @@ describe("cart quantity stepping", () => {
     expect(setCartLineQuantity(pcs, 10)).toMatchObject({ itemQuantity: "10", subtotal: "100.00" });
     expect(setCartLineQuantity(pcs, 0)).toBeNull();
     expect(setCartLineQuantity(pcs, -3)).toBeNull();
+  });
+});
+
+describe("stockStatus", () => {
+  it("is out when nothing is left", () => {
+    expect(stockStatus({ stock: "0.000" }, 10)).toBe("out");
+  });
+
+  it("is low at or under the shop threshold", () => {
+    expect(stockStatus({ stock: "10.000" }, 10)).toBe("low");
+    expect(stockStatus({ stock: "10.500" }, 10)).toBe("ok");
+  });
+
+  it("lets a product's own limit win over the shop's", () => {
+    expect(stockStatus({ stock: "4.000", lowStockAt: "5" }, 2)).toBe("low");
+    expect(stockStatus({ stock: "8.000", lowStockAt: "5" }, 10)).toBe("ok");
+  });
+
+  it("only warns on running out when the limit is 0", () => {
+    expect(stockStatus({ stock: "1.000" }, 0)).toBe("ok");
   });
 });

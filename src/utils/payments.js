@@ -37,8 +37,28 @@ export const customerKeyOf = (order) =>
   order?.customerInfo?.vendorName?.trim() ||
   "";
 
+/** The same key for a saved customer record, so it lines up with its bills. */
+export const customerKeyOfRecord = (customer) =>
+  customer?.phone?.trim() || customer?.name?.trim() || "";
+
 export const ordersForCustomer = (orders = [], key) =>
   orders.filter((order) => customerKeyOf(order) === key);
+
+/**
+ * What each customer still owes, as a Map of customer key ->
+ * { amount, bills }. Only customers who owe something appear.
+ */
+export const duesByCustomer = (orders = []) => {
+  const dues = new Map();
+  orders.forEach((order) => {
+    const owed = orderOutstanding(order);
+    if (owed <= 0) return;
+    const key = customerKeyOf(order);
+    const entry = dues.get(key) || { amount: 0, bills: 0 };
+    dues.set(key, { amount: money(entry.amount + owed), bills: entry.bills + 1 });
+  });
+  return dues;
+};
 
 export const totalOutstanding = (orders = []) =>
   money(orders.reduce((sum, order) => sum + orderOutstanding(order), 0));

@@ -1,11 +1,15 @@
-import {
-  Dashboard,
-  Inventory,
-  Orders,
-  Reports,
-  Settings,
-  Suppliers,
-} from "../shared/icon";
+import AnalyticsIcon from "@mui/icons-material/Analytics";
+import AnalyticsOutlinedIcon from "@mui/icons-material/AnalyticsOutlined";
+import Inventory2Icon from "@mui/icons-material/Inventory2";
+import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
+import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined";
+import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
+import PointOfSaleOutlinedIcon from "@mui/icons-material/PointOfSaleOutlined";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
+import SettingsIcon from "@mui/icons-material/Settings";
+import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 
 /**
  * One definition of the navigation, shared by the sidebar, the mobile bottom
@@ -13,13 +17,19 @@ import {
  *
  * `primary` items get a slot in the mobile bottom bar; the rest live behind
  * "More", which opens the drawer. `badge` names a live alert count.
+ *
+ * Each item has an outlined `Icon` and a filled `ActiveIcon` (filled marks
+ * where you are), and a `tint` of its own, so a shopkeeper finds a screen by
+ * colour as much as by reading.
  */
 export const navItems = [
   {
     key: "dashboard",
     labelKey: "menu.dashboard",
     link: "/",
-    Icon: Dashboard,
+    Icon: PointOfSaleOutlinedIcon,
+    ActiveIcon: PointOfSaleIcon,
+    tint: "#007881",
     group: "sell",
     primary: true,
   },
@@ -27,7 +37,9 @@ export const navItems = [
     key: "orders",
     labelKey: "menu.orders",
     link: "/orders",
-    Icon: Orders,
+    Icon: ReceiptLongOutlinedIcon,
+    ActiveIcon: ReceiptLongIcon,
+    tint: "#2563EB",
     group: "sell",
     badge: "orders",
     primary: true,
@@ -36,7 +48,9 @@ export const navItems = [
     key: "product",
     labelKey: "menu.product",
     link: "/product",
-    Icon: Inventory,
+    Icon: Inventory2OutlinedIcon,
+    ActiveIcon: Inventory2Icon,
+    tint: "#B45309",
     group: "stock",
     badge: "product",
     primary: true,
@@ -45,7 +59,9 @@ export const navItems = [
     key: "customer",
     labelKey: "menu.customer",
     link: "/customer",
-    Icon: Suppliers,
+    Icon: PeopleAltOutlinedIcon,
+    ActiveIcon: PeopleAltIcon,
+    tint: "#DB2777",
     group: "stock",
     primary: false,
   },
@@ -53,7 +69,9 @@ export const navItems = [
     key: "reports",
     labelKey: "menu.reports",
     link: "/reports",
-    Icon: Reports,
+    Icon: AnalyticsOutlinedIcon,
+    ActiveIcon: AnalyticsIcon,
+    tint: "#7C3AED",
     group: "manage",
     primary: true,
   },
@@ -61,7 +79,9 @@ export const navItems = [
     key: "settings",
     labelKey: "menu.settings",
     link: "/settings",
-    Icon: Settings,
+    Icon: SettingsOutlinedIcon,
+    ActiveIcon: SettingsIcon,
+    tint: "#475569",
     group: "manage",
     primary: false,
   },
@@ -83,3 +103,5 @@ export const primaryNavItems = navItems.filter((item) => item.primary);
 export const activeNavItem = (pathname) =>
   navItems.find((item) => item.link === pathname);
 
+/** The item for a screen by key, e.g. to borrow its icon and colour. */
+export const navItemByKey = (key) => navItems.find((item) => item.key === key);
