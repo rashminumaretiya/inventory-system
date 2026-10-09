@@ -1,4 +1,5 @@
 import {
+  dailySales,
   grossProfit,
   inventoryValue,
   lowStockProducts,
@@ -75,6 +76,42 @@ describe("salesByDate", () => {
       { date: "2025-08-27", total: 590.47 },
       { date: "2025-09-01", total: 1450 },
     ]);
+  });
+});
+
+describe("dailySales", () => {
+  const bill = (billingDate, total) => ({ billingDate, total });
+
+  it("has a bar for every day of the month, empty where nothing sold", () => {
+    const days = dailySales(orders, "2025-08-15");
+    expect(days).toHaveLength(31);
+    expect(days[0]).toEqual({ date: "2025-08-01", day: 1, total: 0 });
+    expect(days[25]).toEqual({ date: "2025-08-26", day: 26, total: 42 });
+    expect(days[26]).toEqual({ date: "2025-08-27", day: 27, total: 590.47 });
+    expect(days[30]).toEqual({ date: "2025-08-31", day: 31, total: 0 });
+    // September's bill stays out of August.
+    expect(days.reduce((sum, point) => sum + point.total, 0)).toBe(632.47);
+  });
+
+  it("keeps sales on consecutive days apart, each with its own bills", () => {
+    const days = dailySales(
+      [
+        bill("2026-10-08T11:00:00.000Z", "472.00"),
+        bill("2026-10-09T10:00:00.000Z", "150.00"),
+        bill("2026-10-09T12:30:00.000Z", "160.00"),
+      ],
+      "2026-10-01"
+    );
+    expect(days.filter((point) => point.total > 0)).toEqual([
+      { date: "2026-10-08", day: 8, total: 472 },
+      { date: "2026-10-09", day: 9, total: 310 },
+    ]);
+  });
+
+  it("follows the length of the month", () => {
+    expect(dailySales([], "2026-02-10")).toHaveLength(28);
+    expect(dailySales([], "2028-02-10")).toHaveLength(29);
+    expect(dailySales([], "2026-04-30")).toHaveLength(30);
   });
 });
 

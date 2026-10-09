@@ -36,6 +36,27 @@ export const salesByDate = (orders = []) => {
     .map((date) => ({ date, total: money(grouped[date]) }));
 };
 
+/**
+ * Sales on every day of `month`, from the 1st to the last, with 0 on a day
+ * without a bill: one bar per date, so each day with a sale shows on its own
+ * and a day without one shows as a gap rather than being joined over.
+ *
+ * @returns {{ date: string, day: number, total: number }[]}
+ */
+export const dailySales = (orders = [], month = dayjs()) => {
+  const start = dayjs(month).startOf("month");
+  const totals = new Map(
+    salesByDate(ordersInMonth(orders, start)).map((point) => [
+      point.date,
+      point.total,
+    ])
+  );
+  return Array.from({ length: start.daysInMonth() }, (_, index) => {
+    const date = start.add(index, "day").format("YYYY-MM-DD");
+    return { date, day: index + 1, total: totals.get(date) ?? 0 };
+  });
+};
+
 /** Quantity and revenue per item, best sellers first. */
 export const topProducts = (orders = [], limit = 5) => {
   const totals = new Map();

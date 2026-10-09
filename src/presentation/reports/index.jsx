@@ -27,13 +27,13 @@ import {
 } from "../../utils/backup";
 import { formatMoney, formatQuantity } from "../../utils/billing";
 import {
+  dailySales,
   grossProfit,
   inventoryValue,
   lowStockProducts,
   ordersInMonth,
   ordersOnDay,
   paymentBreakdown,
-  salesByDate,
   sumTotals,
   topProducts,
 } from "../../utils/reporting";
@@ -98,7 +98,7 @@ const Reports = () => {
   }, [load]);
 
   const monthOrders = useMemo(() => ordersInMonth(orders, month), [orders, month]);
-  const series = useMemo(() => salesByDate(monthOrders), [monthOrders]);
+  const days = useMemo(() => dailySales(monthOrders, month), [monthOrders, month]);
   const best = useMemo(() => topProducts(monthOrders, 5), [monthOrders]);
   const split = useMemo(() => paymentBreakdown(monthOrders), [monthOrders]);
   const profit = useMemo(
@@ -115,34 +115,75 @@ const Reports = () => {
   const todaySale = useMemo(() => sumTotals(ordersOnDay(orders)), [orders]);
   const monthSale = useMemo(() => sumTotals(monthOrders), [monthOrders]);
 
-  /** Chart options are rebuilt on language change so the title follows. */
+  /**
+   * One bar per day of the month. A smooth line on a time axis joined sale
+   * days across the days between them, and zoomed to hours when the sales
+   * were on consecutive days, so a day's bills could not be seen on their own.
+   * Rebuilt on language change so the title follows.
+   */
   const chartOptions = useMemo(
     () => ({
-      chart: { type: "area", height: 350, zoom: { enabled: true } },
+      chart: {
+        type: "bar",
+        zoom: { enabled: false },
+        toolbar: {
+          tools: {
+            download: true,
+            selection: false,
+            zoom: false,
+            zoomin: false,
+            zoomout: false,
+            pan: false,
+            reset: false,
+          },
+        },
+      },
       colors: ["#007881"],
+      plotOptions: { bar: { columnWidth: "65%", borderRadius: 2 } },
       dataLabels: { enabled: false },
-      stroke: { curve: "smooth" },
       title: { text: t("description.salesByDate"), align: "left" },
-      xaxis: { type: "datetime" },
+      xaxis: {
+        categories: days.map((point) => point.day),
+        labels: {
+          rotate: 0,
+          // 31 numbers do not fit a phone: label the 1st and every 5th day.
+          formatter: (day) =>
+            !isMobile || Number(day) === 1 || Number(day) % 5 === 0
+              ? String(day ?? "")
+              : "",
+        },
+        tooltip: { enabled: false },
+      },
       yaxis: {
-        opposite: true,
+        min: 0,
+        forceNiceScale: true,
         labels: { formatter: (value) => `${currency}${formatMoney(value)}` },
       },
-      legend: { horizontalAlign: "left" },
       noData: { text: t("description.noDataFound") },
-      tooltip: { x: { format: "dd MMM yyyy" } },
+      tooltip: {
+        x: {
+          formatter: (value, { dataPointIndex } = {}) =>
+            days[dataPointIndex]
+              ? dayjs(days[dataPointIndex].date).format("DD MMM YYYY")
+              : value,
+        },
+      },
     }),
-    [t, currency]
+    [t, currency, days, isMobile]
   );
 
+  // A month without a bill gets no series, so the chart says "No data found".
   const chartSeries = useMemo(
-    () => [
-      {
-        name: t("description.totalSales"),
-        data: series.map((point) => [new Date(point.date).getTime(), point.total]),
-      },
-    ],
-    [series, t]
+    () =>
+      monthOrders.length
+        ? [
+            {
+              name: t("description.totalSales"),
+              data: days.map((point) => point.total),
+            },
+          ]
+        : [],
+    [days, monthOrders.length, t]
   );
 
   const handleDownload = async () => {
@@ -198,7 +239,7 @@ const Reports = () => {
             <ReactApexChart
               options={chartOptions}
               series={chartSeries}
-              type="area"
+              type="bar"
               height={chartHeight}
             />
           </Card>

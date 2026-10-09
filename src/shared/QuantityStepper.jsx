@@ -18,7 +18,7 @@ const QuantityStepper = ({ quantity, unit, onStep, size = "small" }) => {
   const box = size === "small" ? 30 : 36;
   const button = {
     border: `1px solid ${surface.borderStrong}`,
-    borderRadius: 1.5,
+    borderRadius: 0.5,
     p: 0,
     width: box,
     height: box,

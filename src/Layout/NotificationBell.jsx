@@ -102,14 +102,13 @@ const NotificationBell = () => {
       <IMSStack
         direction="row"
         alignItems="center"
-        spacing={1}
         sx={{ px: 2, py: 1.5, flexShrink: 0 }}
       >
         <IMSTypography fontWeight={600}>
           {t("notifications.title")}
         </IMSTypography>
         {notifications.length > 0 && (
-          <IMSTypography variant="body2" color="natural.main">
+          <IMSTypography variant="body2" sx={{ ml: 1 }} color="natural.main">
             ({notifications.length})
           </IMSTypography>
         )}
