@@ -319,6 +319,47 @@ describe("saving", () => {
     expect(posted).toHaveLength(0);
   });
 
+  it("saves a new customer whose name is typed, not picked from the list", async () => {
+    renderDashboard();
+    await ready();
+
+    await addLine("Potato", 2);
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+    expect(await screen.findByText(/please enter customer name/i)).toBeInTheDocument();
+
+    // Typed, no Enter, nothing picked: the name is the customer as it stands.
+    type(screen.getByRole("combobox", { name: /customer name/i }), "ramesh");
+    type(textField(/phone number/i), "9812345678");
+    await waitFor(() =>
+      expect(screen.queryByText(/please enter customer name/i)).not.toBeInTheDocument()
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+    await waitFor(() => expect(posted).toHaveLength(1));
+    expect(posted[0].payload.customerInfo).toEqual({
+      vendorName: "ramesh",
+      vendorPhone: "9812345678",
+      address: "",
+    });
+  });
+
+  it("saves a saved customer typed in full under their saved name and details", async () => {
+    renderDashboard();
+    await ready();
+
+    await addLine("Potato", 2);
+    type(screen.getByRole("combobox", { name: /customer name/i }), "jay ");
+    await waitFor(() => expect(textField(/phone number/i)).toHaveValue("9876543100"));
+
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+    await waitFor(() => expect(posted).toHaveLength(1));
+    expect(posted[0].payload.customerInfo).toEqual({
+      vendorName: "Jay",
+      vendorPhone: "9876543100",
+      address: "Bhavani circle",
+    });
+  });
+
   it("will not save an empty bill", async () => {
     renderDashboard();
     await ready();

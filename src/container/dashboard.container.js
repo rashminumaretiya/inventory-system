@@ -34,6 +34,7 @@ import {
   toBaseQuantity,
 } from "../utils/billing";
 import { clearCart, readCart, writeCart } from "../utils/cart";
+import { customerForBill, customerForName } from "../utils/customers";
 import { notifyDataChanged } from "../utils/dataEvents";
 import useSettings from "../utils/useSettings";
 import validation from "../utils/validation";
@@ -44,6 +45,9 @@ const CUSTOMER_SECTOR = "customerInfo";
 const flatBillingFields = billingFields.flatMap(
   (group) => group.billingFormFields
 );
+
+const billingField = (name) =>
+  flatBillingFields.find((field) => field.name === name);
 
 /**
  * @param {object} [options]
@@ -198,6 +202,37 @@ const DashboardContainer = ({ onSaved } = {}) => {
       return { ...prev, order };
     });
 
+  const check = (name, value) => {
+    const field = billingField(name);
+    return validation(field.pattern, value, field.label, t);
+  };
+
+  /**
+   * Make `next` the bill's customer. The name is checked as it changes, and
+   * so is the phone when a saved customer's replaces it.
+   */
+  const setCustomer = (next) => {
+    const phoneBefore = formData.customerInfo?.vendorPhone ?? "";
+    setFormData((prev) => ({ ...prev, customerInfo: next }));
+    setFormError((prev) => ({
+      ...prev,
+      vendorName: check("vendorName", next.vendorName),
+      ...(next.vendorPhone !== phoneBefore && {
+        vendorPhone: check("vendorPhone", next.vendorPhone),
+      }),
+    }));
+  };
+
+  /**
+   * Typing in Customer Name. What is typed is the bill's customer as it
+   * stands, so a new customer saves without Enter or "+ New" first. Item Name
+   * is left alone: an item has to be one in stock, so it is picked.
+   */
+  const handleInputChange = (event, text, reason, field) => {
+    if (field?.name !== "vendorName" || reason !== "input") return;
+    setCustomer(customerForName(formData.customerInfo, text, vendersList));
+  };
+
   const handleChange = (event, selectedOption, field, index = 0) => {
     // The date picker hands back a dayjs value instead of a DOM event.
     if (dayjs.isDayjs(event)) {
@@ -258,33 +293,22 @@ const DashboardContainer = ({ onSaved } = {}) => {
       }
 
       if (name === "vendorName") {
-        const vendor =
-          typeof selectedOption === "string"
-            ? vendersList.find(
-                (candidate) =>
-                  candidate.name?.trim().toLowerCase() ===
-                  selectedOption.trim().toLowerCase()
+        // Picked from the list: that saved customer, with their own phone and
+        // address (two customers can share a name). Typed and confirmed with
+        // Enter, or cleared: the same as typing it.
+        setCustomer(
+          selectedOption && typeof selectedOption === "object"
+            ? {
+                vendorName: selectedOption.vendorName ?? "",
+                vendorPhone: selectedOption.vendorPhone ?? "",
+                address: selectedOption.address ?? "",
+              }
+            : customerForName(
+                formData.customerInfo,
+                selectedOption ?? "",
+                vendersList
               )
-            : vendersList.find(
-                (candidate) => candidate.name === selectedOption?.vendorName
-              );
-
-        const vendorName =
-          vendor?.name ??
-          (typeof selectedOption === "string" ? selectedOption : "");
-
-        setFormError((prev) => ({
-          ...prev,
-          vendorName: validation(pattern, vendorName, label, t),
-        }));
-        setFormData((prev) => ({
-          ...prev,
-          customerInfo: {
-            vendorName,
-            vendorPhone: vendor?.phone ?? "",
-            address: vendor?.address ?? "",
-          },
-        }));
+        );
         return;
       }
     }
@@ -444,7 +468,7 @@ const DashboardContainer = ({ onSaved } = {}) => {
   const billPayload = () => ({
     invoiceNo,
     billingDate: billDate.toDate().toISOString(),
-    customerInfo: formData.customerInfo,
+    customerInfo: customerForBill(formData.customerInfo, vendersList),
     order: addData,
     subtotal: totals.subtotal,
     discount: num(formData.discount),
@@ -772,6 +796,7 @@ const DashboardContainer = ({ onSaved } = {}) => {
     formError,
     billDate,
     handleChange,
+    handleInputChange,
     handleAddNew,
     addNewCustomer,
     closeNewCustomer,

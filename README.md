@@ -66,6 +66,15 @@ GST        = taxable x GST rate         (rounded to paise)
 total      = taxable + GST
 ```
 
+**The customer on a bill** can be picked from the saved customers or just typed
+in: a new or walk-in name saves as typed, with no Enter and no *+ New* first.
+Typing a saved customer's full name (any case) brings their phone and address,
+as picking them does, and the bill records the name as saved. Typing over a
+picked customer drops the phone and address that came with them. Two saved
+customers with the same name are told apart by picking from the list. The
+rules are in [`src/utils/customers.js`](src/utils/customers.js). A typed name is
+not added to the Customers screen; use *+ New* for that.
+
 ## Shop settings
 
 Shop name, address, phone, GSTIN, invoice prefix, GST rate, low-stock threshold,
@@ -318,7 +327,8 @@ npm test
 
 - `src/utils/*.test.js` — billing maths, payment allocation and dues,
   validation, reporting, notification rules, the backup schedule, Gujarati
-  typing, the PIN, search ranking, and WhatsApp numbers and messages. The
+  typing, the PIN, search ranking, WhatsApp numbers and messages, and the
+  customer on a bill (typed or picked). The
   billing tests assert against the real rows in `database.json`, so a change
   that would reprice historical orders fails.
 - `src/utils/invoice.test.js` and `invoiceDoc.test.js` — the printed bill:
@@ -327,7 +337,8 @@ npm test
   receipt and the guard against the font engine's crash.
 - `src/presentation/dashboard/__tests__/billingFlow.test.jsx` — drives the real
   billing screen: add and merge lines, unit handling, stock limits, GST,
-  discount, change, validation and save. `billingMobile.test.jsx` does the same
+  discount, change, validation and save, with a customer picked from the list
+  or typed by hand. `billingMobile.test.jsx` does the same
   for the phone layout.
 - `src/presentation/dashboard/__tests__/billingShortcuts.test.jsx` — F2, F4
   and F9 (including a double F9 saving once), and WhatsApp from the "saved"

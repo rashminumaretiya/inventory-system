@@ -74,6 +74,7 @@ const Dashboard = () => {
     formError,
     billDate,
     handleChange,
+    handleInputChange,
     handleAddNew,
     addNewCustomer,
     closeNewCustomer,
@@ -161,6 +162,9 @@ const Dashboard = () => {
         return (
           <IMSAutoComplete
             {...fieldProps}
+            onInputChange={(event, text, reason) =>
+              handleInputChange(event, text, reason, field)
+            }
             transliterate={field.transliterate}
             options={field?.options || []}
             autoHighlight
