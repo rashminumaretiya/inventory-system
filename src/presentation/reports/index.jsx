@@ -97,17 +97,23 @@ const Reports = () => {
     load();
   }, [load]);
 
-  const monthOrders = useMemo(() => ordersInMonth(orders, month), [orders, month]);
-  const days = useMemo(() => dailySales(monthOrders, month), [monthOrders, month]);
+  const monthOrders = useMemo(
+    () => ordersInMonth(orders, month),
+    [orders, month],
+  );
+  const days = useMemo(
+    () => dailySales(monthOrders, month),
+    [monthOrders, month],
+  );
   const best = useMemo(() => topProducts(monthOrders, 5), [monthOrders]);
   const split = useMemo(() => paymentBreakdown(monthOrders), [monthOrders]);
   const profit = useMemo(
     () => grossProfit(monthOrders, products),
-    [monthOrders, products]
+    [monthOrders, products],
   );
   const lowStock = useMemo(
     () => lowStockProducts(products, settings.lowStockThreshold),
-    [products, settings.lowStockThreshold]
+    [products, settings.lowStockThreshold],
   );
   const stockValue = useMemo(() => inventoryValue(products), [products]);
 
@@ -169,7 +175,7 @@ const Reports = () => {
         },
       },
     }),
-    [t, currency, days, isMobile]
+    [t, currency, days, isMobile],
   );
 
   // A month without a bill gets no series, so the chart says "No data found".
@@ -183,7 +189,7 @@ const Reports = () => {
             },
           ]
         : [],
-    [days, monthOrders.length, t]
+    [days, monthOrders.length, t],
   );
 
   const handleDownload = async () => {
@@ -197,7 +203,7 @@ const Reports = () => {
             summary: Object.entries(result.counts || {})
               .map(([key, count]) => `${key}: ${count}`)
               .join(", "),
-          })
+          }),
         );
         return;
       }
@@ -207,7 +213,7 @@ const Reports = () => {
       if (!response.success) throw new Error(endpoint);
       downloadJson(
         { [downloadOption]: response.data },
-        `${dayjs().format("YYYY-MM-DD")}_${downloadOption}.json`
+        `${dayjs().format("YYYY-MM-DD")}_${downloadOption}.json`,
       );
       toast.success(t("toast.reportDownloaded"));
     } catch (error) {
@@ -224,7 +230,6 @@ const Reports = () => {
       <PageHeader
         title={t("menu.reports")}
         subtitle={t("pageSubtitle.reports")}
-        divider={false}
       />
       {loading && <LinearProgress sx={{ mb: 2 }} />}
       <IMSGrid container spacing={{ xs: 2, md: 3 }}>
@@ -287,11 +292,15 @@ const Reports = () => {
               <StatCard
                 label={
                   month
-                    ? t("description.monthSale", { month: month.format("MMMM YYYY") })
+                    ? t("description.monthSale", {
+                        month: month.format("MMMM YYYY"),
+                      })
                     : t("description.currentMonthSale")
                 }
                 value={`${currency}${formatMoney(monthSale)}`}
-                caption={t("description.billCount", { count: monthOrders.length })}
+                caption={t("description.billCount", {
+                  count: monthOrders.length,
+                })}
               />
             </IMSGrid>
             <IMSGrid item xs={6} md={6}>

@@ -11,7 +11,7 @@ const PageHeader = ({ title, subtitle, actions, divider = true }) => (
   <>
     <IMSStack
       direction={{ xs: "column", sm: "row" }}
-      alignItems={{ xs: "stretch", sm: "flex-start" }}
+      alignItems="center"
       spacing={{ xs: 1.5, sm: 2 }}
       sx={{ mb: divider ? 2 : 0 }}
     >

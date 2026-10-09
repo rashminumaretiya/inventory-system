@@ -167,19 +167,19 @@ const Orders = () => {
           ? textMatches(order?.customerInfo?.vendorName, term) ||
             order?.invoiceNo?.toLowerCase().includes(term) ||
             order?.customerInfo?.vendorPhone?.includes(term)
-          : true
+          : true,
       )
       .filter((order) =>
         billDate
           ? dayjs(order?.billingDate).isSame(dayjs(billDate), "day")
-          : true
+          : true,
       )
       .filter((order) => (unpaidOnly ? orderOutstanding(order) > 0 : true))
       .slice()
       .sort((a, b) =>
         direction === "asc"
           ? compare(a, b, orderBy, type)
-          : compare(b, a, orderBy, type)
+          : compare(b, a, orderBy, type),
       );
   }, [orderList, searchText, billDate, orderBy, direction, unpaidOnly]);
 
@@ -206,7 +206,7 @@ const Orders = () => {
       (order.order || []).forEach((line) => {
         restored.set(
           line.id,
-          (restored.get(line.id) || 0) + lineBaseQuantity(line)
+          (restored.get(line.id) || 0) + lineBaseQuantity(line),
         );
       });
 
@@ -257,7 +257,7 @@ const Orders = () => {
         const existingRows = existing.data || [];
         const seen = new Set(existingRows.map((row) => String(row.id)));
         const seenInvoices = new Set(
-          existingRows.map((row) => row.invoiceNo).filter(Boolean)
+          existingRows.map((row) => row.invoiceNo).filter(Boolean),
         );
 
         const fresh = rows.filter((row) => {
@@ -289,7 +289,7 @@ const Orders = () => {
   const owed = useMemo(() => totalOutstanding(orderList), [orderList]);
   const unpaidCount = useMemo(
     () => orderList.filter((order) => orderOutstanding(order) > 0).length,
-    [orderList]
+    [orderList],
   );
 
   /** Read from the list, so a payment collected meanwhile shows at once. */
@@ -314,7 +314,7 @@ const Orders = () => {
 
   const pageRows = visibleOrders.slice(
     page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
+    page * rowsPerPage + rowsPerPage,
   );
 
   const sortLabel = (property, label) => (
@@ -384,7 +384,7 @@ const Orders = () => {
       <PageHeader
         title={t("menu.orders")}
         subtitle={t("pageSubtitle.orders")}
-        divider={false}
+        divider={true}
         actions={
           <IMSButton
             component="label"
@@ -429,9 +429,7 @@ const Orders = () => {
               size="small"
               exclusive
               value={unpaidOnly}
-              onChange={(event, next) =>
-                next !== null && setUnpaidOnly(next)
-              }
+              onChange={(event, next) => next !== null && setUnpaidOnly(next)}
               sx={{ flexShrink: 0 }}
             >
               <ToggleButton value={false}>{t("menu.all")}</ToggleButton>
@@ -470,7 +468,7 @@ const Orders = () => {
                   />
                 }
                 subtitle={`${data?.customerInfo?.vendorName || "—"} · ${dayjs(
-                  data?.billingDate
+                  data?.billingDate,
                 ).format("DD/MM/YYYY")}`}
                 rows={[
                   {

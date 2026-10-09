@@ -101,7 +101,8 @@ const Product = () => {
   // can also ask for a status filter or the Add Product dialog.
   useEffect(() => {
     if (location.state?.search) setSearchText(location.state.search);
-    if (location.state?.statusFilter) setStatusFilter(location.state.statusFilter);
+    if (location.state?.statusFilter)
+      setStatusFilter(location.state.statusFilter);
     if (location.state?.add) setShow(true);
   }, [location.state]);
 
@@ -132,13 +133,11 @@ const Product = () => {
   const visibleProducts = useMemo(() => {
     const term = searchText.trim().toLowerCase();
     return products
-      .filter((product) =>
-        term ? textMatches(product.itemName, term) : true
-      )
+      .filter((product) => (term ? textMatches(product.itemName, term) : true))
       .filter((product) =>
         statusFilter === "all"
           ? true
-          : stockStatus(product, settings.lowStockThreshold) === statusFilter
+          : stockStatus(product, settings.lowStockThreshold) === statusFilter,
       )
       .slice()
       .sort((a, b) => (a.itemName || "").localeCompare(b.itemName || ""));
@@ -201,7 +200,7 @@ const Product = () => {
 
   const pageRows = visibleProducts.slice(
     page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
+    page * rowsPerPage + rowsPerPage,
   );
 
   const emptyState = (
@@ -219,7 +218,6 @@ const Product = () => {
       <PageHeader
         title={t("menu.product")}
         subtitle={t("pageSubtitle.product")}
-        divider={false}
         actions={
           <IMSButton variant="contained" onClick={() => setShow(true)}>
             {t("buttonText.addProduct")}
@@ -262,13 +260,13 @@ const Product = () => {
               title={data?.itemName}
               titleAdornment={statusChip(data)}
               subtitle={`${settings.currencySymbol}${formatMoney(
-                data?.price
+                data?.price,
               )} / ${baseUnitOf(data?.quantityCategory)}`}
               rows={[
                 {
                   label: t("formLabel.stock"),
                   value: `${formatQuantity(
-                    productStockInBase(data)
+                    productStockInBase(data),
                   )} ${baseUnitOf(data?.quantityCategory)}`,
                   strong: true,
                 },

@@ -98,7 +98,8 @@ const Dashboard = () => {
   useEffect(() => {
     const focusIn = (ref) => ref.current?.querySelector("input")?.focus();
     const handler = (event) => {
-      if (event.ctrlKey || event.metaKey || event.altKey || overlayOpen()) return;
+      if (event.ctrlKey || event.metaKey || event.altKey || overlayOpen())
+        return;
       const run = {
         F2: () => focusIn(itemFieldRef),
         F4: () => focusIn(customerFieldRef),
@@ -533,7 +534,9 @@ const Dashboard = () => {
                 ...rowForm,
               }}
             >
-              <Box ref={itemFieldRef}>{renderField(fieldNamed("itemName"))}</Box>
+              <Box ref={itemFieldRef}>
+                {renderField(fieldNamed("itemName"))}
+              </Box>
               <IMSStack
                 direction="row"
                 spacing={1}
@@ -617,7 +620,7 @@ const Dashboard = () => {
                 color={sheetHasError ? "error" : "black"}
                 startIcon={sheetHasError ? <ErrorOutlineIcon /> : <TuneIcon />}
                 onClick={() => setDetailsOpen(true)}
-                sx={{ flex: 1.4, minWidth: 0 }}
+                sx={{ flex: 2, minWidth: 0 }}
               >
                 {t("description.billDetails")}
               </IMSButton>

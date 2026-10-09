@@ -77,7 +77,7 @@ const Layout = () => {
         sx={{
           flexGrow: 1,
           minWidth: 0,
-          px: { xs: 2, sm: 2.5, md: 3 },
+          px: { xs: 1, sm: 2.5, md: 3 },
           pt: { xs: `${56 + 16}px`, md: `${DESKTOP_PAGE_GUTTER}px` },
           // Leave room for the phone tab bar plus the home indicator.
           pb: {
