@@ -90,3 +90,15 @@ describe("hsnOptional", () => {
     expect(run("hsnOptional", "08A3")).toBe("errorMsg.validHSN");
   });
 });
+
+describe("upiIdOptional", () => {
+  it("may be left empty, for a shop without a payment QR", () => {
+    expect(run("upiIdOptional", "")).toBeUndefined();
+    expect(run("upiIdOptional", "  ")).toBeUndefined();
+  });
+  it("accepts a UPI ID and rejects anything else", () => {
+    expect(run("upiIdOptional", "9876543210@ybl")).toBeUndefined();
+    expect(run("upiIdOptional", "9876543210")).toBe("errorMsg.validUpiId");
+    expect(run("upiIdOptional", "shop@")).toBe("errorMsg.validUpiId");
+  });
+});

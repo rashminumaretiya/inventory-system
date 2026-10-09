@@ -78,10 +78,32 @@ not added to the Customers screen; use *+ New* for that.
 ## Shop settings
 
 Shop name, address, phone, GSTIN, invoice prefix, GST rate, low-stock threshold,
-the printed bill's paper size and language, receipt footer, which notifications
-appear and the daily backup hour are all editable under **Settings** and stored
-in `localStorage`. They drive the printed bill, the GST applied to every bill
-and the low-stock warnings, so none of it is hard-coded.
+the printed bill's paper size and language, receipt footer, the UPI ID for
+payment QRs, which notifications appear and the daily backup hour are all
+editable under **Settings** and stored in `localStorage`. They drive the printed
+bill, the GST applied to every bill and the low-stock warnings, so none of it is
+hard-coded.
+
+## Paying online by UPI QR
+
+Set the shop's UPI ID once under **Settings → Billing → Online payment QR**.
+Then, when a bill's payment is **Online**, the billing screen shows a UPI QR in
+place of *Amount Paid*. The QR is for the bill's total and follows it as items
+are added. The customer scans it with Google Pay, PhonePe, Paytm or any UPI app,
+and the app opens with the amount already filled in, so they only enter their
+UPI PIN. *Show bigger* opens it full size, to turn the screen to the customer.
+
+- The QR holds a standard `upi://pay` link
+  ([`src/utils/upi.js`](src/utils/upi.js)): the UPI ID, the amount, `INR` and the
+  note *Bill DT_7*. The money goes straight from the customer's bank to the
+  shop's; no gateway, account or server of ours is involved.
+- The payee name is the optional *Name for UPI*, or the shop name. It is left
+  out when it is not plain English text, because some UPI apps reject anything
+  else; the app then shows the name the bank holds for the ID.
+- An Online bill is saved as paid in full (`amountPaid` = total, no change, no
+  balance). The shopkeeper should save it once the payment shows on their phone,
+  because the app cannot see the payment itself.
+- Without a UPI ID, the QR's place says so, with a button to Settings.
 
 ## Printed bill
 
@@ -323,12 +345,12 @@ how the billing form stacks on a phone without any per-screen media queries.
 npm test
 ```
 
-415 tests across 27 suites, among them:
+443 tests across 29 suites, among them:
 
 - `src/utils/*.test.js` — billing maths, payment allocation and dues,
   validation, reporting, notification rules, the backup schedule, Gujarati
-  typing, the PIN, search ranking, WhatsApp numbers and messages, and the
-  customer on a bill (typed or picked). The
+  typing, the PIN, search ranking, WhatsApp numbers and messages, UPI payment
+  links, and the customer on a bill (typed or picked). The
   billing tests assert against the real rows in `database.json`, so a change
   that would reprice historical orders fails.
 - `src/utils/invoice.test.js` and `invoiceDoc.test.js` — the printed bill:

@@ -274,6 +274,27 @@ describe("Settings screen", () => {
     });
   });
 
+  it("keeps the shop's UPI ID for the payment QR, and checks it", async () => {
+    mount(<Settings />);
+    openTab(/billing/i);
+
+    const upiId = screen.getByRole("textbox", { name: /shop upi id/i });
+    fireEvent.change(upiId, { target: { value: "9876543210" } });
+    expect(await screen.findByText(/valid upi id/i)).toBeInTheDocument();
+
+    fireEvent.change(upiId, { target: { value: " 9876543210@ybl " } });
+    fireEvent.change(screen.getByRole("textbox", { name: /name for upi/i }), {
+      target: { value: "Devangi Tobacco" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^Save$/ }));
+
+    await waitFor(() => {
+      const stored = JSON.parse(localStorage.getItem("shopSettings"));
+      expect(stored.upiId).toBe("9876543210@ybl");
+      expect(stored.upiName).toBe("Devangi Tobacco");
+    });
+  });
+
   it("rejects a GST rate above 100", async () => {
     mount(<Settings />);
     openTab(/billing/i);

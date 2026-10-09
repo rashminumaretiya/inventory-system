@@ -20,6 +20,10 @@ jest.mock("../../../api", () => ({ apiResponse: jest.fn() }));
 jest.mock("../print", () => ({
   Print: () => ({ generateReceipt: jest.fn(), downloadReceipt: jest.fn() }),
 }));
+// What the QR holds is what matters here; drawing it is the library's job.
+jest.mock("qrcode.react", () => ({
+  QRCodeSVG: ({ value }) => <svg data-testid="upi-qr-code" data-value={value} />,
+}));
 
 const products = [
   { id: "p-potato", itemName: "Potato", price: "11", stock: "9.000", quantityCategory: "Kg", hsn: "0701" },
@@ -267,6 +271,78 @@ describe("bill totals", () => {
     type(field(/amount paid/i), "10");
     await waitFor(() => expect(amount("balanceDue")).toBe(12));
     expect(amount("changeDue")).toBe(0);
+  });
+});
+
+describe("paying online by UPI QR", () => {
+  const setPayment = async (mode) => {
+    const select = within(screen.getByTestId("payment-select")).getByRole("combobox");
+    fireEvent.mouseDown(select);
+    fireEvent.click(await screen.findByRole("option", { name: mode }));
+  };
+  const qrValues = () =>
+    screen.getAllByTestId("upi-qr-code").map((qr) => qr.getAttribute("data-value"));
+
+  it("shows a QR for the bill's total in place of Amount Paid", async () => {
+    localStorage.setItem(
+      "shopSettings",
+      JSON.stringify({ upiId: "9876543210@ybl", upiName: "Devangi Tobacco" })
+    );
+    renderDashboard();
+    await ready();
+
+    await addLine("Potato", 2);
+    expect(field(/amount paid/i)).toBeInTheDocument();
+
+    await setPayment("Online");
+    expect(screen.queryByRole("spinbutton", { name: /amount paid/i })).not.toBeInTheDocument();
+    expect(qrValues()).toEqual([
+      "upi://pay?pa=9876543210@ybl&pn=Devangi%20Tobacco&am=22.00&cu=INR&tn=Bill%20DT_5",
+    ]);
+    expect(screen.getByText("Scan to pay")).toBeInTheDocument();
+    // Paid in full by the QR, so there is no change or balance to show.
+    expect(screen.queryByTestId("summary-balanceDue")).not.toBeInTheDocument();
+
+    // The QR follows the bill.
+    await addLine("Waffer", 1, "Pcs.");
+    await waitFor(() => expect(qrValues()[0]).toContain("&am=32.00&"));
+
+    // Shown full size for the customer, with the same payment in it.
+    fireEvent.click(screen.getByRole("button", { name: "Show bigger" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByTestId("upi-qr-code").getAttribute("data-value")).toBe(qrValues()[0]);
+  });
+
+  it("saves an online bill as paid in full", async () => {
+    localStorage.setItem("shopSettings", JSON.stringify({ upiId: "shop@upi" }));
+    renderDashboard();
+    await ready();
+
+    await addLine("Potato", 2);
+    type(field(/amount paid/i), "5"); // typed before switching, then ignored
+    await setPayment("Online");
+    await pickOption(/customer name/i, "Jay");
+    fireEvent.click(screen.getByRole("button", { name: /^save$/i }));
+
+    await waitFor(() => expect(posted).toHaveLength(1));
+    expect(posted[0].payload).toMatchObject({
+      payment: "Online",
+      total: "22.00",
+      amountPaid: 22,
+      changeDue: 0,
+      balanceDue: 0,
+    });
+  });
+
+  it("asks for the shop's UPI ID when there is none yet", async () => {
+    renderDashboard();
+    await ready();
+
+    await addLine("Potato", 2);
+    await setPayment("Online");
+    expect(screen.queryByTestId("upi-qr-code")).not.toBeInTheDocument();
+    expect(screen.getByText(/add your shop's upi id in settings/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Add UPI ID" })).toBeInTheDocument();
   });
 });
 

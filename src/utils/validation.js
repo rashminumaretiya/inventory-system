@@ -1,3 +1,5 @@
+import { isUpiId } from "./upi";
+
 const isBlank = (value) =>
   value === "" || value === null || value === undefined;
 
@@ -76,6 +78,12 @@ const validation = (pattern, value, label, t) => {
     if (!/^\d{4,8}$/.test(String(value).trim())) return t("errorMsg.validHSN");
   };
 
+  /** A UPI ID such as 9876543210@ybl; empty means no payment QR. */
+  const upiIdOptional = () => {
+    if (isBlank(value) || String(value).trim() === "") return;
+    if (!isUpiId(value)) return t("errorMsg.validUpiId");
+  };
+
   switch (pattern) {
     case "notEmpty":
       return notEmpty();
@@ -97,6 +105,8 @@ const validation = (pattern, value, label, t) => {
       return hour();
     case "hsnOptional":
       return hsnOptional();
+    case "upiIdOptional":
+      return upiIdOptional();
     default:
       return "";
   }

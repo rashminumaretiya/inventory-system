@@ -26,6 +26,10 @@ export const defaultSettings = {
   billPaper: "A4",
   /** The printed bill's language, which can differ from the app's. */
   billLanguage: "gu",
+  /** Where an Online bill's QR code sends the money, e.g. 9876543210@ybl. */
+  upiId: "",
+  /** Who the payer sees they are paying; the bank's name for the ID if blank. */
+  upiName: "",
 };
 
 export const getSettings = () => {
@@ -160,5 +164,22 @@ export const settingsFields = [
       { value: "gu", label: "ગુજરાતી" },
       { value: "en", label: "English" },
     ],
+  },
+  {
+    name: "upiId",
+    type: "text",
+    label: "formLabel.upiId",
+    xs: 12,
+    md: 6,
+    pattern: "upiIdOptional",
+    inputProps: { autoCapitalize: "none", spellCheck: false },
+  },
+  {
+    // UPI apps want plain English here, so no Gujarati typing.
+    name: "upiName",
+    type: "text",
+    label: "formLabel.upiName",
+    xs: 12,
+    md: 6,
   },
 ];

@@ -3,6 +3,7 @@ import { FormControlLabel, Switch } from "@mui/material";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 
 import IMSButton from "../../shared/IMSButton";
 import IMSDialog from "../../shared/IMSDialog";
@@ -30,6 +31,8 @@ const TAB_FIELDS = {
     "billPaper",
     "billLanguage",
     "receiptFooter",
+    "upiId",
+    "upiName",
   ],
   security: ["autoLockMinutes"],
 };
@@ -41,7 +44,9 @@ const Settings = () => {
   const { t } = useTranslation();
   const { settings, updateSettings } = useSettings();
   const { lock } = useAuth();
-  const [tab, setTab] = useState("shop");
+  // Another screen can open a tab, e.g. billing's "Add UPI ID".
+  const location = useLocation();
+  const [tab, setTab] = useState(location.state?.tab || "shop");
   const [formData, setFormData] = useState(settings);
   const [error, setError] = useState({});
   const [backingUp, setBackingUp] = useState(false);
@@ -90,6 +95,8 @@ const Settings = () => {
       backupHour: Number(formData.backupHour),
       autoLockMinutes: Number(formData.autoLockMinutes),
       shopGSTIN: formData.shopGSTIN?.trim().toUpperCase() || "",
+      upiId: formData.upiId?.trim() || "",
+      upiName: formData.upiName?.trim() || "",
     });
     toast.success(t("toast.settingsSaved"));
   };
@@ -198,6 +205,12 @@ const Settings = () => {
               description={t("description.printedBillHelp")}
             >
               {fieldGroup(["billPaper", "billLanguage"])}
+            </SettingsSection>
+            <SettingsSection
+              title={t("description.upiSection")}
+              description={t("description.upiSectionHelp")}
+            >
+              {fieldGroup(["upiId", "upiName"])}
             </SettingsSection>
             <SettingsSection
               title={t("formLabel.receiptFooter")}

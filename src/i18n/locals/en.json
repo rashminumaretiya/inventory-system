@@ -75,7 +75,9 @@
     "due": "Due",
     "withDues": "With dues {{count}} · {{amount}}",
     "printedBill": "Printed bill",
-    "printedBillHelp": "A4 or A5 prints a full tax invoice, like a bill book. Thermal prints a narrow till receipt. The bill can be in a different language from the app."
+    "printedBillHelp": "A4 or A5 prints a full tax invoice, like a bill book. Thermal prints a narrow till receipt. The bill can be in a different language from the app.",
+    "upiSection": "Online payment QR (UPI)",
+    "upiSectionHelp": "When a bill's payment is Online, billing shows a QR code for the bill amount. The customer scans it with any UPI app and the amount is filled in for them; the money goes straight to this UPI ID. Leave the name blank to show the name your bank has for the ID."
   },
   "menu": {
     "dashboard": "Billing",
@@ -141,7 +143,9 @@
     "qty": "Qty",
     "hsn": "HSN Code",
     "billPaper": "Bill paper size",
-    "billLanguage": "Bill language"
+    "billLanguage": "Bill language",
+    "upiId": "Shop UPI ID",
+    "upiName": "Name for UPI (in English, optional)"
   },
   "errorMsg": {
     "pleaseEnter": "Please enter {{field}}",
@@ -157,7 +161,8 @@
     "stockShort": "Only {{stock}} {{unit}} left in stock",
     "stockShortNamed": "{{item}}: only {{stock}} {{unit}} left in stock",
     "moreThanOwed": "That is more than the {{owed}} owed",
-    "validHSN": "An HSN code is 4 to 8 digits"
+    "validHSN": "An HSN code is 4 to 8 digits",
+    "validUpiId": "Enter a valid UPI ID, like 9876543210@ybl"
   },
   "toast": {
     "loadFailed": "Could not load data. Check your connection.",
@@ -356,5 +361,16 @@
     "paperThermal": "Thermal receipt (80 mm)",
     "item": "Item",
     "subtotal": "Subtotal"
+  },
+  "upi": {
+    "scanToPay": "Scan to pay",
+    "anyApp": "Google Pay, PhonePe, Paytm or any UPI app",
+    "payTo": "UPI ID: {{upiId}}",
+    "enlarge": "Show bigger",
+    "noUpiId": "Add your shop's UPI ID in Settings to show a payment QR here.",
+    "addUpiId": "Add UPI ID",
+    "noAmount": "Add items to the bill to show the payment QR.",
+    "close": "Close",
+    "qrLabel": "UPI QR code for {{amount}}"
   }
 }

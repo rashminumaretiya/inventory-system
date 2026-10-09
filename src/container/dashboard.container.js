@@ -149,8 +149,14 @@ const DashboardContainer = ({ onSaved } = {}) => {
     [addData, formData.GST, formData.discount, settings.gstRate]
   );
 
+  // Online is paid by scanning the bill's UPI QR, which carries the whole
+  // total, so there is no Amount Paid to enter and nothing left owing.
   const amountPaid =
-    formData.payment === "Pending" ? 0 : num(formData.amountPay);
+    formData.payment === "Pending"
+      ? 0
+      : formData.payment === "Online"
+        ? totals.total
+        : num(formData.amountPay);
   const change = changeDue(amountPaid, totals.total);
   const balance = balanceDue(amountPaid, totals.total);
 

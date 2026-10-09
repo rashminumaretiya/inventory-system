@@ -37,6 +37,7 @@ import AddProduct from "./addProduct";
 import { Print } from "./print";
 import ProductTable from "./productTable";
 import { announceSaved } from "./savedToast";
+import UpiQr from "./upiQr";
 
 const hideOnPrint = { "@media print": { display: "none" } };
 
@@ -266,6 +267,26 @@ const Dashboard = () => {
   const currency = settings.currencySymbol;
   const changeDue = num(receiptData.changeDue);
   const balanceDue = num(receiptData.balanceDue);
+  const isOnline = formData.payment === "Online";
+
+  /**
+   * Payment and Amount Paid. Online is paid by scanning a UPI QR for the
+   * whole bill, so the QR takes Amount Paid's place.
+   */
+  const tender = (columnSpacing) =>
+    isOnline ? (
+      <>
+        {fieldGrid(
+          (group.tender || [])
+            .filter((field) => field.name !== "amountPay")
+            .map((field) => ({ ...field, xs: 12, md: 12 })),
+          columnSpacing,
+        )}
+        <UpiQr amount={totals.total} invoiceNo={receiptData.invoiceNo} />
+      </>
+    ) : (
+      fieldGrid(group.tender, columnSpacing)
+    );
 
   /** Everything that lives in the phone's Bill Details sheet, not on screen. */
   const sheetCustomer = (group.customer || []).filter(
@@ -405,14 +426,19 @@ const Dashboard = () => {
         </IMSTypography>
       </IMSStack>
 
-      <Divider sx={{ my: 1, borderColor: "primary.main", opacity: 0.25 }} />
+      {/* An Online bill is paid in full by the QR: no change, nothing due. */}
+      {!isOnline && (
+        <>
+          <Divider sx={{ my: 1, borderColor: "primary.main", opacity: 0.25 }} />
 
-      {summaryRow("changeDue", t("formLabel.changeDue"), changeDue, {
-        tone: changeDue > 0 ? "success.main" : "text.secondary",
-      })}
-      {summaryRow("balanceDue", t("formLabel.balanceDue"), balanceDue, {
-        tone: balanceDue > 0 ? "error.main" : "text.secondary",
-      })}
+          {summaryRow("changeDue", t("formLabel.changeDue"), changeDue, {
+            tone: changeDue > 0 ? "success.main" : "text.secondary",
+          })}
+          {summaryRow("balanceDue", t("formLabel.balanceDue"), balanceDue, {
+            tone: balanceDue > 0 ? "error.main" : "text.secondary",
+          })}
+        </>
+      )}
     </IMSBox>
   );
 
@@ -661,7 +687,7 @@ const Dashboard = () => {
           {fieldGrid(group.invoice)}
           {fieldGrid(sheetCustomer)}
           {fieldGrid(group.payment)}
-          {fieldGrid(group.tender)}
+          {tender()}
           <IMSBox sx={{ my: 1.5 }}>{summary}</IMSBox>
           <IMSButton
             variant="contained"
@@ -784,7 +810,7 @@ const Dashboard = () => {
               bgcolor: "white.main",
             }}
           >
-            <IMSBox>{fieldGrid(group.tender, 1.5)}</IMSBox>
+            <IMSBox>{tender(1.5)}</IMSBox>
             {summary}
             <IMSStack spacing={1} sx={{ mt: 1.5 }}>
               {saveButton}
